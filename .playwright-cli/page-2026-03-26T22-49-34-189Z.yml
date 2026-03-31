@@ -1,0 +1,528 @@
+- generic [ref=e5]:
+  - complementary "Workspace navigation" [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]: AM
+      - generic [ref=e10]:
+        - heading "AfroSpice Main Branch" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Retail operations workspace
+    - generic [ref=e13]:
+      - generic [ref=e14]: Current workspace
+      - strong [ref=e15]: Suppliers
+      - paragraph [ref=e16]: Inbound exposure, fill rate, lead time, and supplier pressure.
+    - navigation [ref=e17]:
+      - link "Dashboard Executive Flight Deck" [ref=e18] [cursor=pointer]:
+        - /url: /
+        - img [ref=e20]
+        - generic [ref=e23]:
+          - strong [ref=e24]: Dashboard
+          - generic [ref=e25]: Executive Flight Deck
+      - link "Inventory Inventory Command" [ref=e26] [cursor=pointer]:
+        - /url: /pos-dashboard
+        - img [ref=e28]
+        - generic [ref=e31]:
+          - strong [ref=e32]: Inventory
+          - generic [ref=e33]: Inventory Command
+      - link "POS Terminal Checkout Studio" [ref=e34] [cursor=pointer]:
+        - /url: /terminal
+        - img [ref=e36]
+        - generic [ref=e38]:
+          - strong [ref=e39]: POS Terminal
+          - generic [ref=e40]: Checkout Studio
+      - link "Orders Transaction Intelligence" [ref=e41] [cursor=pointer]:
+        - /url: /orders
+        - img [ref=e43]
+        - generic [ref=e47]:
+          - strong [ref=e48]: Orders
+          - generic [ref=e49]: Transaction Intelligence
+      - link "Reports Strategy Studio" [ref=e50] [cursor=pointer]:
+        - /url: /reports
+        - img [ref=e52]
+        - generic [ref=e53]:
+          - strong [ref=e54]: Reports
+          - generic [ref=e55]: Strategy Studio
+      - link "Customers Customer Intelligence" [ref=e56] [cursor=pointer]:
+        - /url: /customers
+        - img [ref=e58]
+        - generic [ref=e63]:
+          - strong [ref=e64]: Customers
+          - generic [ref=e65]: Customer Intelligence
+      - link "Suppliers Supplier Control" [ref=e66] [cursor=pointer]:
+        - /url: /suppliers
+        - img [ref=e68]
+        - generic [ref=e73]:
+          - strong [ref=e74]: Suppliers
+          - generic [ref=e75]: Supplier Control
+      - link "Users Workforce Control" [ref=e76] [cursor=pointer]:
+        - /url: /users
+        - img [ref=e78]
+        - generic [ref=e82]:
+          - strong [ref=e83]: Users
+          - generic [ref=e84]: Workforce Control
+      - link "Settings Operating Controls" [ref=e85] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e87]
+        - generic [ref=e90]:
+          - strong [ref=e91]: Settings
+          - generic [ref=e92]: Operating Controls
+    - generic [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]: Branch
+        - strong [ref=e96]: AFR-MAIN-001
+        - generic [ref=e97]: AfroSpice Main Branch
+      - generic [ref=e98]:
+        - generic [ref=e99]: Support
+        - strong [ref=e100]: support@afrospice.com
+        - generic [ref=e101]: +1 226 555 0199
+  - generic [ref=e102]:
+    - generic [ref=e103]:
+      - generic [ref=e105]:
+        - paragraph [ref=e106]: Supplier Control
+        - heading "Suppliers" [level=2] [ref=e107]
+        - paragraph [ref=e108]: Inbound exposure, fill rate, lead time, and supplier pressure.
+      - generic [ref=e109]:
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - img [ref=e113]
+            - generic [ref=e116]:
+              - generic [ref=e117]: Branch
+              - strong [ref=e118]: AFR-MAIN-001
+          - generic [ref=e119]:
+            - img [ref=e121]
+            - generic [ref=e123]:
+              - generic [ref=e124]: Currency
+              - strong [ref=e125]: USD
+          - generic [ref=e126]:
+            - img [ref=e128]
+            - generic [ref=e132]:
+              - generic [ref=e133]: Role
+              - strong [ref=e134]: Owner
+          - generic [ref=e135]:
+            - img [ref=e137]
+            - generic [ref=e139]:
+              - generic [ref=e140]: Threshold
+              - strong [ref=e141]: 10 units
+        - button "SO Store Owner Owner" [ref=e143] [cursor=pointer]:
+          - generic [ref=e144]: SO
+          - generic [ref=e145]:
+            - strong [ref=e146]: Store Owner
+            - generic [ref=e147]: Owner
+    - main [ref=e148]:
+      - generic [ref=e149]:
+        - generic [ref=e150]:
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - paragraph [ref=e153]: Procurement Desk
+              - heading "Supplier Management" [level=2] [ref=e154]
+              - paragraph [ref=e155]: Supplier cover is stable enough to operate cleanly.
+            - generic [ref=e157]:
+              - combobox [ref=e158]:
+                - option "Daily"
+                - option "Weekly"
+                - option "Monthly" [selected]
+                - option "Yearly"
+              - button "Refresh" [ref=e159] [cursor=pointer]
+          - generic [ref=e160]:
+            - article [ref=e161]:
+              - generic [ref=e162]: Tracked Suppliers
+              - generic [ref=e163]: "20"
+              - generic [ref=e164]: Suppliers carrying inventory or inbound commitments.
+              - emphasis [ref=e165]: 19 active
+            - article [ref=e166]:
+              - generic [ref=e167]: Weighted Fill Rate
+              - generic [ref=e168]: 0.0%
+              - generic [ref=e169]: Receipt completeness across tracked purchase order history.
+              - emphasis [ref=e170]: 48/100 service
+            - article [ref=e171]:
+              - generic [ref=e172]: Average Lead Time
+              - generic [ref=e173]: 1.8 days
+              - generic [ref=e174]: Mean supplier turnaround from ordering to receiving.
+              - emphasis [ref=e175]: 2 under pressure
+        - generic [ref=e638]: Runtime Supplier CRUD updated successfully.
+        - generic [ref=e176]:
+          - article [ref=e177]:
+            - generic [ref=e179]:
+              - heading "Service Board" [level=3] [ref=e180]
+              - paragraph [ref=e181]: The supplier network view for service, fill, and inbound pressure.
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - generic [ref=e639]:
+                  - generic [ref=e640]:
+                    - generic [ref=e641]: "01"
+                    - generic [ref=e642]:
+                      - strong [ref=e643]: Golden Grain
+                      - generic [ref=e644]: Watch supplier posture
+                    - generic [ref=e645]:
+                      - strong [ref=e646]: 35/100
+                      - generic [ref=e647]: 0.0% fill / 0.0d lead
+                  - generic [ref=e648]:
+                    - generic [ref=e649]: "02"
+                    - generic [ref=e650]:
+                      - strong [ref=e651]: Prime Farm
+                      - generic [ref=e652]: Watch supplier posture
+                    - generic [ref=e653]:
+                      - strong [ref=e654]: 35/100
+                      - generic [ref=e655]: 0.0% fill / 0.0d lead
+                  - generic [ref=e656]:
+                    - generic [ref=e657]: "03"
+                    - generic [ref=e658]:
+                      - strong [ref=e659]: Rootline Mills
+                      - generic [ref=e660]: Stable supplier posture
+                    - generic [ref=e661]:
+                      - strong [ref=e662]: 49/100
+                      - generic [ref=e663]: 0.0% fill / 4.0d lead
+                  - generic [ref=e664]:
+                    - generic [ref=e665]: "04"
+                    - generic [ref=e666]:
+                      - strong [ref=e667]: Fresh Foods
+                      - generic [ref=e668]: Stable supplier posture
+                    - generic [ref=e669]:
+                      - strong [ref=e670]: 49/100
+                      - generic [ref=e671]: 0.0% fill / 0.5d lead
+                  - generic [ref=e672]:
+                    - generic [ref=e673]: "05"
+                    - generic [ref=e674]:
+                      - strong [ref=e675]: Mama Gold Foods
+                      - generic [ref=e676]: Stable supplier posture
+                    - generic [ref=e677]:
+                      - strong [ref=e678]: 49/100
+                      - generic [ref=e679]: 0.0% fill / 1.0d lead
+                  - generic [ref=e680]:
+                    - generic [ref=e681]: "06"
+                    - generic [ref=e682]:
+                      - strong [ref=e683]: Mill House
+                      - generic [ref=e684]: Stable supplier posture
+                    - generic [ref=e685]:
+                      - strong [ref=e686]: 49/100
+                      - generic [ref=e687]: 0.0% fill / 0.0d lead
+                - generic [ref=e233]:
+                  - article [ref=e234]:
+                    - generic [ref=e235]: Lead supplier
+                    - strong [ref=e236]: Golden Grain
+                    - generic [ref=e237]: 3 open orders and 0 low-stock lines.
+                  - article [ref=e238]:
+                    - generic [ref=e239]: Open commitment
+                    - strong [ref=e240]: USD 1,969.99
+                    - generic [ref=e241]: Inbound value not yet landed into stock.
+                  - article [ref=e242]:
+                    - generic [ref=e243]: Exposure
+                    - strong [ref=e244]: 0 exposed SKUs
+                    - generic [ref=e245]: Critical lines still waiting on supplier continuity.
+              - complementary [ref=e246]:
+                - generic [ref=e247]:
+                  - generic [ref=e248]: success
+                  - generic [ref=e249]: Network brief
+                - heading "Supplier cover is stable enough to operate cleanly." [level=4] [ref=e250]
+                - paragraph [ref=e251]: 19 suppliers are active and USD 1,969.99 is still sitting in open purchase orders.
+                - generic [ref=e252]:
+                  - generic [ref=e253]:
+                    - generic [ref=e254]: Why it matters
+                    - strong [ref=e255]: Supplier quality determines whether planned replenishment becomes real stock on the shelf.
+                  - generic [ref=e256]:
+                    - generic [ref=e257]: Next move
+                    - strong [ref=e258]: Close the biggest open commitment with Golden Grain before exposed SKUs turn into floor breaks.
+          - article [ref=e259]:
+            - generic [ref=e261]:
+              - heading "Supplier Directory" [level=3] [ref=e262]
+              - paragraph [ref=e263]: Select a supplier to edit, or start a new procurement record.
+            - generic [ref=e264]:
+              - article [ref=e265]:
+                - generic [ref=e266]: Active
+                - strong [ref=e267]: "19"
+                - generic [ref=e268]: Suppliers currently eligible for procurement flows.
+              - article [ref=e269]:
+                - generic [ref=e270]: Inactive
+                - strong [ref=e271]: "1"
+                - generic [ref=e272]: Records kept for history but not preferred for new commitments.
+            - generic [ref=e273]:
+              - textbox "Search by supplier, contact, email, phone, or notes" [ref=e274]
+              - button "New Supplier" [ref=e275] [cursor=pointer]
+            - generic [ref=e276]:
+              - button "Clear Spring No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e277] [cursor=pointer]:
+                - generic [ref=e278]:
+                  - strong [ref=e279]: Clear Spring
+                  - generic [ref=e280]: No contact details yet.
+                - generic [ref=e281]:
+                  - generic [ref=e282]: Active
+                  - generic [ref=e283]: Updated 3/26/2026, 1:50:34 AM
+              - button "Coca-Cola No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e284] [cursor=pointer]:
+                - generic [ref=e285]:
+                  - strong [ref=e286]: Coca-Cola
+                  - generic [ref=e287]: No contact details yet.
+                - generic [ref=e288]:
+                  - generic [ref=e289]: Active
+                  - generic [ref=e290]: Updated 3/26/2026, 1:50:34 AM
+              - button "CreamLine No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e291] [cursor=pointer]:
+                - generic [ref=e292]:
+                  - strong [ref=e293]: CreamLine
+                  - generic [ref=e294]: No contact details yet.
+                - generic [ref=e295]:
+                  - generic [ref=e296]: Active
+                  - generic [ref=e297]: Updated 3/26/2026, 1:50:34 AM
+              - button "Crunch House No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e298] [cursor=pointer]:
+                - generic [ref=e299]:
+                  - strong [ref=e300]: Crunch House
+                  - generic [ref=e301]: No contact details yet.
+                - generic [ref=e302]:
+                  - generic [ref=e303]: Active
+                  - generic [ref=e304]: Updated 3/26/2026, 1:50:34 AM
+              - button "Farm Fresh No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e305] [cursor=pointer]:
+                - generic [ref=e306]:
+                  - strong [ref=e307]: Farm Fresh
+                  - generic [ref=e308]: No contact details yet.
+                - generic [ref=e309]:
+                  - generic [ref=e310]: Active
+                  - generic [ref=e311]: Updated 3/26/2026, 1:50:34 AM
+              - button "Fresh Foods No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e312] [cursor=pointer]:
+                - generic [ref=e313]:
+                  - strong [ref=e314]: Fresh Foods
+                  - generic [ref=e315]: No contact details yet.
+                - generic [ref=e316]:
+                  - generic [ref=e317]: Active
+                  - generic [ref=e318]: Updated 3/26/2026, 1:50:34 AM
+              - button "Golden Grain No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e319] [cursor=pointer]:
+                - generic [ref=e320]:
+                  - strong [ref=e321]: Golden Grain
+                  - generic [ref=e322]: No contact details yet.
+                - generic [ref=e323]:
+                  - generic [ref=e324]: Active
+                  - generic [ref=e325]: Updated 3/26/2026, 1:50:34 AM
+              - button "Happy Hen No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e326] [cursor=pointer]:
+                - generic [ref=e327]:
+                  - strong [ref=e328]: Happy Hen
+                  - generic [ref=e329]: No contact details yet.
+                - generic [ref=e330]:
+                  - generic [ref=e331]: Active
+                  - generic [ref=e332]: Updated 3/26/2026, 1:50:34 AM
+              - button "Kitchen Essentials No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e333] [cursor=pointer]:
+                - generic [ref=e334]:
+                  - strong [ref=e335]: Kitchen Essentials
+                  - generic [ref=e336]: No contact details yet.
+                - generic [ref=e337]:
+                  - generic [ref=e338]: Active
+                  - generic [ref=e339]: Updated 3/26/2026, 1:50:34 AM
+              - button "Mama Gold Foods No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e340] [cursor=pointer]:
+                - generic [ref=e341]:
+                  - strong [ref=e342]: Mama Gold Foods
+                  - generic [ref=e343]: No contact details yet.
+                - generic [ref=e344]:
+                  - generic [ref=e345]: Active
+                  - generic [ref=e346]: Updated 3/26/2026, 1:50:34 AM
+              - button "Mill House No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e347] [cursor=pointer]:
+                - generic [ref=e348]:
+                  - strong [ref=e349]: Mill House
+                  - generic [ref=e350]: No contact details yet.
+                - generic [ref=e351]:
+                  - generic [ref=e352]: Active
+                  - generic [ref=e353]: Updated 3/26/2026, 1:50:34 AM
+              - button "Nestle No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e354] [cursor=pointer]:
+                - generic [ref=e355]:
+                  - strong [ref=e356]: Nestle
+                  - generic [ref=e357]: No contact details yet.
+                - generic [ref=e358]:
+                  - generic [ref=e359]: Active
+                  - generic [ref=e360]: Updated 3/26/2026, 1:50:34 AM
+              - button "Nut Spread Co No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e361] [cursor=pointer]:
+                - generic [ref=e362]:
+                  - strong [ref=e363]: Nut Spread Co
+                  - generic [ref=e364]: No contact details yet.
+                - generic [ref=e365]:
+                  - generic [ref=e366]: Active
+                  - generic [ref=e367]: Updated 3/26/2026, 1:50:34 AM
+              - button "Prime Farm No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e368] [cursor=pointer]:
+                - generic [ref=e369]:
+                  - strong [ref=e370]: Prime Farm
+                  - generic [ref=e371]: No contact details yet.
+                - generic [ref=e372]:
+                  - generic [ref=e373]: Active
+                  - generic [ref=e374]: Updated 3/26/2026, 1:50:34 AM
+              - button "Pure Squeeze No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e375] [cursor=pointer]:
+                - generic [ref=e376]:
+                  - strong [ref=e377]: Pure Squeeze
+                  - generic [ref=e378]: No contact details yet.
+                - generic [ref=e379]:
+                  - generic [ref=e380]: Active
+                  - generic [ref=e381]: Updated 3/26/2026, 1:50:34 AM
+              - button "Rootline Mills No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e382] [cursor=pointer]:
+                - generic [ref=e383]:
+                  - strong [ref=e384]: Rootline Mills
+                  - generic [ref=e385]: No contact details yet.
+                - generic [ref=e386]:
+                  - generic [ref=e387]: Active
+                  - generic [ref=e388]: Updated 3/26/2026, 1:50:34 AM
+              - button "Runtime Supplier No contact details yet. Active Updated 3/26/2026, 5:56:46 PM" [ref=e389] [cursor=pointer]:
+                - generic [ref=e390]:
+                  - strong [ref=e391]: Runtime Supplier
+                  - generic [ref=e392]: No contact details yet.
+                - generic [ref=e393]:
+                  - generic [ref=e394]: Active
+                  - generic [ref=e395]: Updated 3/26/2026, 5:56:46 PM
+              - button "Runtime Supplier CRUD Ama Supplier Updated Runtime supplier verification record updated. Inactive Updated 3/26/2026, 6:48:33 PM" [ref=e688] [cursor=pointer]:
+                - generic [ref=e627]:
+                  - strong [ref=e628]: Runtime Supplier CRUD
+                  - generic [ref=e629]: Ama Supplier Updated
+                  - paragraph [ref=e630]: Runtime supplier verification record updated.
+                - generic [ref=e631]:
+                  - generic [ref=e632]: Inactive
+                  - generic [ref=e633]: Updated 3/26/2026, 6:48:33 PM
+              - button "Sunrise Bakery No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e396] [cursor=pointer]:
+                - generic [ref=e397]:
+                  - strong [ref=e398]: Sunrise Bakery
+                  - generic [ref=e399]: No contact details yet.
+                - generic [ref=e400]:
+                  - generic [ref=e401]: Active
+                  - generic [ref=e402]: Updated 3/26/2026, 1:50:34 AM
+              - button "Sweet Supply No contact details yet. Active Updated 3/26/2026, 1:50:34 AM" [ref=e403] [cursor=pointer]:
+                - generic [ref=e404]:
+                  - strong [ref=e405]: Sweet Supply
+                  - generic [ref=e406]: No contact details yet.
+                - generic [ref=e407]:
+                  - generic [ref=e408]: Active
+                  - generic [ref=e409]: Updated 3/26/2026, 1:50:34 AM
+          - article [ref=e410]:
+            - generic [ref=e412]:
+              - heading "Supplier Record" [level=3] [ref=e634]
+              - paragraph [ref=e414]: Update supplier identity, contact coverage, and availability without breaking procurement history.
+            - generic [ref=e415]:
+              - generic [ref=e416]:
+                - textbox "Supplier name" [ref=e417]: Runtime Supplier CRUD
+                - textbox "Contact name" [ref=e418]: Ama Supplier Updated
+              - generic [ref=e419]:
+                - textbox "Email" [ref=e420]: runtime.supplier@afrospice.test
+                - textbox "Phone" [ref=e421]: "+12265550131"
+              - textbox "Supplier notes" [ref=e422]: Runtime supplier verification record updated.
+              - generic [ref=e423]:
+                - checkbox "Supplier is active for new procurement activity" [ref=e424]
+                - generic [ref=e425]: Supplier is active for new procurement activity
+              - generic [ref=e426]:
+                - paragraph [ref=e427]: Supplier identity lives here, while lead time, fill rate, and commitment exposure stay computed from backend operations.
+                - generic [ref=e428]:
+                  - button "Delete" [ref=e635] [cursor=pointer]
+                  - button "New Supplier" [ref=e636] [cursor=pointer]
+                  - button "Save Supplier" [ref=e637] [cursor=pointer]
+          - article [ref=e431]:
+            - generic [ref=e433]:
+              - heading "Commitments & Risk" [level=3] [ref=e434]
+              - paragraph [ref=e435]: Open purchase orders, exposure, and the next supplier follow-through actions.
+            - generic [ref=e436]:
+              - generic [ref=e437]:
+                - heading "Open Commitments" [level=4] [ref=e438]
+                - table [ref=e440]:
+                  - rowgroup [ref=e441]:
+                    - row "Order Supplier Status Value Expected" [ref=e442]:
+                      - columnheader "Order" [ref=e443]
+                      - columnheader "Supplier" [ref=e444]
+                      - columnheader "Status" [ref=e445]
+                      - columnheader "Value" [ref=e446]
+                      - columnheader "Expected" [ref=e447]
+                  - rowgroup [ref=e448]:
+                    - row "PO-1006 Rootline Mills Draft USD 0.00 n/a" [ref=e449]:
+                      - cell "PO-1006" [ref=e450]
+                      - cell "Rootline Mills" [ref=e451]
+                      - cell "Draft" [ref=e452]:
+                        - generic [ref=e453]: Draft
+                      - cell "USD 0.00" [ref=e454]
+                      - cell "n/a" [ref=e455]
+                    - row "PO-1003 Rootline Mills Draft USD 0.00 n/a" [ref=e456]:
+                      - cell "PO-1003" [ref=e457]
+                      - cell "Rootline Mills" [ref=e458]
+                      - cell "Draft" [ref=e459]:
+                        - generic [ref=e460]: Draft
+                      - cell "USD 0.00" [ref=e461]
+                      - cell "n/a" [ref=e462]
+                    - row "PO-1004 Golden Grain Draft USD 0.00 n/a" [ref=e463]:
+                      - cell "PO-1004" [ref=e464]
+                      - cell "Golden Grain" [ref=e465]
+                      - cell "Draft" [ref=e466]:
+                        - generic [ref=e467]: Draft
+                      - cell "USD 0.00" [ref=e468]
+                      - cell "n/a" [ref=e469]
+                    - row "PO-2002 Golden Grain Sent USD 0.00 3/14/2026, 2:00:00 PM" [ref=e470]:
+                      - cell "PO-2002" [ref=e471]
+                      - cell "Golden Grain" [ref=e472]
+                      - cell "Sent" [ref=e473]:
+                        - generic [ref=e474]: Sent
+                      - cell "USD 0.00" [ref=e475]
+                      - cell "3/14/2026, 2:00:00 PM" [ref=e476]
+                    - row "PO-1008 Golden Grain Draft USD 0.00 n/a" [ref=e477]:
+                      - cell "PO-1008" [ref=e478]
+                      - cell "Golden Grain" [ref=e479]
+                      - cell "Draft" [ref=e480]:
+                        - generic [ref=e481]: Draft
+                      - cell "USD 0.00" [ref=e482]
+                      - cell "n/a" [ref=e483]
+                    - row "PO-1007 Fresh Foods Draft USD 0.00 n/a" [ref=e484]:
+                      - cell "PO-1007" [ref=e485]
+                      - cell "Fresh Foods" [ref=e486]
+                      - cell "Draft" [ref=e487]:
+                        - generic [ref=e488]: Draft
+                      - cell "USD 0.00" [ref=e489]
+                      - cell "n/a" [ref=e490]
+              - generic [ref=e491]:
+                - heading "Exposure Ledger" [level=4] [ref=e492]
+                - generic [ref=e493]:
+                  - generic [ref=e494]:
+                    - generic [ref=e495]:
+                      - strong [ref=e496]: Golden Grain
+                      - generic [ref=e497]: 0 exposed SKUs
+                    - generic [ref=e500]: 0 low-stock lines across this supplier.
+                  - generic [ref=e501]:
+                    - generic [ref=e502]:
+                      - strong [ref=e503]: Prime Farm
+                      - generic [ref=e504]: 0 exposed SKUs
+                    - generic [ref=e507]: 0 low-stock lines across this supplier.
+                  - generic [ref=e508]:
+                    - generic [ref=e509]:
+                      - strong [ref=e510]: Rootline Mills
+                      - generic [ref=e511]: 0 exposed SKUs
+                    - generic [ref=e514]: 0 low-stock lines across this supplier.
+                  - generic [ref=e515]:
+                    - generic [ref=e516]:
+                      - strong [ref=e517]: Fresh Foods
+                      - generic [ref=e518]: 0 exposed SKUs
+                    - generic [ref=e521]: 0 low-stock lines across this supplier.
+                  - generic [ref=e522]:
+                    - generic [ref=e523]:
+                      - strong [ref=e524]: Mama Gold Foods
+                      - generic [ref=e525]: 0 exposed SKUs
+                    - generic [ref=e528]: 0 low-stock lines across this supplier.
+                  - generic [ref=e529]:
+                    - generic [ref=e530]:
+                      - strong [ref=e531]: Mill House
+                      - generic [ref=e532]: 0 exposed SKUs
+                    - generic [ref=e535]: 0 low-stock lines across this supplier.
+                  - generic [ref=e536]:
+                    - generic [ref=e537]:
+                      - strong [ref=e538]: Kitchen Essentials
+                      - generic [ref=e539]: 0 exposed SKUs
+                    - generic [ref=e542]: 0 low-stock lines across this supplier.
+                  - generic [ref=e543]:
+                    - generic [ref=e544]:
+                      - strong [ref=e545]: Sweet Supply
+                      - generic [ref=e546]: 0 exposed SKUs
+                    - generic [ref=e549]: 0 low-stock lines across this supplier.
+              - generic [ref=e550]:
+                - heading "Control Signals" [level=4] [ref=e551]
+                - generic [ref=e552]:
+                  - generic [ref=e553]:
+                    - generic [ref=e554]:
+                      - strong [ref=e555]: Open Commitments
+                      - generic [ref=e556]: USD 1,969.99
+                    - paragraph [ref=e557]: Purchase-order value is still sitting outside received stock.
+                  - generic [ref=e558]:
+                    - generic [ref=e559]:
+                      - strong [ref=e560]: Tracked Fill Rate
+                      - generic [ref=e561]: 0.0%
+                    - paragraph [ref=e562]: Fill-rate history appears once received purchase orders build up.
+                  - generic [ref=e563]:
+                    - generic [ref=e564]:
+                      - strong [ref=e565]: Average Lead Time
+                      - generic [ref=e566]: 1.8 days
+                    - paragraph [ref=e567]: Shorter lead times give the business more room before low-stock pressure turns urgent.
+                  - generic [ref=e568]:
+                    - generic [ref=e569]:
+                      - strong [ref=e570]: Supplier Pressure
+                      - generic [ref=e571]: "2"
+                    - paragraph [ref=e572]: Suppliers are already on watch because of stock, fill, or receiving pressure.
+  - button "Owner AI Ask anything about the business" [ref=e573] [cursor=pointer]:
+    - generic [ref=e574]: Owner AI
+    - strong [ref=e575]: Ask anything about the business

@@ -1,0 +1,5 @@
+[   94662ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://127.0.0.1:5173/api/auth/login:0
+[   94665ms] [ERROR] Login failed: {status: 400, message: Staff ID is required., data: Object, response: Object, originalError: AxiosError: Request failed with status code 400
+    at settle (http://127.0.0.1:5173/node_modules/.…} @ http://127.0.0.1:5173/src/components/pages/Login.jsx?t=1774616443764:31
+[10349627ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/src/components/pages/Dashboard.jsx?t=1774634101933:0
+[10349628ms] [ERROR] [vite] Failed to reload /src/components/pages/Dashboard.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:5173/@vite/client:904

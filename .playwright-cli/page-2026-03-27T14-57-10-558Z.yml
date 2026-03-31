@@ -1,0 +1,61 @@
+- generic [ref=e5]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e9]: AS
+      - generic [ref=e10]:
+        - paragraph [ref=e11]: Retail Operations Platform
+        - strong [ref=e12]: AFR-MAIN-001
+    - generic [ref=e13]:
+      - generic [ref=e14]: Secure retail operating system
+      - heading "AfroSpice Main Branch" [level=1] [ref=e15]
+      - paragraph [ref=e16]: Secure access to sales, stock, supplier control, reporting, and daily operating decisions.
+    - generic [ref=e17]:
+      - article [ref=e18]:
+        - generic [ref=e19]: Inventory integrity
+        - strong [ref=e20]: Receiving, counts, supplier continuity, and movement trails stay visible in one system.
+      - article [ref=e21]:
+        - generic [ref=e22]: Checkout control
+        - strong [ref=e23]: Fast lane execution with backend totals, refund protection, and payment-state governance.
+      - article [ref=e24]:
+        - generic [ref=e25]: Management visibility
+        - strong [ref=e26]: Revenue, margin, staffing, and risk signals stay available to owners and managers.
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]: Support
+        - strong [ref=e30]: support@afrospice.com
+        - text: +1 226 555 0199
+      - generic [ref=e31]:
+        - generic [ref=e32]: Workspace
+        - strong [ref=e33]: AFR-MAIN-001
+        - text: AfroSpice Main Branch
+  - generic [ref=e34]:
+    - generic [ref=e36]:
+      - generic [ref=e37]: Secure Access
+      - generic [ref=e38]: Role and session controls are enforced server-side.
+    - generic [ref=e39]:
+      - generic [ref=e40]:
+        - heading "Sign In" [level=2] [ref=e41]
+        - paragraph [ref=e42]: Use your assigned staff credentials to enter the workspace.
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: Access policy
+          - strong [ref=e46]: Authorized staff only
+        - generic [ref=e47]:
+          - generic [ref=e48]: Mode
+          - strong [ref=e49]: Session-secured workspace
+      - generic [ref=e50]: Staff ID
+      - textbox "Staff ID" [ref=e51]:
+        - /placeholder: Enter Staff ID
+      - generic [ref=e52]: PIN
+      - textbox "PIN" [ref=e53]:
+        - /placeholder: Enter PIN
+      - button "Enter Workspace" [ref=e54] [cursor=pointer]
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - generic [ref=e57]: Branch
+          - strong [ref=e58]: AFR-MAIN-001
+          - generic [ref=e59]: AfroSpice Main Branch
+        - generic [ref=e60]:
+          - generic [ref=e61]: Support
+          - strong [ref=e62]: support@afrospice.com
+          - generic [ref=e63]: +1 226 555 0199

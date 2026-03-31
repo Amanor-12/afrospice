@@ -1,0 +1,34 @@
+- generic [ref=e5]:
+  - region "AfroSpice workspace introduction" [ref=e6]:
+    - generic [ref=e11]: AfroSpice
+    - generic [ref=e12]:
+      - paragraph [ref=e13]: Premium retail operations
+      - heading "Run your store with a smarter, cleaner control surface" [level=1] [ref=e14]
+      - paragraph [ref=e15]: Inventory, checkout, reporting, suppliers, customers, and operations - all in one refined business workspace.
+  - region "Workspace sign in" [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - generic [ref=e23]: AfroSpice
+        - generic [ref=e24]: AFR-MAIN-001
+      - generic [ref=e25]:
+        - paragraph [ref=e26]: Welcome back
+        - heading "Sign in to your workspace" [level=2] [ref=e27]
+        - paragraph [ref=e28]: Access your command center, sales flow, stock operations, and reporting tools.
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]: Email or Staff ID
+          - textbox "Email or Staff ID" [ref=e32]:
+            - /placeholder: Enter your email or staff ID
+        - generic [ref=e33]:
+          - generic [ref=e34]: Password or PIN
+          - textbox "Password or PIN" [ref=e35]:
+            - /placeholder: Enter your password or PIN
+        - generic [ref=e36] [cursor=pointer]:
+          - checkbox "Keep me signed in" [checked] [ref=e37]
+          - generic [ref=e38]: Keep me signed in
+        - button "Sign In" [ref=e39] [cursor=pointer]
+        - button "Continue with Workspace Access" [ref=e40] [cursor=pointer]
+      - paragraph [ref=e41]:
+        - text: Connected to
+        - strong [ref=e42]: AfroSpice Main Branch
+        - text: using the live AfroSpice workspace runtime.

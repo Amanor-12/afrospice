@@ -1,0 +1,69 @@
+export const LIVE_PAGE_POLL_INTERVAL_MS = 30000;
+const LIVE_CACHE_VERSION = 2;
+
+export function formatMoneyLabel(currency, value) {
+  return `${currency} ${Number(value || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+export function formatPercentLabel(value) {
+  return `${Number(value || 0).toFixed(1)}%`;
+}
+
+export function readCachedPayload(cacheKey) {
+  try {
+    if (typeof window === "undefined") return null;
+    const raw = window.localStorage.getItem(cacheKey);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (parsed?.meta?.cacheVersion !== LIVE_CACHE_VERSION) {
+      return null;
+    }
+
+    if (!parsed?.payload || (!parsed.payload.summary && !parsed.payload.executiveSummary)) {
+      return null;
+    }
+
+    return parsed.payload;
+  } catch {
+    return null;
+  }
+}
+
+export function writeCachedPayload(cacheKey, payload) {
+  try {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(
+      cacheKey,
+      JSON.stringify({
+        meta: {
+          cacheVersion: LIVE_CACHE_VERSION,
+          cachedAt: new Date().toISOString(),
+        },
+        payload,
+      })
+    );
+  } catch {
+    // Ignore local cache failures and keep the live page path working.
+  }
+}
+
+export function formatRelativeTimeLabel(value, nowTick) {
+  if (!value) return "not refreshed yet";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "not refreshed yet";
+
+  const diffMinutes = Math.floor(Math.max(0, nowTick - date.getTime()) / 60000);
+  if (diffMinutes <= 0) return "just now";
+  if (diffMinutes === 1) return "1 min ago";
+  if (diffMinutes < 60) return `${diffMinutes} mins ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours === 1) return "1 hr ago";
+  if (diffHours < 24) return `${diffHours} hrs ago`;
+
+  return `${Math.floor(diffHours / 24)} days ago`;
+}

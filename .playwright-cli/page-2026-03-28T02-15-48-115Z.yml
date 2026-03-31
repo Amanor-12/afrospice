@@ -1,0 +1,66 @@
+- generic [ref=e8]:
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e12]: AS
+      - generic [ref=e13]:
+        - paragraph [ref=e14]: Retail Operations Platform
+        - strong [ref=e15]: AFR-MAIN-001
+    - generic [ref=e16]:
+      - generic [ref=e17]: Secure retail operating system
+      - heading "AfroSpice Main Branch" [level=1] [ref=e18]
+      - paragraph [ref=e19]: Secure access to sales, inventory, supplier control, reporting, staff management, and live owner intelligence.
+    - generic [ref=e20]:
+      - article [ref=e21]:
+        - generic [ref=e23]:
+          - paragraph [ref=e24]: Control Surface
+          - heading "Built for daily operations" [level=3] [ref=e25]
+        - paragraph [ref=e26]: The workspace keeps checkout, stock, suppliers, customer relationships, staffing, and reporting connected to one live backend.
+      - article [ref=e27]:
+        - generic [ref=e29]:
+          - paragraph [ref=e30]: Session Security
+          - heading "Server-enforced access" [level=3] [ref=e31]
+        - paragraph [ref=e32]: Authentication, session activity, approval state, and role access remain enforced by the backend, not by the browser alone.
+    - generic [ref=e33]:
+      - article [ref=e34]:
+        - generic [ref=e35]: Branch
+        - strong [ref=e36]: AFR-MAIN-001
+        - generic [ref=e37]: AfroSpice Main Branch
+      - article [ref=e38]:
+        - generic [ref=e39]: Support
+        - strong [ref=e40]: support@afrospice.com
+        - generic [ref=e41]: +1 226 555 0199
+      - article [ref=e42]:
+        - generic [ref=e43]: Workspace
+        - strong [ref=e44]: Live operations
+        - generic [ref=e45]: Sales, stock, suppliers, users, and owner intelligence in one secure system.
+  - generic [ref=e46]:
+    - generic [ref=e48]: Secure AccessRole and session controls are enforced server-side.
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - heading "Sign In" [level=2] [ref=e51]
+        - paragraph [ref=e52]: Use your assigned staff credentials to enter the live workspace.
+      - generic [ref=e53]:
+        - article [ref=e54]:
+          - generic [ref=e55]: Access policy
+          - strong [ref=e56]: Authorized staff only
+          - generic [ref=e57]: Records, roles, and approval posture are tracked server-side.
+        - article [ref=e58]:
+          - generic [ref=e59]: Mode
+          - strong [ref=e60]: Session-secured workspace
+          - generic [ref=e61]: Owner, manager, cashier, and inventory roles land in the correct workspace automatically.
+      - generic [ref=e62]: Staff ID
+      - textbox "Staff ID" [ref=e63]:
+        - /placeholder: Enter Staff ID
+      - generic [ref=e64]: PIN
+      - textbox "PIN" [ref=e65]:
+        - /placeholder: Enter PIN
+      - button "Enter Workspace" [ref=e66] [cursor=pointer]
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]: Branch
+          - strong [ref=e70]: AFR-MAIN-001
+          - generic [ref=e71]: AfroSpice Main Branch
+        - generic [ref=e72]:
+          - generic [ref=e73]: Support
+          - strong [ref=e74]: support@afrospice.com
+          - generic [ref=e75]: +1 226 555 0199

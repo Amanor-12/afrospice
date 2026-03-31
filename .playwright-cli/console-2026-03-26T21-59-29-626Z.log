@@ -1,0 +1,8 @@
+[   65528ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5000/api/users/undefined:0
+[   65573ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5000/api/users/undefined/oversight:0
+[   65658ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5000/api/users/undefined:0
+[   65704ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5000/api/users/undefined/oversight:0
+[   65794ms] [ERROR] User management load failed: Error: Could not load the selected staff record.
+    at http://127.0.0.1:5173/src/components/pages/UserManagementDesk.jsx?t=1774561164550:167:11 @ http://127.0.0.1:5173/src/components/pages/UserManagementDesk.jsx?t=1774561164550:171
+[   65881ms] [ERROR] User management load failed: Error: Could not load the selected staff record.
+    at http://127.0.0.1:5173/src/components/pages/UserManagementDesk.jsx?t=1774561164550:167:11 @ http://127.0.0.1:5173/src/components/pages/UserManagementDesk.jsx?t=1774561164550:171

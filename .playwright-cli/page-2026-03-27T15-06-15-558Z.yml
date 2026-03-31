@@ -1,0 +1,415 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e68]:
+    - complementary "Workspace navigation" [ref=e69]:
+      - generic [ref=e71]:
+        - generic [ref=e72]: AM
+        - generic [ref=e73]:
+          - heading "AfroSpice Main Branch" [level=1] [ref=e74]
+          - paragraph [ref=e75]: Retail operations workspace
+      - generic [ref=e76]:
+        - generic [ref=e77]: Current workspace
+        - strong [ref=e78]: Dashboard
+        - paragraph [ref=e79]: Revenue, stock, cash, and next decisions in one owner view.
+      - navigation [ref=e80]:
+        - generic [ref=e81]:
+          - generic [ref=e82]: Main
+          - generic [ref=e83]:
+            - link "Dashboard Executive Flight Deck" [ref=e84] [cursor=pointer]:
+              - /url: /
+              - img [ref=e86]
+              - generic [ref=e89]:
+                - strong [ref=e90]: Dashboard
+                - generic [ref=e91]: Executive Flight Deck
+            - link "Inventory Inventory Command" [ref=e92] [cursor=pointer]:
+              - /url: /pos-dashboard
+              - img [ref=e94]
+              - generic [ref=e97]:
+                - strong [ref=e98]: Inventory
+                - generic [ref=e99]: Inventory Command
+            - link "POS Terminal Checkout Studio" [ref=e100] [cursor=pointer]:
+              - /url: /terminal
+              - img [ref=e102]
+              - generic [ref=e104]:
+                - strong [ref=e105]: POS Terminal
+                - generic [ref=e106]: Checkout Studio
+            - link "Orders Transaction Intelligence" [ref=e107] [cursor=pointer]:
+              - /url: /orders
+              - img [ref=e109]
+              - generic [ref=e113]:
+                - strong [ref=e114]: Orders
+                - generic [ref=e115]: Transaction Intelligence
+        - generic [ref=e116]:
+          - generic [ref=e117]: Analytics
+          - generic [ref=e118]:
+            - link "Reports Strategy Studio" [ref=e119] [cursor=pointer]:
+              - /url: /reports
+              - img [ref=e121]
+              - generic [ref=e122]:
+                - strong [ref=e123]: Reports
+                - generic [ref=e124]: Strategy Studio
+            - link "Customers Customer Intelligence" [ref=e125] [cursor=pointer]:
+              - /url: /customers
+              - img [ref=e127]
+              - generic [ref=e132]:
+                - strong [ref=e133]: Customers
+                - generic [ref=e134]: Customer Intelligence
+            - link "Suppliers Supplier Control" [ref=e135] [cursor=pointer]:
+              - /url: /suppliers
+              - img [ref=e137]
+              - generic [ref=e142]:
+                - strong [ref=e143]: Suppliers
+                - generic [ref=e144]: Supplier Control
+            - link "Users Workforce Control" [ref=e145] [cursor=pointer]:
+              - /url: /users
+              - img [ref=e147]
+              - generic [ref=e151]:
+                - strong [ref=e152]: Users
+                - generic [ref=e153]: Workforce Control
+        - generic [ref=e154]:
+          - generic [ref=e155]: Settings
+          - link "Settings Operating Controls" [ref=e157] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e159]
+            - generic [ref=e162]:
+              - strong [ref=e163]: Settings
+              - generic [ref=e164]: Operating Controls
+      - generic [ref=e165]:
+        - generic [ref=e166]:
+          - generic [ref=e167]: Branch
+          - strong [ref=e168]: AFR-MAIN-001
+          - generic [ref=e169]: AfroSpice Main Branch
+        - generic [ref=e170]:
+          - generic [ref=e171]: Support
+          - strong [ref=e172]: support@afrospice.com
+          - generic [ref=e173]: +1 226 555 0199
+    - generic [ref=e174]:
+      - generic [ref=e176]:
+        - generic [ref=e178]:
+          - generic [ref=e179]:
+            - generic [ref=e180]: Executive Flight Deck
+            - generic [ref=e181]:
+              - img [ref=e182]
+              - text: Live workspace
+          - generic [ref=e184]:
+            - heading "Dashboard" [level=2] [ref=e185]
+            - paragraph [ref=e186]: Revenue, stock, cash, and next decisions in one owner view.
+        - generic [ref=e188]:
+          - generic [ref=e189]:
+            - img [ref=e190]
+            - text: AFR-MAIN-001
+          - generic [ref=e193]:
+            - img [ref=e194]
+            - text: USD
+          - generic [ref=e196]:
+            - img [ref=e197]
+            - text: Owner
+          - button "SO Store Owner Owner" [ref=e202] [cursor=pointer]:
+            - generic [ref=e203]: SO
+            - generic [ref=e204]:
+              - strong [ref=e205]: Store Owner
+              - generic [ref=e206]: Owner
+      - main [ref=e207]:
+        - generic [ref=e208]:
+          - generic [ref=e209]:
+            - generic [ref=e210]:
+              - generic [ref=e211]:
+                - paragraph [ref=e213]: Executive Flight Deck
+                - heading "Business Command" [level=2] [ref=e215]
+                - paragraph [ref=e216]: A cleaner operating view for cash capture, stock pressure, and the next decisions that matter.
+                - generic [ref=e217]:
+                  - generic [ref=e218]: Live feed
+                  - generic [ref=e219]: Updated 3/27/2026, 11:06:14 AM
+              - button "Refresh" [ref=e222] [cursor=pointer]
+            - generic [ref=e223]:
+              - article [ref=e224]:
+                - generic [ref=e225]: Revenue
+                - generic [ref=e226]: USD 1,118.42
+                - generic [ref=e227]: Captured from confirmed sales records.
+                - emphasis [ref=e228]: 25 orders
+              - article [ref=e229]:
+                - generic [ref=e230]: Average Order
+                - generic [ref=e231]: USD 44.74
+                - generic [ref=e232]: Computed by backend from completed order totals.
+                - emphasis [ref=e233]: 100.0%
+              - article [ref=e234]:
+                - generic [ref=e235]: Low-Stock SKUs
+                - generic [ref=e236]: "0"
+                - generic [ref=e237]: Items near reorder threshold.
+                - emphasis [ref=e238]: healthy
+          - generic [ref=e239]:
+            - article [ref=e240]:
+              - generic [ref=e241]:
+                - generic [ref=e242]:
+                  - heading "Revenue Runway" [level=3] [ref=e243]
+                  - paragraph [ref=e244]: Backend-generated revenue movement across the current reporting window.
+                - generic [ref=e245]:
+                  - generic [ref=e246]: Executive live view
+                  - generic [ref=e248]: 100.0% paid rate
+              - application [ref=e253]:
+                - generic [ref=e264]:
+                  - generic [ref=e265]:
+                    - generic [ref=e267]: P-1
+                    - generic [ref=e269]: P-2
+                    - generic [ref=e271]: P-3
+                    - generic [ref=e273]: P-4
+                    - generic [ref=e275]: P-5
+                    - generic [ref=e277]: P-6
+                    - generic [ref=e279]: P-7
+                    - generic [ref=e281]: P-8
+                    - generic [ref=e283]: P-9
+                    - generic [ref=e285]: P-10
+                    - generic [ref=e287]: P-12
+                    - generic [ref=e289]: P-14
+                  - generic [ref=e290]:
+                    - generic [ref=e292]: "0"
+                    - generic [ref=e294]: "70"
+                    - generic [ref=e296]: "140"
+                    - generic [ref=e298]: "210"
+                    - generic [ref=e300]: "280"
+              - generic [ref=e301]:
+                - article [ref=e302]:
+                  - generic [ref=e303]: Lead product
+                  - strong [ref=e304]: Palm Oil
+                  - text: USD 190.00 captured
+                - article [ref=e305]:
+                  - generic [ref=e306]: Lead category
+                  - strong [ref=e307]: Food Staples
+                  - text: 34.5% of visible category revenue
+                - article [ref=e308]:
+                  - generic [ref=e309]: Next projection
+                  - strong [ref=e310]: No forecast
+                  - text: The demand model is still building its next projection.
+            - complementary [ref=e311]:
+              - article [ref=e312]:
+                - generic [ref=e313]:
+                  - generic [ref=e314]: warning
+                  - text: Owner briefing
+                - heading "Revenue is real, but margin visibility still has blind spots." [level=4] [ref=e315]
+                - paragraph [ref=e316]: USD 536.63 of paid revenue is still missing stored unit cost, so gross profit is only partially measured.
+                - generic [ref=e317]:
+                  - generic [ref=e318]:
+                    - text: Why it matters
+                    - strong [ref=e319]: Without cost coverage, the owner cannot trust which categories and products are actually the most profitable.
+                  - generic [ref=e320]:
+                    - text: Next move
+                    - strong [ref=e321]: Close the unit-cost capture gap on the SKUs still coming through without procurement cost.
+              - article [ref=e322]:
+                - generic [ref=e323]:
+                  - heading "Model watch" [level=4] [ref=e324]
+                  - paragraph [ref=e325]: ML direction, anomaly pressure, and supplier drag in one rail.
+                - generic [ref=e326]:
+                  - article [ref=e327]:
+                    - generic [ref=e328]:
+                      - strong [ref=e329]: Confidence
+                      - generic [ref=e330]: 0 score
+                    - generic [ref=e331]: 0 alerts
+                  - article [ref=e332]:
+                    - generic [ref=e333]:
+                      - strong [ref=e334]: Stockout risk
+                      - text: No urgent ML risk
+                    - generic [ref=e335]: Clear
+                  - article [ref=e336]:
+                    - generic [ref=e337]:
+                      - strong [ref=e338]: Push candidate
+                      - text: No clean push candidate
+                    - generic [ref=e339]: Stand by
+                  - article [ref=e340]:
+                    - generic [ref=e341]:
+                      - strong [ref=e342]: Supplier pressure
+                      - text: No elevated supplier risk
+                    - generic [ref=e343]: Stable
+              - article [ref=e344]:
+                - generic [ref=e345]:
+                  - heading "What changed" [level=4] [ref=e346]
+                  - paragraph [ref=e347]: Short movement markers from the live analytics pass.
+                - generic [ref=e348]:
+                  - article [ref=e349]:
+                    - generic [ref=e350]:
+                      - text: Cash Capture
+                      - strong [ref=e351]: 100.0%
+                    - generic [ref=e352]: 25 of 25 orders are paid.
+                  - article [ref=e353]:
+                    - generic [ref=e354]:
+                      - text: Cash Exposure
+                      - strong [ref=e355]: USD 0.00
+                    - generic [ref=e356]: 0 orders are outside paid capture.
+                  - article [ref=e357]:
+                    - generic [ref=e358]:
+                      - text: Runout Queue
+                      - strong [ref=e359]: "0"
+                    - generic [ref=e360]: No immediate stock break is visible.
+                  - article [ref=e361]:
+                    - generic [ref=e362]:
+                      - text: Margin Coverage
+                      - strong [ref=e363]: 52.0%
+                    - generic [ref=e364]: USD 536.63 of paid revenue still lacks unit cost.
+          - generic [ref=e365]:
+            - article [ref=e366]:
+              - generic [ref=e368]:
+                - heading "Revenue Composition" [level=3] [ref=e369]
+                - paragraph [ref=e370]: Category concentration and product leadership in one clearer board.
+              - generic [ref=e371]:
+                - generic [ref=e372]:
+                  - generic [ref=e373]:
+                    - heading "Category ledger" [level=4] [ref=e374]
+                    - paragraph [ref=e375]: Revenue share and cash contribution by category.
+                  - generic [ref=e376]:
+                    - generic [ref=e377]:
+                      - generic [ref=e378]:
+                        - strong [ref=e379]: Food Staples
+                        - generic [ref=e380]: USD 336.54
+                      - generic [ref=e383]: 34.5% of visible category revenue
+                    - generic [ref=e384]:
+                      - generic [ref=e385]:
+                        - strong [ref=e386]: Cooking Essentials
+                        - generic [ref=e387]: USD 190.00
+                      - generic [ref=e390]: 19.5% of visible category revenue
+                    - generic [ref=e391]:
+                      - generic [ref=e392]:
+                        - strong [ref=e393]: Dairy
+                        - generic [ref=e394]: USD 148.00
+                      - generic [ref=e397]: 15.2% of visible category revenue
+                    - generic [ref=e398]:
+                      - generic [ref=e399]:
+                        - strong [ref=e400]: Groceries
+                        - generic [ref=e401]: USD 103.96
+                      - generic [ref=e404]: 10.7% of visible category revenue
+                    - generic [ref=e405]:
+                      - generic [ref=e406]:
+                        - strong [ref=e407]: Drinks
+                        - generic [ref=e408]: USD 103.44
+                      - generic [ref=e411]: 10.6% of visible category revenue
+                    - generic [ref=e412]:
+                      - generic [ref=e413]:
+                        - strong [ref=e414]: Meat & Protein
+                        - generic [ref=e415]: USD 92.50
+                      - generic [ref=e418]: 9.5% of visible category revenue
+                - generic [ref=e419]:
+                  - generic [ref=e420]:
+                    - heading "Product leaderboard" [level=4] [ref=e421]
+                    - paragraph [ref=e422]: Revenue-leading items in the active dashboard window.
+                  - generic [ref=e423]:
+                    - generic [ref=e424]:
+                      - generic [ref=e425]: "01"
+                      - generic [ref=e426]:
+                        - strong [ref=e427]: Palm Oil
+                        - text: No SKU
+                      - generic [ref=e428]:
+                        - strong [ref=e429]: USD 190.00
+                        - generic [ref=e430]: 20 units
+                    - generic [ref=e431]:
+                      - generic [ref=e432]: "02"
+                      - generic [ref=e433]:
+                        - strong [ref=e434]: Jollof Rice Mix
+                        - text: No SKU
+                      - generic [ref=e435]:
+                        - strong [ref=e436]: USD 181.86
+                        - generic [ref=e437]: 14 units
+                    - generic [ref=e438]:
+                      - generic [ref=e439]: "03"
+                      - generic [ref=e440]:
+                        - strong [ref=e441]: Basmati Rice 5kg
+                        - text: No SKU
+                      - generic [ref=e442]:
+                        - strong [ref=e443]: USD 132.93
+                        - generic [ref=e444]: 7 units
+                    - generic [ref=e445]:
+                      - generic [ref=e446]: "04"
+                      - generic [ref=e447]:
+                        - strong [ref=e448]: Frozen Chicken
+                        - text: No SKU
+                      - generic [ref=e449]:
+                        - strong [ref=e450]: USD 92.50
+                        - generic [ref=e451]: 5 units
+                    - generic [ref=e452]:
+                      - generic [ref=e453]: "05"
+                      - generic [ref=e454]:
+                        - strong [ref=e455]: Milk Powder
+                        - text: No SKU
+                      - generic [ref=e456]:
+                        - strong [ref=e457]: USD 85.50
+                        - generic [ref=e458]: 6 units
+            - article [ref=e459]:
+              - generic [ref=e461]:
+                - heading "Trade And Stock Pressure" [level=3] [ref=e462]
+                - paragraph [ref=e463]: Receipts, low-stock exposure, and next recommendations in one operations view.
+              - generic [ref=e464]:
+                - generic [ref=e465]:
+                  - generic [ref=e466]:
+                    - heading "Recent receipts" [level=4] [ref=e467]
+                    - paragraph [ref=e468]: Most recent transactions from the live sales ledger.
+                  - generic [ref=e469]:
+                    - article [ref=e470]:
+                      - generic [ref=e471]:
+                        - strong [ref=e472]: SALE-2012
+                        - text: Store Owner
+                      - generic [ref=e473]:
+                        - strong [ref=e474]: USD 12.63
+                        - text: 3/27/2026, 2:40:05 AM
+                      - generic [ref=e475]: Paid
+                    - article [ref=e476]:
+                      - generic [ref=e477]:
+                        - strong [ref=e478]: SALE-2011
+                        - text: Front Desk
+                      - generic [ref=e479]:
+                        - strong [ref=e480]: USD 24.18
+                        - text: 3/25/2026, 4:46:49 AM
+                      - generic [ref=e481]: Paid
+                    - article [ref=e482]:
+                      - generic [ref=e483]:
+                        - strong [ref=e484]: SALE-2010
+                        - text: Front Desk
+                      - generic [ref=e485]:
+                        - strong [ref=e486]: USD 27.13
+                        - text: 3/24/2026, 10:18:09 PM
+                      - generic [ref=e487]: Paid
+                    - article [ref=e488]:
+                      - generic [ref=e489]:
+                        - strong [ref=e490]: SALE-2009
+                        - text: Front Desk
+                      - generic [ref=e491]:
+                        - strong [ref=e492]: USD 18.01
+                        - text: 3/24/2026, 9:50:15 PM
+                      - generic [ref=e493]: Paid
+                    - article [ref=e494]:
+                      - generic [ref=e495]:
+                        - strong [ref=e496]: SALE-1013
+                        - text: Front Desk
+                      - generic [ref=e497]:
+                        - strong [ref=e498]: USD 7.79
+                        - text: 3/24/2026, 8:23:54 AM
+                      - generic [ref=e499]: Paid
+                - generic [ref=e500]:
+                  - generic [ref=e501]:
+                    - generic [ref=e502]:
+                      - heading "Low-stock watch" [level=4] [ref=e503]
+                      - paragraph [ref=e504]: Items nearest the reorder threshold in the current inventory state.
+                    - paragraph [ref=e506]: No low-stock records.
+                  - generic [ref=e507]:
+                    - article [ref=e508]:
+                      - generic [ref=e509]:
+                        - strong [ref=e510]: Recover stuck cash
+                        - text: Work the orders still outside paid capture before pushing more demand.
+                      - generic [ref=e511]: USD 0.00
+                    - article [ref=e512]:
+                      - generic [ref=e513]:
+                        - strong [ref=e514]: Protect the lead demand line
+                        - text: The current stock picture is not showing an exposed lead SKU.
+                      - generic [ref=e515]: No exposed SKU
+                    - article [ref=e516]:
+                      - generic [ref=e517]:
+                        - strong [ref=e518]: Workforce readiness
+                        - text: 2 cashiers and 1 inventory clerks are active, but dependency or approval backlog is still visible.
+                      - generic [ref=e519]: 86/100
+                  - generic [ref=e520]:
+                    - article [ref=e521]:
+                      - generic [ref=e522]: Watch leader
+                      - strong [ref=e523]: No urgent low-stock line
+                      - text: No urgent low-stock line is visible right now.
+                    - article [ref=e524]:
+                      - generic [ref=e525]: Latest receipt
+                      - strong [ref=e526]: SALE-2012
+                      - text: USD 12.63 on 3/27/2026, 2:40:05 AM
+    - button "Open business assistant" [ref=e528] [cursor=pointer]:
+      - img [ref=e529]
+  - generic [ref=e531]: "0"

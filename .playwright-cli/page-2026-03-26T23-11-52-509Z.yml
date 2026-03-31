@@ -1,0 +1,224 @@
+- generic [ref=e4]:
+  - complementary "Workspace navigation" [ref=e5]:
+    - generic [ref=e7]:
+      - generic [ref=e8]: AM
+      - generic [ref=e9]:
+        - heading "AfroSpice Main Branch" [level=1] [ref=e10]
+        - paragraph [ref=e11]: Retail operations workspace
+    - generic [ref=e12]:
+      - generic [ref=e13]: Current workspace
+      - strong [ref=e14]: Inventory
+      - paragraph [ref=e15]: Replenishment, receiving, counts, and stock control.
+    - navigation [ref=e16]:
+      - link "Dashboard Executive Flight Deck" [ref=e17] [cursor=pointer]:
+        - /url: /
+        - img [ref=e19]
+        - generic [ref=e22]:
+          - strong [ref=e23]: Dashboard
+          - generic [ref=e24]: Executive Flight Deck
+      - link "Inventory Inventory Command" [ref=e25] [cursor=pointer]:
+        - /url: /pos-dashboard
+        - img [ref=e27]
+        - generic [ref=e30]:
+          - strong [ref=e31]: Inventory
+          - generic [ref=e32]: Inventory Command
+      - link "POS Terminal Checkout Studio" [ref=e33] [cursor=pointer]:
+        - /url: /terminal
+        - img [ref=e35]
+        - generic [ref=e37]:
+          - strong [ref=e38]: POS Terminal
+          - generic [ref=e39]: Checkout Studio
+      - link "Orders Transaction Intelligence" [ref=e40] [cursor=pointer]:
+        - /url: /orders
+        - img [ref=e42]
+        - generic [ref=e46]:
+          - strong [ref=e47]: Orders
+          - generic [ref=e48]: Transaction Intelligence
+      - link "Reports Strategy Studio" [ref=e49] [cursor=pointer]:
+        - /url: /reports
+        - img [ref=e51]
+        - generic [ref=e52]:
+          - strong [ref=e53]: Reports
+          - generic [ref=e54]: Strategy Studio
+      - link "Customers Customer Intelligence" [ref=e55] [cursor=pointer]:
+        - /url: /customers
+        - img [ref=e57]
+        - generic [ref=e62]:
+          - strong [ref=e63]: Customers
+          - generic [ref=e64]: Customer Intelligence
+      - link "Suppliers Supplier Control" [ref=e65] [cursor=pointer]:
+        - /url: /suppliers
+        - img [ref=e67]
+        - generic [ref=e72]:
+          - strong [ref=e73]: Suppliers
+          - generic [ref=e74]: Supplier Control
+      - link "Users Workforce Control" [ref=e75] [cursor=pointer]:
+        - /url: /users
+        - img [ref=e77]
+        - generic [ref=e81]:
+          - strong [ref=e82]: Users
+          - generic [ref=e83]: Workforce Control
+      - link "Settings Operating Controls" [ref=e84] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e86]
+        - generic [ref=e89]:
+          - strong [ref=e90]: Settings
+          - generic [ref=e91]: Operating Controls
+    - generic [ref=e92]:
+      - generic [ref=e93]:
+        - generic [ref=e94]: Branch
+        - strong [ref=e95]: AFR-MAIN-001
+        - generic [ref=e96]: AfroSpice Main Branch
+      - generic [ref=e97]:
+        - generic [ref=e98]: Support
+        - strong [ref=e99]: support@afrospice.com
+        - generic [ref=e100]: +1 226 555 0199
+  - generic [ref=e101]:
+    - generic [ref=e102]:
+      - generic [ref=e104]:
+        - paragraph [ref=e105]: Inventory Command
+        - heading "Inventory" [level=2] [ref=e586]
+        - paragraph [ref=e107]: Replenishment, receiving, counts, and stock control.
+      - generic [ref=e108]:
+        - generic [ref=e109]:
+          - generic [ref=e110]:
+            - img [ref=e112]
+            - generic [ref=e115]:
+              - generic [ref=e116]: Branch
+              - strong [ref=e117]: AFR-MAIN-001
+          - generic [ref=e118]:
+            - img [ref=e120]
+            - generic [ref=e122]:
+              - generic [ref=e123]: Currency
+              - strong [ref=e124]: USD
+          - generic [ref=e125]:
+            - img [ref=e127]
+            - generic [ref=e131]:
+              - generic [ref=e132]: Role
+              - strong [ref=e133]: Owner
+          - generic [ref=e134]:
+            - img [ref=e136]
+            - generic [ref=e138]:
+              - generic [ref=e139]: Threshold
+              - strong [ref=e140]: 10 units
+        - button "SO Store Owner Owner" [ref=e142] [cursor=pointer]:
+          - generic [ref=e143]: SO
+          - generic [ref=e144]:
+            - strong [ref=e145]: Store Owner
+            - generic [ref=e146]: Owner
+    - main [ref=e147]:
+      - generic [ref=e587]:
+        - generic [ref=e588]:
+          - generic [ref=e589]:
+            - generic [ref=e590]:
+              - paragraph [ref=e591]: Inventory Command
+              - heading "Stock Operations" [level=2] [ref=e592]
+              - paragraph [ref=e593]: Inventory, purchasing, receiving, and cycle-count control in one workspace.
+              - generic [ref=e594]:
+                - generic [ref=e595]: Live data
+                - generic [ref=e596]: 23 products
+            - generic [ref=e598]:
+              - button "Refresh" [ref=e599] [cursor=pointer]
+              - button "Draft Purchase Orders" [disabled] [ref=e600]
+              - button "Start Cycle Count" [ref=e601] [cursor=pointer]
+          - generic [ref=e602]:
+            - article [ref=e603]:
+              - generic [ref=e604]: SKUs
+              - generic [ref=e605]: "23"
+              - generic [ref=e606]: Total tracked products.
+              - emphasis [ref=e607]: 0 low stock
+            - article [ref=e608]:
+              - generic [ref=e609]: Open Purchase Orders
+              - generic [ref=e610]: "12"
+              - generic [ref=e611]: Awaiting sent or received completion.
+              - emphasis [ref=e612]: 0 open counts
+            - article [ref=e613]:
+              - generic [ref=e614]: Turnover
+              - generic [ref=e615]: n/a
+              - generic [ref=e616]: 0 dormant stock lines identified.
+              - emphasis [ref=e617]: healthy
+        - status [ref=e618]:
+          - generic [ref=e619]: Owner AI Highlight
+          - generic [ref=e620]:
+            - strong [ref=e621]: Inventory linked to Mama Gold Foods
+            - paragraph [ref=e622]: The inventory workspace is filtered to products, movements, and open purchase orders tied to Mama Gold Foods.
+        - generic [ref=e623]:
+          - article [ref=e624]:
+            - generic [ref=e626]:
+              - heading "Product Directory" [level=3] [ref=e627]
+              - paragraph [ref=e628]: Search and adjust product stock levels.
+            - textbox "Search by product, SKU, supplier, or category" [ref=e629]: Mama Gold Foods
+            - table [ref=e631]:
+              - rowgroup [ref=e632]:
+                - row "Product SKU Stock Price Supplier Action" [ref=e633]:
+                  - columnheader "Product" [ref=e634]
+                  - columnheader "SKU" [ref=e635]
+                  - columnheader "Stock" [ref=e636]
+                  - columnheader "Price" [ref=e637]
+                  - columnheader "Supplier" [ref=e638]
+                  - columnheader "Action" [ref=e639]
+              - rowgroup [ref=e640]:
+                - row "Jollof Rice Mix SKU-FOOD-001 1011 USD 12.99 Mama Gold Foods Restock" [ref=e641]:
+                  - cell "Jollof Rice Mix" [ref=e642]
+                  - cell "SKU-FOOD-001" [ref=e643]
+                  - cell "1011" [ref=e644]
+                  - cell "USD 12.99" [ref=e645]
+                  - cell "Mama Gold Foods" [ref=e646]
+                  - cell "Restock" [ref=e647]:
+                    - button "Restock" [ref=e648] [cursor=pointer]
+          - article [ref=e649]:
+            - generic [ref=e651]:
+              - heading "Create Product" [level=3] [ref=e652]
+              - paragraph [ref=e653]: Add new stock records directly from this workspace.
+            - generic [ref=e654]:
+              - textbox "Product name" [ref=e655]
+              - generic [ref=e656]:
+                - textbox "SKU" [ref=e657]
+                - textbox "Barcode (optional)" [ref=e658]
+              - generic [ref=e659]:
+                - textbox "Category" [ref=e660]: General
+                - textbox "Supplier" [ref=e661]: Mama Gold Foods
+              - generic [ref=e662]:
+                - spinbutton [ref=e663]
+                - spinbutton [ref=e664]
+              - spinbutton [ref=e665]
+              - button "Create Product" [ref=e667] [cursor=pointer]
+          - article [ref=e668]:
+            - generic [ref=e670]:
+              - heading "Operational Feeds" [level=3] [ref=e671]
+              - paragraph [ref=e672]: Live purchase order, movement, and cycle count streams.
+            - generic [ref=e673]:
+              - heading "Open Purchase Orders" [level=4] [ref=e674]
+              - paragraph [ref=e675]: No open purchase orders match the current filter.
+            - generic [ref=e676]:
+              - heading "Recent Inventory Movements" [level=4] [ref=e677]
+              - paragraph [ref=e678]: No inventory movements match the current filter.
+            - generic [ref=e679]:
+              - heading "Cycle Counts" [level=4] [ref=e680]
+              - generic [ref=e681]:
+                - generic [ref=e682]:
+                  - strong [ref=e683]: CC-1004
+                  - generic [ref=e684]: Completed
+                - generic [ref=e685]: 5 lines - 3 variance lines
+                - generic [ref=e686]: 3/23/2026, 11:31:53 PM
+              - generic [ref=e687]:
+                - generic [ref=e688]:
+                  - strong [ref=e689]: CC-1003
+                  - generic [ref=e690]: Completed
+                - generic [ref=e691]: 5 lines - 1 variance lines
+                - generic [ref=e692]: 3/23/2026, 9:51:16 PM
+              - generic [ref=e693]:
+                - generic [ref=e694]:
+                  - strong [ref=e695]: CC-1002
+                  - generic [ref=e696]: Completed
+                - generic [ref=e697]: 1 lines - 1 variance lines
+                - generic [ref=e698]: 3/23/2026, 9:33:05 PM
+              - generic [ref=e699]:
+                - generic [ref=e700]:
+                  - strong [ref=e701]: CC-1001
+                  - generic [ref=e702]: Completed
+                - generic [ref=e703]: 1 lines - 1 variance lines
+                - generic [ref=e704]: 3/23/2026, 9:32:10 PM
+  - button "Owner AI Ask anything about the business" [ref=e572] [cursor=pointer]:
+    - generic [ref=e573]: Owner AI
+    - strong [ref=e574]: Ask anything about the business

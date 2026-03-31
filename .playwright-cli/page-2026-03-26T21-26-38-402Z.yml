@@ -1,0 +1,362 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - complementary "Workspace navigation" [ref=e6]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: AM
+        - generic [ref=e10]:
+          - heading "AfroSpice Main Branch" [level=1] [ref=e11]
+          - paragraph [ref=e12]: Retail operations workspace
+      - generic [ref=e13]:
+        - generic [ref=e14]: Current workspace
+        - strong [ref=e15]: Reports
+        - paragraph [ref=e16]: Growth, category strength, product leaders, and forecasting.
+      - navigation [ref=e17]:
+        - link "Dashboard Executive Flight Deck" [ref=e18] [cursor=pointer]:
+          - /url: /
+          - img [ref=e20]
+          - generic [ref=e23]:
+            - strong [ref=e24]: Dashboard
+            - generic [ref=e25]: Executive Flight Deck
+        - link "Inventory Inventory Command" [ref=e26] [cursor=pointer]:
+          - /url: /pos-dashboard
+          - img [ref=e28]
+          - generic [ref=e31]:
+            - strong [ref=e32]: Inventory
+            - generic [ref=e33]: Inventory Command
+        - link "POS Terminal Checkout Studio" [ref=e34] [cursor=pointer]:
+          - /url: /terminal
+          - img [ref=e36]
+          - generic [ref=e38]:
+            - strong [ref=e39]: POS Terminal
+            - generic [ref=e40]: Checkout Studio
+        - link "Orders Transaction Intelligence" [ref=e41] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e43]
+          - generic [ref=e47]:
+            - strong [ref=e48]: Orders
+            - generic [ref=e49]: Transaction Intelligence
+        - link "Reports Strategy Studio" [ref=e50] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e52]
+          - generic [ref=e53]:
+            - strong [ref=e54]: Reports
+            - generic [ref=e55]: Strategy Studio
+        - link "Customers Customer Intelligence" [ref=e56] [cursor=pointer]:
+          - /url: /customers
+          - img [ref=e58]
+          - generic [ref=e63]:
+            - strong [ref=e64]: Customers
+            - generic [ref=e65]: Customer Intelligence
+        - link "Suppliers Supplier Control" [ref=e66] [cursor=pointer]:
+          - /url: /suppliers
+          - img [ref=e68]
+          - generic [ref=e73]:
+            - strong [ref=e74]: Suppliers
+            - generic [ref=e75]: Supplier Control
+        - link "Users Workforce Control" [ref=e76] [cursor=pointer]:
+          - /url: /users
+          - img [ref=e78]
+          - generic [ref=e82]:
+            - strong [ref=e83]: Users
+            - generic [ref=e84]: Workforce Control
+        - link "Settings Operating Controls" [ref=e85] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e87]
+          - generic [ref=e90]:
+            - strong [ref=e91]: Settings
+            - generic [ref=e92]: Operating Controls
+      - generic [ref=e93]:
+        - generic [ref=e94]:
+          - generic [ref=e95]: Branch
+          - strong [ref=e96]: AFR-MAIN-001
+          - generic [ref=e97]: AfroSpice Main Branch
+        - generic [ref=e98]:
+          - generic [ref=e99]: Support
+          - strong [ref=e100]: support@afrospice.com
+          - generic [ref=e101]: +1 226 555 0199
+    - generic [ref=e102]:
+      - generic [ref=e103]:
+        - generic [ref=e105]:
+          - paragraph [ref=e106]: Strategy Studio
+          - heading "Reports" [level=2] [ref=e107]
+          - paragraph [ref=e108]: Growth, category strength, product leaders, and forecasting.
+        - generic [ref=e109]:
+          - generic [ref=e110]:
+            - generic [ref=e111]:
+              - img [ref=e113]
+              - generic [ref=e116]:
+                - generic [ref=e117]: Branch
+                - strong [ref=e118]: AFR-MAIN-001
+            - generic [ref=e119]:
+              - img [ref=e121]
+              - generic [ref=e123]:
+                - generic [ref=e124]: Currency
+                - strong [ref=e125]: USD
+            - generic [ref=e126]:
+              - img [ref=e128]
+              - generic [ref=e132]:
+                - generic [ref=e133]: Role
+                - strong [ref=e134]: Owner
+            - generic [ref=e135]:
+              - img [ref=e137]
+              - generic [ref=e139]:
+                - generic [ref=e140]: Threshold
+                - strong [ref=e141]: 10 units
+          - button "SO Store Owner Owner" [ref=e143] [cursor=pointer]:
+            - generic [ref=e144]: SO
+            - generic [ref=e145]:
+              - strong [ref=e146]: Store Owner
+              - generic [ref=e147]: Owner
+      - main [ref=e148]:
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - generic [ref=e151]:
+              - generic [ref=e152]:
+                - paragraph [ref=e153]: Strategy Studio
+                - heading "Analytics & Reporting" [level=2] [ref=e154]
+                - paragraph [ref=e155]: A strategy view for revenue quality, forecast direction, category dependence, and next operating moves.
+              - generic [ref=e157]:
+                - combobox [ref=e158]:
+                  - option "Daily"
+                  - option "Weekly"
+                  - option "Monthly" [selected]
+                  - option "Yearly"
+                - button "Refresh" [ref=e159] [cursor=pointer]
+                - button "Export CSV" [ref=e160] [cursor=pointer]
+            - generic [ref=e161]:
+              - article [ref=e162]:
+                - generic [ref=e163]: Revenue
+                - generic [ref=e164]: USD 1,105.79
+                - generic [ref=e165]: Reporting range aggregate.
+                - emphasis [ref=e166]: 25 orders
+              - article [ref=e167]:
+                - generic [ref=e168]: Profit
+                - generic [ref=e169]: USD 52.30
+                - generic [ref=e170]: Derived from cost-backed lines only.
+                - emphasis [ref=e171]: 52.6% coverage
+              - article [ref=e172]:
+                - generic [ref=e173]: AOV
+                - generic [ref=e174]: USD 46.07
+                - generic [ref=e175]: Average basket value across completed sales.
+                - emphasis [ref=e176]: executive brief ready
+          - generic [ref=e177]:
+            - article [ref=e178]:
+              - generic [ref=e180]:
+                - heading "Revenue Runway" [level=3] [ref=e181]
+                - paragraph [ref=e182]: Observed revenue in the selected reporting cadence, with the executive read beside it.
+              - generic [ref=e183]:
+                - generic [ref=e184]:
+                  - application [ref=e188]:
+                    - generic [ref=e205]:
+                      - generic [ref=e206]:
+                        - generic [ref=e208]: Aug 2025
+                        - generic [ref=e210]: Mar 2026
+                      - generic [ref=e211]:
+                        - generic [ref=e213]: "0"
+                        - generic [ref=e215]: "300"
+                        - generic [ref=e217]: "600"
+                        - generic [ref=e219]: "900"
+                        - generic [ref=e221]: "1200"
+                  - generic [ref=e222]:
+                    - article [ref=e223]:
+                      - generic [ref=e224]: Lead category
+                      - strong [ref=e225]: Food Staples
+                      - generic [ref=e226]: USD 336.54 recognized
+                    - article [ref=e227]:
+                      - generic [ref=e228]: Lead product
+                      - strong [ref=e229]: Palm Oil
+                      - generic [ref=e230]: USD 190.00 captured
+                    - article [ref=e231]:
+                      - generic [ref=e232]: Revenue delta
+                      - strong [ref=e233]: 100.0%
+                      - generic [ref=e234]: Mar 2026 vs Feb 2026
+                - complementary [ref=e235]:
+                  - generic [ref=e236]:
+                    - generic [ref=e237]:
+                      - generic [ref=e238]: warning
+                      - generic [ref=e239]: Executive summary
+                    - heading "Revenue is real, but profit coverage is still incomplete." [level=4] [ref=e240]
+                    - paragraph [ref=e241]: USD 524.00 of paid revenue is missing recorded unit cost, so reported profit is partial rather than full-business margin.
+                    - generic [ref=e242]:
+                      - generic [ref=e243]:
+                        - generic [ref=e244]: Why it matters
+                        - strong [ref=e245]: Incomplete cost capture hides true margin quality and makes product, category, and supplier decisions less reliable.
+                      - generic [ref=e246]:
+                        - generic [ref=e247]: Next move
+                        - strong [ref=e248]: Backfill supplier cost on the uncosted SKUs and keep receiving flows writing unit cost on every inbound line.
+                  - generic [ref=e249]:
+                    - article [ref=e250]:
+                      - generic [ref=e251]: Recognized Revenue
+                      - strong [ref=e252]: +100.0%
+                      - generic [ref=e253]: Now USD 1,105.79 in Mar 2026.
+                    - article [ref=e254]:
+                      - generic [ref=e255]: Paid Conversion
+                      - strong [ref=e256]: +96.0 pts
+                      - generic [ref=e257]: 96.0% paid rate across 25 tracked orders.
+                    - article [ref=e258]:
+                      - generic [ref=e259]: Cash At Risk
+                      - strong [ref=e260]: USD 0.00
+                      - generic [ref=e261]: 0 orders are still outside paid capture.
+                    - article [ref=e262]:
+                      - generic [ref=e263]: Profit Coverage
+                      - strong [ref=e264]: 52.6%
+                      - generic [ref=e265]: USD 524.00 of paid revenue still lacks stored unit cost.
+            - article [ref=e266]:
+              - generic [ref=e268]:
+                - heading "Forecast Projection" [level=3] [ref=e269]
+                - paragraph [ref=e270]: Forward projection returned by backend analytics for the next periods.
+              - generic [ref=e273]:
+                - article [ref=e274]:
+                  - generic [ref=e275]: Next projection
+                  - strong [ref=e276]: USD 1,055.11
+                  - generic [ref=e277]: Apr 2026
+                - article [ref=e278]:
+                  - strong [ref=e279]: Apr 2026
+                  - generic [ref=e280]: USD 1,055.11
+                - article [ref=e281]:
+                  - strong [ref=e282]: May 2026
+                  - generic [ref=e283]: USD 1,372.10
+                - article [ref=e284]:
+                  - strong [ref=e285]: Jun 2026
+                  - generic [ref=e286]: USD 1,689.09
+                - article [ref=e287]:
+                  - strong [ref=e288]: Jul 2026
+                  - generic [ref=e289]: USD 2,006.09
+            - article [ref=e290]:
+              - generic [ref=e292]:
+                - heading "Product Leaders" [level=3] [ref=e293]
+                - paragraph [ref=e294]: Products carrying the strongest revenue contribution.
+              - generic [ref=e295]:
+                - generic [ref=e296]:
+                  - generic [ref=e297]: "01"
+                  - generic [ref=e298]:
+                    - strong [ref=e299]: Palm Oil
+                    - generic [ref=e300]: No SKU
+                  - generic [ref=e301]:
+                    - strong [ref=e302]: USD 190.00
+                    - generic [ref=e303]: 20 units
+                - generic [ref=e304]:
+                  - generic [ref=e305]: "02"
+                  - generic [ref=e306]:
+                    - strong [ref=e307]: Jollof Rice Mix
+                    - generic [ref=e308]: No SKU
+                  - generic [ref=e309]:
+                    - strong [ref=e310]: USD 181.86
+                    - generic [ref=e311]: 14 units
+                - generic [ref=e312]:
+                  - generic [ref=e313]: "03"
+                  - generic [ref=e314]:
+                    - strong [ref=e315]: Basmati Rice 5kg
+                    - generic [ref=e316]: No SKU
+                  - generic [ref=e317]:
+                    - strong [ref=e318]: USD 132.93
+                    - generic [ref=e319]: 7 units
+                - generic [ref=e320]:
+                  - generic [ref=e321]: "04"
+                  - generic [ref=e322]:
+                    - strong [ref=e323]: Frozen Chicken
+                    - generic [ref=e324]: No SKU
+                  - generic [ref=e325]:
+                    - strong [ref=e326]: USD 92.50
+                    - generic [ref=e327]: 5 units
+                - generic [ref=e328]:
+                  - generic [ref=e329]: "05"
+                  - generic [ref=e330]:
+                    - strong [ref=e331]: Milk Powder
+                    - generic [ref=e332]: No SKU
+                  - generic [ref=e333]:
+                    - strong [ref=e334]: USD 85.50
+                    - generic [ref=e335]: 6 units
+                - generic [ref=e336]:
+                  - generic [ref=e337]: "06"
+                  - generic [ref=e338]:
+                    - strong [ref=e339]: Tomato Paste
+                    - generic [ref=e340]: No SKU
+                  - generic [ref=e341]:
+                    - strong [ref=e342]: USD 77.00
+                    - generic [ref=e343]: 28 units
+                - generic [ref=e344]:
+                  - generic [ref=e345]: "07"
+                  - generic [ref=e346]:
+                    - strong [ref=e347]: Butter Spread
+                    - generic [ref=e348]: No SKU
+                  - generic [ref=e349]:
+                    - strong [ref=e350]: USD 50.75
+                    - generic [ref=e351]: 7 units
+                - generic [ref=e352]:
+                  - generic [ref=e353]: "08"
+                  - generic [ref=e354]:
+                    - strong [ref=e355]: Orange Juice
+                    - generic [ref=e356]: No SKU
+                  - generic [ref=e357]:
+                    - strong [ref=e358]: USD 41.94
+                    - generic [ref=e359]: 6 units
+            - article [ref=e360]:
+              - generic [ref=e362]:
+                - heading "Category Concentration" [level=3] [ref=e363]
+                - paragraph [ref=e364]: Category-level concentration from the reporting service.
+              - generic [ref=e365]:
+                - generic [ref=e366]:
+                  - generic [ref=e367]:
+                    - strong [ref=e368]: Food Staples
+                    - generic [ref=e369]: USD 336.54
+                  - generic [ref=e372]: 32.4% of visible category revenue
+                - generic [ref=e373]:
+                  - generic [ref=e374]:
+                    - strong [ref=e375]: Cooking Essentials
+                    - generic [ref=e376]: USD 190.00
+                  - generic [ref=e379]: 18.3% of visible category revenue
+                - generic [ref=e380]:
+                  - generic [ref=e381]:
+                    - strong [ref=e382]: Dairy
+                    - generic [ref=e383]: USD 136.25
+                  - generic [ref=e386]: 13.1% of visible category revenue
+                - generic [ref=e387]:
+                  - generic [ref=e388]:
+                    - strong [ref=e389]: Groceries
+                    - generic [ref=e390]: USD 103.96
+                  - generic [ref=e393]: 10.0% of visible category revenue
+                - generic [ref=e394]:
+                  - generic [ref=e395]:
+                    - strong [ref=e396]: Drinks
+                    - generic [ref=e397]: USD 103.44
+                  - generic [ref=e400]: 9.9% of visible category revenue
+                - generic [ref=e401]:
+                  - generic [ref=e402]:
+                    - strong [ref=e403]: Meat & Protein
+                    - generic [ref=e404]: USD 92.50
+                  - generic [ref=e407]: 8.9% of visible category revenue
+                - generic [ref=e408]:
+                  - generic [ref=e409]:
+                    - strong [ref=e410]: Bakery
+                    - generic [ref=e411]: USD 47.45
+                  - generic [ref=e414]: 4.6% of visible category revenue
+                - generic [ref=e415]:
+                  - generic [ref=e416]:
+                    - strong [ref=e417]: Snacks
+                    - generic [ref=e418]: USD 29.75
+                  - generic [ref=e421]: 2.9% of visible category revenue
+            - article [ref=e422]:
+              - generic [ref=e424]:
+                - heading "Operating Signals" [level=3] [ref=e425]
+                - paragraph [ref=e426]: Revenue is real, but profit coverage is still incomplete.
+              - generic [ref=e427]:
+                - generic [ref=e428]:
+                  - strong [ref=e429]: Cost coverage is incomplete
+                  - paragraph [ref=e430]: USD 524.00 of paid revenue still has no recorded unit cost, so profit is only grounded on 52.6% of revenue.
+                - generic [ref=e431]:
+                  - strong [ref=e432]: Demand concentration is visible
+                  - paragraph [ref=e433]: Food Staples is carrying 30.4% of recognized revenue in this period.
+                - generic [ref=e434]:
+                  - strong [ref=e435]: One product is clearly leading
+                  - paragraph [ref=e436]: Palm Oil generated USD 190.00 and is the first SKU to protect from stock breaks.
+                - generic [ref=e437]:
+                  - strong [ref=e438]: Repeat demand is now measurable
+                  - paragraph [ref=e439]: USD 296.35 is already coming from returning customers, which makes future demand more defensible.
+                - generic [ref=e440]:
+                  - strong [ref=e441]: A real trading window is emerging
+                  - paragraph [ref=e442]: Morning is the strongest revenue window at USD 699.53 across 12 paid orders.
+    - button "Owner AI Ask anything about the business" [ref=e443] [cursor=pointer]:
+      - generic [ref=e444]: Owner AI
+      - strong [ref=e445]: Ask anything about the business
+  - generic [ref=e446]: "0"

@@ -1,0 +1,352 @@
+- generic [ref=e5]:
+  - complementary "Workspace navigation" [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]: AM
+      - generic [ref=e10]:
+        - heading "AfroSpice Main Branch" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Retail operations workspace
+    - generic [ref=e13]:
+      - generic [ref=e14]: Current workspace
+      - strong [ref=e15]: Users
+      - paragraph [ref=e16]: Staff roles, roster health, and access discipline.
+    - navigation [ref=e17]:
+      - link "Dashboard Executive Flight Deck" [ref=e18] [cursor=pointer]:
+        - /url: /
+        - img [ref=e20]
+        - generic [ref=e23]:
+          - strong [ref=e24]: Dashboard
+          - generic [ref=e25]: Executive Flight Deck
+      - link "Inventory Inventory Command" [ref=e26] [cursor=pointer]:
+        - /url: /pos-dashboard
+        - img [ref=e28]
+        - generic [ref=e31]:
+          - strong [ref=e32]: Inventory
+          - generic [ref=e33]: Inventory Command
+      - link "POS Terminal Checkout Studio" [ref=e34] [cursor=pointer]:
+        - /url: /terminal
+        - img [ref=e36]
+        - generic [ref=e38]:
+          - strong [ref=e39]: POS Terminal
+          - generic [ref=e40]: Checkout Studio
+      - link "Orders Transaction Intelligence" [ref=e41] [cursor=pointer]:
+        - /url: /orders
+        - img [ref=e43]
+        - generic [ref=e47]:
+          - strong [ref=e48]: Orders
+          - generic [ref=e49]: Transaction Intelligence
+      - link "Reports Strategy Studio" [ref=e50] [cursor=pointer]:
+        - /url: /reports
+        - img [ref=e52]
+        - generic [ref=e53]:
+          - strong [ref=e54]: Reports
+          - generic [ref=e55]: Strategy Studio
+      - link "Customers Customer Intelligence" [ref=e56] [cursor=pointer]:
+        - /url: /customers
+        - img [ref=e58]
+        - generic [ref=e63]:
+          - strong [ref=e64]: Customers
+          - generic [ref=e65]: Customer Intelligence
+      - link "Suppliers Supplier Control" [ref=e66] [cursor=pointer]:
+        - /url: /suppliers
+        - img [ref=e68]
+        - generic [ref=e73]:
+          - strong [ref=e74]: Suppliers
+          - generic [ref=e75]: Supplier Control
+      - link "Users Workforce Control" [ref=e76] [cursor=pointer]:
+        - /url: /users
+        - img [ref=e78]
+        - generic [ref=e82]:
+          - strong [ref=e83]: Users
+          - generic [ref=e84]: Workforce Control
+      - link "Settings Operating Controls" [ref=e85] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e87]
+        - generic [ref=e90]:
+          - strong [ref=e91]: Settings
+          - generic [ref=e92]: Operating Controls
+    - generic [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]: Branch
+        - strong [ref=e96]: AFR-MAIN-001
+        - generic [ref=e97]: AfroSpice Main Branch
+      - generic [ref=e98]:
+        - generic [ref=e99]: Support
+        - strong [ref=e100]: support@afrospice.com
+        - generic [ref=e101]: +1 226 555 0199
+  - generic [ref=e102]:
+    - generic [ref=e103]:
+      - generic [ref=e105]:
+        - paragraph [ref=e106]: Workforce Control
+        - heading "Users" [level=2] [ref=e107]
+        - paragraph [ref=e108]: Staff roles, roster health, and access discipline.
+      - generic [ref=e109]:
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - img [ref=e113]
+            - generic [ref=e116]:
+              - generic [ref=e117]: Branch
+              - strong [ref=e118]: AFR-MAIN-001
+          - generic [ref=e119]:
+            - img [ref=e121]
+            - generic [ref=e123]:
+              - generic [ref=e124]: Currency
+              - strong [ref=e125]: USD
+          - generic [ref=e126]:
+            - img [ref=e128]
+            - generic [ref=e132]:
+              - generic [ref=e133]: Role
+              - strong [ref=e134]: Owner
+          - generic [ref=e135]:
+            - img [ref=e137]
+            - generic [ref=e139]:
+              - generic [ref=e140]: Threshold
+              - strong [ref=e141]: 10 units
+        - button "SO Store Owner Owner" [ref=e143] [cursor=pointer]:
+          - generic [ref=e144]: SO
+          - generic [ref=e145]:
+            - strong [ref=e146]: Store Owner
+            - generic [ref=e147]: Owner
+    - main [ref=e148]:
+      - generic [ref=e580]:
+        - generic [ref=e581]:
+          - generic [ref=e582]:
+            - generic [ref=e583]:
+              - paragraph [ref=e584]: Workforce Board
+              - heading "Users & Access" [level=2] [ref=e585]
+              - paragraph [ref=e586]: A clearer access desk for staffing mix, approvals, sessions, and account posture.
+              - generic [ref=e587]:
+                - generic [ref=e588]: Owners 1
+                - generic [ref=e589]: Managers 1
+                - generic [ref=e590]: Cashiers 2
+            - generic [ref=e592]:
+              - link "New Staff Record" [ref=e593] [cursor=pointer]:
+                - /url: /users/staff/new
+              - button "Refresh" [ref=e594] [cursor=pointer]
+          - generic [ref=e595]:
+            - article [ref=e596]:
+              - generic [ref=e597]: Total Staff
+              - generic [ref=e598]: "5"
+              - generic [ref=e599]: Users currently provisioned for workspace access.
+              - emphasis [ref=e600]: 5 active
+            - article [ref=e601]:
+              - generic [ref=e602]: Pending Approval
+              - generic [ref=e603]: "0"
+              - generic [ref=e604]: Staff records waiting on approval and PIN readiness.
+              - emphasis [ref=e605]: owner controls enabled
+            - article [ref=e606]:
+              - generic [ref=e607]: Live Sessions
+              - generic [ref=e608]: "12"
+              - generic [ref=e609]: Sessions currently active across the workforce.
+              - emphasis [ref=e610]: 2 failed logins / 7d
+        - generic [ref=e611]:
+          - article [ref=e612]:
+            - generic [ref=e614]:
+              - heading "Access Oversight" [level=3] [ref=e615]
+              - paragraph [ref=e616]: The operating read on approvals, live sessions, and account hygiene.
+            - generic [ref=e617]:
+              - generic [ref=e618]:
+                - article [ref=e619]:
+                  - generic [ref=e620]: Approval lane
+                  - strong [ref=e621]: Clear
+                  - generic [ref=e622]: No staff record is waiting on approval right now.
+                - article [ref=e623]:
+                  - generic [ref=e624]: Session pressure
+                  - strong [ref=e625]: 12 live sessions
+                  - generic [ref=e626]: Session activity is visible and should stay aligned with scheduled staffing.
+                - article [ref=e627]:
+                  - generic [ref=e628]: Login hygiene
+                  - strong [ref=e629]: 2 failed attempts
+                  - generic [ref=e630]: Failed login attempts deserve review before they become a support burden.
+              - complementary [ref=e631]:
+                - generic [ref=e632]:
+                  - generic [ref=e633]:
+                    - generic [ref=e634]: warning
+                    - generic [ref=e635]: Workforce brief
+                  - heading "Owner controls are live." [level=4] [ref=e636]
+                  - paragraph [ref=e637]: Owners can approve access, activate staff, and keep the workforce roster aligned with live session behavior.
+                  - generic [ref=e638]:
+                    - generic [ref=e639]:
+                      - generic [ref=e640]: Approval policy
+                      - strong [ref=e641]: PIN assignment and owner approval still gate final staff activation.
+                    - generic [ref=e642]:
+                      - generic [ref=e643]: Current priority
+                      - strong [ref=e644]: Review active sessions and failed logins for drift.
+                - generic [ref=e645]:
+                  - article [ref=e646]:
+                    - generic [ref=e647]:
+                      - strong [ref=e648]: Ama Mensah
+                      - generic [ref=e649]: Manager
+                    - generic [ref=e650]:
+                      - strong [ref=e651]: 0 sessions
+                      - generic [ref=e652]: 2 failed / 7d
+                  - article [ref=e653]:
+                    - generic [ref=e654]:
+                      - strong [ref=e655]: Store Owner
+                      - generic [ref=e656]: Owner
+                    - generic [ref=e657]:
+                      - strong [ref=e658]: 8 sessions
+                      - generic [ref=e659]: 0 failed / 7d
+                  - article [ref=e660]:
+                    - generic [ref=e661]:
+                      - strong [ref=e662]: Kojo Asare
+                      - generic [ref=e663]: Cashier
+                    - generic [ref=e664]:
+                      - strong [ref=e665]: 2 sessions
+                      - generic [ref=e666]: 0 failed / 7d
+                  - article [ref=e667]:
+                    - generic [ref=e668]:
+                      - strong [ref=e669]: Linda Boateng
+                      - generic [ref=e670]: Inventory Clerk
+                    - generic [ref=e671]:
+                      - strong [ref=e672]: 2 sessions
+                      - generic [ref=e673]: 0 failed / 7d
+          - article [ref=e674]:
+            - generic [ref=e676]:
+              - heading "Role Mix" [level=3] [ref=e677]
+              - paragraph [ref=e678]: A quick read on staffing distribution across operator roles.
+            - generic [ref=e679]:
+              - generic [ref=e681]:
+                - strong [ref=e682]: Owners
+                - generic [ref=e683]: "1"
+              - generic [ref=e687]:
+                - strong [ref=e688]: Managers
+                - generic [ref=e689]: "1"
+              - generic [ref=e693]:
+                - strong [ref=e694]: Cashiers
+                - generic [ref=e695]: "2"
+              - generic [ref=e699]:
+                - strong [ref=e700]: Inventory Clerks
+                - generic [ref=e701]: "1"
+          - article [ref=e704]:
+            - generic [ref=e706]:
+              - heading "Staff Directory" [level=3] [ref=e707]
+              - paragraph [ref=e708]: Search, filter, and manage staff records against the live access roster.
+            - generic [ref=e709]:
+              - textbox "Search staff by name, ID, email, or department" [ref=e710]
+              - combobox [ref=e711]:
+                - option "All roles" [selected]
+                - option "Owner"
+                - option "Manager"
+                - option "Cashier"
+                - option "Inventory Clerk"
+              - combobox [ref=e712]:
+                - option "All statuses" [selected]
+                - option "Active"
+                - option "Pending Approval"
+                - option "Inactive"
+            - table [ref=e714]:
+              - rowgroup [ref=e715]:
+                - row "Staff Role Status Department Sessions Failed Logins (7d) Last Login Profile Action" [ref=e716]:
+                  - columnheader "Staff" [ref=e717]
+                  - columnheader "Role" [ref=e718]
+                  - columnheader "Status" [ref=e719]
+                  - columnheader "Department" [ref=e720]
+                  - columnheader "Sessions" [ref=e721]
+                  - columnheader "Failed Logins (7d)" [ref=e722]
+                  - columnheader "Last Login" [ref=e723]
+                  - columnheader "Profile" [ref=e724]
+                  - columnheader "Action" [ref=e725]
+              - rowgroup [ref=e726]:
+                - row "Store OwnerADMIN001 - owner@afrospice.com Owner Active Management 8 0 3/26/2026, 6:07:18 PM Open Active" [ref=e727]:
+                  - cell "Store OwnerADMIN001 - owner@afrospice.com" [ref=e728]:
+                    - generic [ref=e729]:
+                      - strong [ref=e730]: Store Owner
+                      - generic [ref=e731]: ADMIN001 - owner@afrospice.com
+                  - cell "Owner" [ref=e732]
+                  - cell "Active" [ref=e733]:
+                    - generic [ref=e734]: Active
+                  - cell "Management" [ref=e735]
+                  - cell "8" [ref=e736]
+                  - cell "0" [ref=e737]
+                  - cell "3/26/2026, 6:07:18 PM" [ref=e738]
+                  - cell "Open" [ref=e739]:
+                    - link "Open" [ref=e740] [cursor=pointer]:
+                      - /url: /users/staff/1
+                  - cell "Active" [ref=e741]:
+                    - combobox [ref=e742]:
+                      - option "Pending Approval"
+                      - option "Active" [selected]
+                      - option "Inactive"
+                - row "Ama MensahAFR-001 - ama@afrospice.com Manager Active Operations 0 2 n/a Open Active" [ref=e743]:
+                  - cell "Ama MensahAFR-001 - ama@afrospice.com" [ref=e744]:
+                    - generic [ref=e745]:
+                      - strong [ref=e746]: Ama Mensah
+                      - generic [ref=e747]: AFR-001 - ama@afrospice.com
+                  - cell "Manager" [ref=e748]
+                  - cell "Active" [ref=e749]:
+                    - generic [ref=e750]: Active
+                  - cell "Operations" [ref=e751]
+                  - cell "0" [ref=e752]
+                  - cell "2" [ref=e753]
+                  - cell "n/a" [ref=e754]
+                  - cell "Open" [ref=e755]:
+                    - link "Open" [ref=e756] [cursor=pointer]:
+                      - /url: /users/staff/2
+                  - cell "Active" [ref=e757]:
+                    - combobox [ref=e758]:
+                      - option "Pending Approval"
+                      - option "Active" [selected]
+                      - option "Inactive"
+                - row "Kojo AsareAFR-002 - kojo@afrospice.com Cashier Active Sales 2 0 3/26/2026, 8:32:13 AM Open Active" [ref=e759]:
+                  - cell "Kojo AsareAFR-002 - kojo@afrospice.com" [ref=e760]:
+                    - generic [ref=e761]:
+                      - strong [ref=e762]: Kojo Asare
+                      - generic [ref=e763]: AFR-002 - kojo@afrospice.com
+                  - cell "Cashier" [ref=e764]
+                  - cell "Active" [ref=e765]:
+                    - generic [ref=e766]: Active
+                  - cell "Sales" [ref=e767]
+                  - cell "2" [ref=e768]
+                  - cell "0" [ref=e769]
+                  - cell "3/26/2026, 8:32:13 AM" [ref=e770]
+                  - cell "Open" [ref=e771]:
+                    - link "Open" [ref=e772] [cursor=pointer]:
+                      - /url: /users/staff/3
+                  - cell "Active" [ref=e773]:
+                    - combobox [ref=e774]:
+                      - option "Pending Approval"
+                      - option "Active" [selected]
+                      - option "Inactive"
+                - row "Linda BoatengAFR-003 - linda@afrospice.com Inventory Clerk Active Inventory 2 0 3/26/2026, 8:32:13 AM Open Active" [ref=e775]:
+                  - cell "Linda BoatengAFR-003 - linda@afrospice.com" [ref=e776]:
+                    - generic [ref=e777]:
+                      - strong [ref=e778]: Linda Boateng
+                      - generic [ref=e779]: AFR-003 - linda@afrospice.com
+                  - cell "Inventory Clerk" [ref=e780]
+                  - cell "Active" [ref=e781]:
+                    - generic [ref=e782]: Active
+                  - cell "Inventory" [ref=e783]
+                  - cell "2" [ref=e784]
+                  - cell "0" [ref=e785]
+                  - cell "3/26/2026, 8:32:13 AM" [ref=e786]
+                  - cell "Open" [ref=e787]:
+                    - link "Open" [ref=e788] [cursor=pointer]:
+                      - /url: /users/staff/4
+                  - cell "Active" [ref=e789]:
+                    - combobox [ref=e790]:
+                      - option "Pending Approval"
+                      - option "Active" [selected]
+                      - option "Inactive"
+                - row "Bill BrownAFR-005 - reganamanor10@gmail.com Cashier Active Sales 0 0 n/a Open Active" [ref=e791]:
+                  - cell "Bill BrownAFR-005 - reganamanor10@gmail.com" [ref=e792]:
+                    - generic [ref=e793]:
+                      - strong [ref=e794]: Bill Brown
+                      - generic [ref=e795]: AFR-005 - reganamanor10@gmail.com
+                  - cell "Cashier" [ref=e796]
+                  - cell "Active" [ref=e797]:
+                    - generic [ref=e798]: Active
+                  - cell "Sales" [ref=e799]
+                  - cell "0" [ref=e800]
+                  - cell "0" [ref=e801]
+                  - cell "n/a" [ref=e802]
+                  - cell "Open" [ref=e803]:
+                    - link "Open" [ref=e804] [cursor=pointer]:
+                      - /url: /users/staff/6
+                  - cell "Active" [ref=e805]:
+                    - combobox [ref=e806]:
+                      - option "Pending Approval"
+                      - option "Active" [selected]
+                      - option "Inactive"
+  - button "Owner AI Ask anything about the business" [ref=e328] [cursor=pointer]:
+    - generic [ref=e329]: Owner AI
+    - strong [ref=e330]: Ask anything about the business

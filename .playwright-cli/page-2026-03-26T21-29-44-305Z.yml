@@ -1,0 +1,335 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - complementary "Workspace navigation" [ref=e6]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: AM
+        - generic [ref=e10]:
+          - heading "AfroSpice Main Branch" [level=1] [ref=e11]
+          - paragraph [ref=e12]: Retail operations workspace
+      - generic [ref=e13]:
+        - generic [ref=e14]: Current workspace
+        - strong [ref=e15]: Customers
+        - paragraph [ref=e16]: Retention, named demand, walk-in dependence, and account quality.
+      - navigation [ref=e17]:
+        - link "Dashboard Executive Flight Deck" [ref=e18] [cursor=pointer]:
+          - /url: /
+          - img [ref=e20]
+          - generic [ref=e23]:
+            - strong [ref=e24]: Dashboard
+            - generic [ref=e25]: Executive Flight Deck
+        - link "Inventory Inventory Command" [ref=e26] [cursor=pointer]:
+          - /url: /pos-dashboard
+          - img [ref=e28]
+          - generic [ref=e31]:
+            - strong [ref=e32]: Inventory
+            - generic [ref=e33]: Inventory Command
+        - link "POS Terminal Checkout Studio" [ref=e34] [cursor=pointer]:
+          - /url: /terminal
+          - img [ref=e36]
+          - generic [ref=e38]:
+            - strong [ref=e39]: POS Terminal
+            - generic [ref=e40]: Checkout Studio
+        - link "Orders Transaction Intelligence" [ref=e41] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e43]
+          - generic [ref=e47]:
+            - strong [ref=e48]: Orders
+            - generic [ref=e49]: Transaction Intelligence
+        - link "Reports Strategy Studio" [ref=e50] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e52]
+          - generic [ref=e53]:
+            - strong [ref=e54]: Reports
+            - generic [ref=e55]: Strategy Studio
+        - link "Customers Customer Intelligence" [ref=e56] [cursor=pointer]:
+          - /url: /customers
+          - img [ref=e58]
+          - generic [ref=e63]:
+            - strong [ref=e64]: Customers
+            - generic [ref=e65]: Customer Intelligence
+        - link "Suppliers Supplier Control" [ref=e66] [cursor=pointer]:
+          - /url: /suppliers
+          - img [ref=e68]
+          - generic [ref=e73]:
+            - strong [ref=e74]: Suppliers
+            - generic [ref=e75]: Supplier Control
+        - link "Users Workforce Control" [ref=e76] [cursor=pointer]:
+          - /url: /users
+          - img [ref=e78]
+          - generic [ref=e82]:
+            - strong [ref=e83]: Users
+            - generic [ref=e84]: Workforce Control
+        - link "Settings Operating Controls" [ref=e85] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e87]
+          - generic [ref=e90]:
+            - strong [ref=e91]: Settings
+            - generic [ref=e92]: Operating Controls
+      - generic [ref=e93]:
+        - generic [ref=e94]:
+          - generic [ref=e95]: Branch
+          - strong [ref=e96]: AFR-MAIN-001
+          - generic [ref=e97]: AfroSpice Main Branch
+        - generic [ref=e98]:
+          - generic [ref=e99]: Support
+          - strong [ref=e100]: support@afrospice.com
+          - generic [ref=e101]: +1 226 555 0199
+    - generic [ref=e102]:
+      - generic [ref=e103]:
+        - generic [ref=e105]:
+          - paragraph [ref=e106]: Customer Intelligence
+          - heading "Customers" [level=2] [ref=e107]
+          - paragraph [ref=e108]: Retention, named demand, walk-in dependence, and account quality.
+        - generic [ref=e109]:
+          - generic [ref=e110]:
+            - generic [ref=e111]:
+              - img [ref=e113]
+              - generic [ref=e116]:
+                - generic [ref=e117]: Branch
+                - strong [ref=e118]: AFR-MAIN-001
+            - generic [ref=e119]:
+              - img [ref=e121]
+              - generic [ref=e123]:
+                - generic [ref=e124]: Currency
+                - strong [ref=e125]: USD
+            - generic [ref=e126]:
+              - img [ref=e128]
+              - generic [ref=e132]:
+                - generic [ref=e133]: Role
+                - strong [ref=e134]: Owner
+            - generic [ref=e135]:
+              - img [ref=e137]
+              - generic [ref=e139]:
+                - generic [ref=e140]: Threshold
+                - strong [ref=e141]: 10 units
+          - button "SO Store Owner Owner" [ref=e143] [cursor=pointer]:
+            - generic [ref=e144]: SO
+            - generic [ref=e145]:
+              - strong [ref=e146]: Store Owner
+              - generic [ref=e147]: Owner
+      - main [ref=e148]:
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - generic [ref=e151]:
+              - generic [ref=e152]:
+                - paragraph [ref=e153]: Customer Intelligence
+                - heading "Customer Intelligence" [level=2] [ref=e154]
+                - paragraph [ref=e155]: Repeat customer signal is becoming usable.
+              - generic [ref=e157]:
+                - combobox [ref=e158]:
+                  - option "Daily"
+                  - option "Weekly"
+                  - option "Monthly" [selected]
+                  - option "Yearly"
+                - button "Refresh" [ref=e159] [cursor=pointer]
+            - generic [ref=e160]:
+              - article [ref=e161]:
+                - generic [ref=e162]: Named Revenue
+                - generic [ref=e163]: USD 425.81
+                - generic [ref=e164]: Revenue attributed to named customer demand.
+                - emphasis [ref=e165]: 5 accounts
+              - article [ref=e166]:
+                - generic [ref=e167]: Repeat Rate
+                - generic [ref=e168]: 60.0%
+                - generic [ref=e169]: Share of repeat customer behavior in named demand.
+                - emphasis [ref=e170]: 2 repeat
+              - article [ref=e171]:
+                - generic [ref=e172]: At-Risk Accounts
+                - generic [ref=e173]: "0"
+                - generic [ref=e174]: Accounts flagged for declining engagement.
+                - emphasis [ref=e175]: stable
+          - generic [ref=e176]:
+            - article [ref=e177]:
+              - generic [ref=e179]:
+                - heading "Relationship Momentum" [level=3] [ref=e180]
+                - paragraph [ref=e181]: How named demand, repeat revenue, and account quality are moving over time.
+              - generic [ref=e182]:
+                - generic [ref=e183]:
+                  - application [ref=e187]:
+                    - generic [ref=e206]:
+                      - generic [ref=e207]:
+                        - generic [ref=e209]: Aug 2025
+                        - generic [ref=e211]: Mar 2026
+                      - generic [ref=e212]:
+                        - generic [ref=e214]: "0"
+                        - generic [ref=e216]: "150"
+                        - generic [ref=e218]: "300"
+                        - generic [ref=e220]: "450"
+                        - generic [ref=e222]: "600"
+                  - generic [ref=e223]:
+                    - article [ref=e224]:
+                      - generic [ref=e225]: Lead account
+                      - strong [ref=e226]: Abena Owusu
+                      - generic [ref=e227]: USD 126.79 across 3 orders
+                    - article [ref=e228]:
+                      - generic [ref=e229]: Walk-in share
+                      - strong [ref=e230]: 61.5%
+                      - generic [ref=e231]: Share of paid revenue still tied to anonymous demand.
+                - complementary [ref=e232]:
+                  - generic [ref=e233]:
+                    - generic [ref=e234]:
+                      - generic [ref=e235]: success
+                      - generic [ref=e236]: Relationship brief
+                    - heading "Repeat customer signal is becoming usable." [level=4] [ref=e237]
+                    - paragraph [ref=e238]: 3 customers are already repeating and Abena Owusu is leading named demand with 29.8% of known revenue.
+                    - generic [ref=e239]:
+                      - generic [ref=e240]:
+                        - generic [ref=e241]: Why it matters
+                        - strong [ref=e242]: 61.5% of paid revenue is still anonymous walk-in demand.
+                      - generic [ref=e243]:
+                        - generic [ref=e244]: Signal
+                        - strong [ref=e245]: Repeat demand already contributes USD 296.35 across 3 returning customers.
+                      - generic [ref=e246]:
+                        - generic [ref=e247]: Signal
+                        - strong [ref=e248]: Abena Owusu is carrying 29.8% of named revenue.
+                      - generic [ref=e249]:
+                        - generic [ref=e250]: Next move
+                        - strong [ref=e251]: Protect Abena Owusu, then work the accounts most likely to become repeat customers next.
+                  - generic [ref=e252]:
+                    - article [ref=e253]:
+                      - generic [ref=e254]: Walk-In Dependence
+                      - strong [ref=e255]: 61.5%
+                      - generic [ref=e256]: Known demand is becoming easier to defend.
+                    - article [ref=e257]:
+                      - generic [ref=e258]: Repeat Revenue
+                      - strong [ref=e259]: USD 296.35
+                      - generic [ref=e260]: Returning customers are starting to anchor the business.
+                    - article [ref=e261]:
+                      - generic [ref=e262]: Lead Customer
+                      - strong [ref=e263]: Abena Owusu
+                      - generic [ref=e264]: 3 orders with 3 days since the last visit.
+                    - article [ref=e265]:
+                      - generic [ref=e266]: At-Risk Accounts
+                      - strong [ref=e267]: USD 0.00
+                      - generic [ref=e268]: No named account is cooling off hard enough to flag right now.
+            - article [ref=e269]:
+              - generic [ref=e271]:
+                - heading "Top Accounts" [level=3] [ref=e272]
+                - paragraph [ref=e273]: Highest-contributing named accounts by paid revenue.
+              - generic [ref=e274]:
+                - generic [ref=e275]:
+                  - generic [ref=e276]: "01"
+                  - generic [ref=e277]:
+                    - strong [ref=e278]: Abena Owusu
+                    - generic [ref=e279]: Champion segment
+                  - generic [ref=e280]:
+                    - strong [ref=e281]: USD 126.79
+                    - generic [ref=e282]: 3 orders
+                - generic [ref=e283]:
+                  - generic [ref=e284]: "02"
+                  - generic [ref=e285]:
+                    - strong [ref=e286]: Online Order
+                    - generic [ref=e287]: New segment
+                  - generic [ref=e288]:
+                    - strong [ref=e289]: USD 92.40
+                    - generic [ref=e290]: 1 orders
+                - generic [ref=e291]:
+                  - generic [ref=e292]: "03"
+                  - generic [ref=e293]:
+                    - strong [ref=e294]: Esi Arthur
+                    - generic [ref=e295]: Repeat segment
+                  - generic [ref=e296]:
+                    - strong [ref=e297]: USD 90.57
+                    - generic [ref=e298]: 2 orders
+                - generic [ref=e299]:
+                  - generic [ref=e300]: "04"
+                  - generic [ref=e301]:
+                    - strong [ref=e302]: Kwame Boateng
+                    - generic [ref=e303]: Repeat segment
+                  - generic [ref=e304]:
+                    - strong [ref=e305]: USD 78.99
+                    - generic [ref=e306]: 2 orders
+                - generic [ref=e307]:
+                  - generic [ref=e308]: "05"
+                  - generic [ref=e309]:
+                    - strong [ref=e310]: Nana Mensimah
+                    - generic [ref=e311]: New segment
+                  - generic [ref=e312]:
+                    - strong [ref=e313]: USD 37.06
+                    - generic [ref=e314]: 1 orders
+            - article [ref=e315]:
+              - generic [ref=e317]:
+                - heading "Segment Mix" [level=3] [ref=e318]
+                - paragraph [ref=e319]: Customer segment distribution across the visible account base.
+              - generic [ref=e320]:
+                - generic [ref=e321]:
+                  - generic [ref=e322]:
+                    - strong [ref=e323]: Champion
+                    - generic [ref=e324]: 1 accounts
+                  - generic [ref=e327]: 20.0% of tracked accounts
+                - generic [ref=e328]:
+                  - generic [ref=e329]:
+                    - strong [ref=e330]: Repeat
+                    - generic [ref=e331]: 2 accounts
+                  - generic [ref=e334]: 40.0% of tracked accounts
+                - generic [ref=e335]:
+                  - generic [ref=e336]:
+                    - strong [ref=e337]: New
+                    - generic [ref=e338]: 2 accounts
+                  - generic [ref=e341]: 40.0% of tracked accounts
+                - generic [ref=e342]:
+                  - generic [ref=e343]:
+                    - strong [ref=e344]: At Risk
+                    - generic [ref=e345]: 0 accounts
+                  - generic [ref=e348]: 0.0% of tracked accounts
+                - generic [ref=e349]:
+                  - generic [ref=e350]:
+                    - strong [ref=e351]: Dormant
+                    - generic [ref=e352]: 0 accounts
+                  - generic [ref=e355]: 0.0% of tracked accounts
+            - article [ref=e356]:
+              - generic [ref=e358]:
+                - heading "Risk Watch" [level=3] [ref=e359]
+                - paragraph [ref=e360]: Accounts with declining activity or value.
+              - paragraph [ref=e362]: No at-risk accounts flagged.
+            - article [ref=e363]:
+              - generic [ref=e365]:
+                - heading "Growth Watch" [level=3] [ref=e366]
+                - paragraph [ref=e367]: Customers trending upward in order value or frequency.
+              - generic [ref=e368]:
+                - generic [ref=e369]:
+                  - generic:
+                    - strong [ref=e370]: Abena Owusu
+                    - generic [ref=e371]: Champion segment
+                  - generic [ref=e372]: Protect Abena Owusu with follow-through around Food Staples.
+                - generic [ref=e373]:
+                  - generic:
+                    - strong [ref=e374]: Online Order
+                    - generic [ref=e375]: New segment
+                  - generic [ref=e376]: Turn Online Order into a second-visit account before the relationship cools.
+                - generic [ref=e377]:
+                  - generic:
+                    - strong [ref=e378]: Esi Arthur
+                    - generic [ref=e379]: Repeat segment
+                  - generic [ref=e380]: Push Esi Arthur toward champion status with the next Dairy offer.
+                - generic [ref=e381]:
+                  - generic:
+                    - strong [ref=e382]: Kwame Boateng
+                    - generic [ref=e383]: Repeat segment
+                  - generic [ref=e384]: Push Kwame Boateng toward champion status with the next Food Staples offer.
+                - generic [ref=e385]:
+                  - generic:
+                    - strong [ref=e386]: Nana Mensimah
+                    - generic [ref=e387]: New segment
+                  - generic [ref=e388]: Turn Nana Mensimah into a second-visit account before the relationship cools.
+            - article [ref=e389]:
+              - generic [ref=e391]:
+                - heading "Action Signals" [level=3] [ref=e392]
+                - paragraph [ref=e393]: Recommended moves from customer analytics logic.
+              - generic [ref=e394]:
+                - generic [ref=e395]:
+                  - strong [ref=e396]: Walk-In Dependence
+                  - paragraph [ref=e397]: Known demand is becoming easier to defend.
+                - generic [ref=e398]:
+                  - strong [ref=e399]: Repeat Revenue
+                  - paragraph [ref=e400]: Returning customers are starting to anchor the business.
+                - generic [ref=e401]:
+                  - strong [ref=e402]: Lead Customer
+                  - paragraph [ref=e403]: 3 orders with 3 days since the last visit.
+                - generic [ref=e404]:
+                  - strong [ref=e405]: At-Risk Accounts
+                  - paragraph [ref=e406]: No named account is cooling off hard enough to flag right now.
+    - button "Owner AI Ask anything about the business" [ref=e407] [cursor=pointer]:
+      - generic [ref=e408]: Owner AI
+      - strong [ref=e409]: Ask anything about the business
+  - generic [ref=e410]: "0"

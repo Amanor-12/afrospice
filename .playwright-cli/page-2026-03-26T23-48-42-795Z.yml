@@ -1,0 +1,408 @@
+- generic [ref=e1]:
+  - generic [ref=e7]:
+    - complementary "Workspace navigation" [ref=e8]:
+      - generic [ref=e10]:
+        - generic [ref=e11]: AM
+        - generic [ref=e12]:
+          - heading "AfroSpice Main Branch" [level=1] [ref=e13]
+          - paragraph [ref=e14]: Retail operations workspace
+      - generic [ref=e15]:
+        - generic [ref=e16]: Current workspace
+        - strong [ref=e17]: POS Terminal
+        - paragraph [ref=e18]: Fast selling, clean receipts, and live checkout control.
+      - navigation [ref=e19]:
+        - link "Dashboard Executive Flight Deck" [ref=e20] [cursor=pointer]:
+          - /url: /
+          - img [ref=e22]
+          - generic [ref=e25]:
+            - strong [ref=e26]: Dashboard
+            - generic [ref=e27]: Executive Flight Deck
+        - link "Inventory Inventory Command" [ref=e28] [cursor=pointer]:
+          - /url: /pos-dashboard
+          - img [ref=e30]
+          - generic [ref=e33]:
+            - strong [ref=e34]: Inventory
+            - generic [ref=e35]: Inventory Command
+        - link "POS Terminal Checkout Studio" [active] [ref=e36] [cursor=pointer]:
+          - /url: /terminal
+          - img [ref=e38]
+          - generic [ref=e40]:
+            - strong [ref=e41]: POS Terminal
+            - generic [ref=e42]: Checkout Studio
+        - link "Orders Transaction Intelligence" [ref=e43] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e45]
+          - generic [ref=e49]:
+            - strong [ref=e50]: Orders
+            - generic [ref=e51]: Transaction Intelligence
+        - link "Reports Strategy Studio" [ref=e52] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e54]
+          - generic [ref=e55]:
+            - strong [ref=e56]: Reports
+            - generic [ref=e57]: Strategy Studio
+        - link "Customers Customer Intelligence" [ref=e58] [cursor=pointer]:
+          - /url: /customers
+          - img [ref=e60]
+          - generic [ref=e65]:
+            - strong [ref=e66]: Customers
+            - generic [ref=e67]: Customer Intelligence
+        - link "Suppliers Supplier Control" [ref=e68] [cursor=pointer]:
+          - /url: /suppliers
+          - img [ref=e70]
+          - generic [ref=e75]:
+            - strong [ref=e76]: Suppliers
+            - generic [ref=e77]: Supplier Control
+        - link "Users Workforce Control" [ref=e78] [cursor=pointer]:
+          - /url: /users
+          - img [ref=e80]
+          - generic [ref=e84]:
+            - strong [ref=e85]: Users
+            - generic [ref=e86]: Workforce Control
+        - link "Settings Operating Controls" [ref=e87] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e89]
+          - generic [ref=e92]:
+            - strong [ref=e93]: Settings
+            - generic [ref=e94]: Operating Controls
+      - generic [ref=e95]:
+        - generic [ref=e96]:
+          - generic [ref=e97]: Branch
+          - strong [ref=e98]: AFR-MAIN-001
+          - generic [ref=e99]: AfroSpice Main Branch
+        - generic [ref=e100]:
+          - generic [ref=e101]: Support
+          - strong [ref=e102]: support@afrospice.com
+          - generic [ref=e103]: +1 226 555 0199
+    - generic [ref=e104]:
+      - generic [ref=e105]:
+        - generic [ref=e107]:
+          - paragraph [ref=e108]: Checkout Studio
+          - heading "POS Terminal" [level=2] [ref=e109]
+          - paragraph [ref=e110]: Fast selling, clean receipts, and live checkout control.
+        - generic [ref=e111]:
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - img [ref=e115]
+              - generic [ref=e118]:
+                - generic [ref=e119]: Branch
+                - strong [ref=e120]: AFR-MAIN-001
+            - generic [ref=e121]:
+              - img [ref=e123]
+              - generic [ref=e125]:
+                - generic [ref=e126]: Currency
+                - strong [ref=e127]: USD
+            - generic [ref=e128]:
+              - img [ref=e130]
+              - generic [ref=e134]:
+                - generic [ref=e135]: Role
+                - strong [ref=e136]: Owner
+            - generic [ref=e137]:
+              - img [ref=e139]
+              - generic [ref=e141]:
+                - generic [ref=e142]: Threshold
+                - strong [ref=e143]: 10 units
+          - button "SO Store Owner Owner" [ref=e145] [cursor=pointer]:
+            - generic [ref=e146]: SO
+            - generic [ref=e147]:
+              - strong [ref=e148]: Store Owner
+              - generic [ref=e149]: Owner
+      - main [ref=e150]:
+        - generic [ref=e151]:
+          - generic [ref=e152]:
+            - generic [ref=e153]:
+              - generic [ref=e154]:
+                - paragraph [ref=e155]: Checkout Lane
+                - heading "Point of Sale" [level=2] [ref=e156]
+                - paragraph [ref=e157]: A tighter checkout surface focused on basket control, payment choice, and receipt posting.
+                - generic [ref=e158]:
+                  - generic [ref=e159]: Realtime catalog
+                  - generic [ref=e160]: Card / In-Store
+              - button "Show Advanced" [ref=e163] [cursor=pointer]
+            - generic [ref=e164]:
+              - article [ref=e165]:
+                - generic [ref=e166]: Items In Cart
+                - generic [ref=e167]: "0"
+                - generic [ref=e168]: Active checkout basket.
+                - emphasis [ref=e169]: 0 lines
+              - article [ref=e170]:
+                - generic [ref=e171]: Current Total
+                - generic [ref=e172]: USD 0.00
+                - generic [ref=e173]: Final sale totals are always computed by backend.
+                - emphasis [ref=e174]: 7.5% tax
+              - article [ref=e175]:
+                - generic [ref=e176]: Latest Ticket
+                - generic [ref=e177]: SALE-2013
+                - generic [ref=e178]: Most recently posted sale.
+                - emphasis [ref=e179]: Refunded
+          - generic [ref=e180]:
+            - article [ref=e181]:
+              - generic [ref=e183]:
+                - heading "Active Basket" [level=3] [ref=e184]
+                - paragraph [ref=e185]: Build the current sale, confirm the basket, and post the ticket.
+              - generic [ref=e186]:
+                - generic [ref=e188]:
+                  - generic [ref=e189]: Basket empty
+                  - heading "Start with the catalog on the right." [level=4] [ref=e190]
+                  - paragraph [ref=e191]: Add products to begin the checkout flow. Final totals and stock adjustments are posted by backend.
+                - generic [ref=e192]:
+                  - generic [ref=e193]:
+                    - generic [ref=e194]: Estimated subtotal
+                    - strong [ref=e195]: USD 0.00
+                  - generic [ref=e196]:
+                    - generic [ref=e197]: Estimated tax
+                    - strong [ref=e198]: USD 0.00
+                  - generic [ref=e199]:
+                    - generic [ref=e200]: Estimated total
+                    - strong [ref=e201]: USD 0.00
+                  - generic [ref=e202]: Authoritative totals are calculated and stored by backend on sale submission.
+                - button "Complete Checkout" [disabled] [ref=e204]
+            - article [ref=e205]:
+              - generic [ref=e207]:
+                - heading "Quick Catalog" [level=3] [ref=e208]
+                - paragraph [ref=e209]: Search and add products to the active checkout basket.
+              - generic [ref=e210]:
+                - textbox "Search by product, SKU, or barcode" [ref=e211]
+                - combobox [ref=e212]:
+                  - option "All" [selected]
+                  - option "Food Staples"
+                  - option "Cooking Essentials"
+                  - option "Groceries"
+                  - option "Drinks"
+                  - option "Dairy"
+                  - option "Bakery"
+                  - option "Snacks"
+                  - option "Meat & Protein"
+                  - option "Runtime Testing"
+              - generic [ref=e213]:
+                - button "Jollof Rice Mix SKU-FOOD-001 USD 12.99 Stock 1011" [ref=e214] [cursor=pointer]:
+                  - strong [ref=e215]: Jollof Rice Mix
+                  - generic [ref=e216]: SKU-FOOD-001
+                  - generic [ref=e217]:
+                    - generic [ref=e218]: USD 12.99
+                    - generic [ref=e219]: Stock 1011
+                - button "Palm Oil SKU-COOK-002 USD 9.50 Stock 402" [ref=e220] [cursor=pointer]:
+                  - strong [ref=e221]: Palm Oil
+                  - generic [ref=e222]: SKU-COOK-002
+                  - generic [ref=e223]:
+                    - generic [ref=e224]: USD 9.50
+                    - generic [ref=e225]: Stock 402
+                - button "Basmati Rice 5kg SKU-FOOD-003 USD 18.99 Stock 104" [ref=e226] [cursor=pointer]:
+                  - strong [ref=e227]: Basmati Rice 5kg
+                  - generic [ref=e228]: SKU-FOOD-003
+                  - generic [ref=e229]:
+                    - generic [ref=e230]: USD 18.99
+                    - generic [ref=e231]: Stock 104
+                - button "Semolina Flour SKU-FOOD-004 USD 7.25 Stock 58" [ref=e232] [cursor=pointer]:
+                  - strong [ref=e233]: Semolina Flour
+                  - generic [ref=e234]: SKU-FOOD-004
+                  - generic [ref=e235]:
+                    - generic [ref=e236]: USD 7.25
+                    - generic [ref=e237]: Stock 58
+                - button "Cassava Flour SKU-FOOD-005 USD 8.40 Stock 54" [ref=e238] [cursor=pointer]:
+                  - strong [ref=e239]: Cassava Flour
+                  - generic [ref=e240]: SKU-FOOD-005
+                  - generic [ref=e241]:
+                    - generic [ref=e242]: USD 8.40
+                    - generic [ref=e243]: Stock 54
+                - button "Tomato Paste SKU-GROC-006 USD 2.75 Stock 221" [ref=e244] [cursor=pointer]:
+                  - strong [ref=e245]: Tomato Paste
+                  - generic [ref=e246]: SKU-GROC-006
+                  - generic [ref=e247]:
+                    - generic [ref=e248]: USD 2.75
+                    - generic [ref=e249]: Stock 221
+                - button "Cooking Salt SKU-GROC-007 USD 1.50 Stock 153" [ref=e250] [cursor=pointer]:
+                  - strong [ref=e251]: Cooking Salt
+                  - generic [ref=e252]: SKU-GROC-007
+                  - generic [ref=e253]:
+                    - generic [ref=e254]: USD 1.50
+                    - generic [ref=e255]: Stock 153
+                - button "Sugar 2kg SKU-GROC-008 USD 5.99 Stock 64" [ref=e256] [cursor=pointer]:
+                  - strong [ref=e257]: Sugar 2kg
+                  - generic [ref=e258]: SKU-GROC-008
+                  - generic [ref=e259]:
+                    - generic [ref=e260]: USD 5.99
+                    - generic [ref=e261]: Stock 64
+                - button "Peanut Butter SKU-GROC-009 USD 5.85 Stock 35" [ref=e262] [cursor=pointer]:
+                  - strong [ref=e263]: Peanut Butter
+                  - generic [ref=e264]: SKU-GROC-009
+                  - generic [ref=e265]:
+                    - generic [ref=e266]: USD 5.85
+                    - generic [ref=e267]: Stock 35
+                - button "Coke Pack SKU-DRNK-010 USD 12.00 Stock 59" [ref=e268] [cursor=pointer]:
+                  - strong [ref=e269]: Coke Pack
+                  - generic [ref=e270]: SKU-DRNK-010
+                  - generic [ref=e271]:
+                    - generic [ref=e272]: USD 12.00
+                    - generic [ref=e273]: Stock 59
+                - button "Bottled Water 24pk SKU-DRNK-011 USD 8.50 Stock 139" [ref=e274] [cursor=pointer]:
+                  - strong [ref=e275]: Bottled Water 24pk
+                  - generic [ref=e276]: SKU-DRNK-011
+                  - generic [ref=e277]:
+                    - generic [ref=e278]: USD 8.50
+                    - generic [ref=e279]: Stock 139
+                - button "Orange Juice SKU-DRNK-012 USD 6.99 Stock 33" [ref=e280] [cursor=pointer]:
+                  - strong [ref=e281]: Orange Juice
+                  - generic [ref=e282]: SKU-DRNK-012
+                  - generic [ref=e283]:
+                    - generic [ref=e284]: USD 6.99
+                    - generic [ref=e285]: Stock 33
+                - button "Milo Tin SKU-DRNK-013 USD 9.99 Stock 43" [ref=e286] [cursor=pointer]:
+                  - strong [ref=e287]: Milo Tin
+                  - generic [ref=e288]: SKU-DRNK-013
+                  - generic [ref=e289]:
+                    - generic [ref=e290]: USD 9.99
+                    - generic [ref=e291]: Stock 43
+                - button "Milk Powder SKU-DAIR-014 USD 14.25 Stock 26" [ref=e292] [cursor=pointer]:
+                  - strong [ref=e293]: Milk Powder
+                  - generic [ref=e294]: SKU-DAIR-014
+                  - generic [ref=e295]:
+                    - generic [ref=e296]: USD 14.25
+                    - generic [ref=e297]: Stock 26
+                - button "Butter Spread SKU-DAIR-015 USD 7.25 Stock 17" [ref=e298] [cursor=pointer]:
+                  - strong [ref=e299]: Butter Spread
+                  - generic [ref=e300]: SKU-DAIR-015
+                  - generic [ref=e301]:
+                    - generic [ref=e302]: USD 7.25
+                    - generic [ref=e303]: Stock 17
+                - button "Egg Tray SKU-DAIR-016 USD 11.75 Stock 29" [ref=e304] [cursor=pointer]:
+                  - strong [ref=e305]: Egg Tray
+                  - generic [ref=e306]: SKU-DAIR-016
+                  - generic [ref=e307]:
+                    - generic [ref=e308]: USD 11.75
+                    - generic [ref=e309]: Stock 29
+                - button "Bread Loaf SKU-BAKE-017 USD 2.99 Stock 70" [ref=e310] [cursor=pointer]:
+                  - strong [ref=e311]: Bread Loaf
+                  - generic [ref=e312]: SKU-BAKE-017
+                  - generic [ref=e313]:
+                    - generic [ref=e314]: USD 2.99
+                    - generic [ref=e315]: Stock 70
+                - button "Meat Pie Pack SKU-BAKE-018 USD 6.50 Stock 21" [ref=e316] [cursor=pointer]:
+                  - strong [ref=e317]: Meat Pie Pack
+                  - generic [ref=e318]: SKU-BAKE-018
+                  - generic [ref=e319]:
+                    - generic [ref=e320]: USD 6.50
+                    - generic [ref=e321]: Stock 21
+                - button "Plantain Chips SKU-SNCK-019 USD 4.25 Stock 60" [ref=e322] [cursor=pointer]:
+                  - strong [ref=e323]: Plantain Chips
+                  - generic [ref=e324]: SKU-SNCK-019
+                  - generic [ref=e325]:
+                    - generic [ref=e326]: USD 4.25
+                    - generic [ref=e327]: Stock 60
+                - button "Groundnut Mix SKU-SNCK-020 USD 3.50 Stock 48" [ref=e328] [cursor=pointer]:
+                  - strong [ref=e329]: Groundnut Mix
+                  - generic [ref=e330]: SKU-SNCK-020
+                  - generic [ref=e331]:
+                    - generic [ref=e332]: USD 3.50
+                    - generic [ref=e333]: Stock 48
+                - button "Frozen Chicken SKU-MEAT-021 USD 18.50 Stock 92" [ref=e334] [cursor=pointer]:
+                  - strong [ref=e335]: Frozen Chicken
+                  - generic [ref=e336]: SKU-MEAT-021
+                  - generic [ref=e337]:
+                    - generic [ref=e338]: USD 18.50
+                    - generic [ref=e339]: Stock 92
+                - button "Beef Strips SKU-MEAT-022 USD 15.75 Stock 27" [ref=e340] [cursor=pointer]:
+                  - strong [ref=e341]: Beef Strips
+                  - generic [ref=e342]: SKU-MEAT-022
+                  - generic [ref=e343]:
+                    - generic [ref=e344]: USD 15.75
+                    - generic [ref=e345]: Stock 27
+                - button "Runtime CRUD Product SKU-RT-CRUD-001 USD 19.99 Stock 20" [ref=e346] [cursor=pointer]:
+                  - strong [ref=e347]: Runtime CRUD Product
+                  - generic [ref=e348]: SKU-RT-CRUD-001
+                  - generic [ref=e349]:
+                    - generic [ref=e350]: USD 19.99
+                    - generic [ref=e351]: Stock 20
+            - article [ref=e352]:
+              - generic [ref=e354]:
+                - heading "Recent Tickets" [level=3] [ref=e355]
+                - paragraph [ref=e356]: Latest receipts posted from backend sales records.
+              - generic [ref=e357]:
+                - generic [ref=e358]:
+                  - generic [ref=e359]:
+                    - strong [ref=e360]: SALE-2013
+                    - generic [ref=e361]: Store Owner
+                  - generic [ref=e362]:
+                    - strong [ref=e363]: USD 13.96
+                    - generic [ref=e364]: 3/26/2026, 5:34:20 PM
+                  - generic [ref=e365]: Refunded
+                - generic [ref=e366]:
+                  - generic [ref=e367]:
+                    - strong [ref=e368]: SALE-2012
+                    - generic [ref=e369]: Store Owner
+                  - generic [ref=e370]:
+                    - strong [ref=e371]: USD 13.96
+                    - generic [ref=e372]: 3/26/2026, 5:06:06 PM
+                  - generic [ref=e373]: Refunded
+                - generic [ref=e374]:
+                  - generic [ref=e375]:
+                    - strong [ref=e376]: SALE-2011
+                    - generic [ref=e377]: Front Desk
+                  - generic [ref=e378]:
+                    - strong [ref=e379]: USD 24.18
+                    - generic [ref=e380]: 3/25/2026, 4:46:49 AM
+                  - generic [ref=e381]: Paid
+                - generic [ref=e382]:
+                  - generic [ref=e383]:
+                    - strong [ref=e384]: SALE-2010
+                    - generic [ref=e385]: Front Desk
+                  - generic [ref=e386]:
+                    - strong [ref=e387]: USD 27.13
+                    - generic [ref=e388]: 3/24/2026, 10:18:09 PM
+                  - generic [ref=e389]: Paid
+                - generic [ref=e390]:
+                  - generic [ref=e391]:
+                    - strong [ref=e392]: SALE-2009
+                    - generic [ref=e393]: Front Desk
+                  - generic [ref=e394]:
+                    - strong [ref=e395]: USD 18.01
+                    - generic [ref=e396]: 3/24/2026, 9:50:15 PM
+                  - generic [ref=e397]: Paid
+                - generic [ref=e398]:
+                  - generic [ref=e399]:
+                    - strong [ref=e400]: SALE-2005
+                    - generic [ref=e401]: Ama Mensah
+                  - generic [ref=e402]:
+                    - strong [ref=e403]: USD 37.06
+                    - generic [ref=e404]: 3/22/2026, 12:50:00 PM
+                  - generic [ref=e405]: Paid
+                - generic [ref=e406]:
+                  - generic [ref=e407]:
+                    - strong [ref=e408]: SALE-1013
+                    - generic [ref=e409]: Front Desk
+                  - generic [ref=e410]:
+                    - strong [ref=e411]: USD 7.79
+                    - generic [ref=e412]: 3/24/2026, 8:23:54 AM
+                  - generic [ref=e413]: Paid
+                - generic [ref=e414]:
+                  - generic [ref=e415]:
+                    - strong [ref=e416]: SALE-1012
+                    - generic [ref=e417]: Front Desk
+                  - generic [ref=e418]:
+                    - strong [ref=e419]: USD 34.39
+                    - generic [ref=e420]: 3/24/2026, 8:20:16 AM
+                  - generic [ref=e421]: Paid
+                - generic [ref=e422]:
+                  - generic [ref=e423]:
+                    - strong [ref=e424]: SALE-1011
+                    - generic [ref=e425]: Front Desk
+                  - generic [ref=e426]:
+                    - strong [ref=e427]: USD 13.98
+                    - generic [ref=e428]: 3/24/2026, 8:16:49 AM
+                  - generic [ref=e429]: Paid
+                - generic [ref=e430]:
+                  - generic [ref=e431]:
+                    - strong [ref=e432]: SALE-1010
+                    - generic [ref=e433]: Front Desk
+                  - generic [ref=e434]:
+                    - strong [ref=e435]: USD 24.18
+                    - generic [ref=e436]: 3/24/2026, 8:09:57 AM
+                  - generic [ref=e437]: Paid
+              - generic [ref=e438]:
+                - generic [ref=e439]: Latest successful post
+                - strong [ref=e440]: SALE-2013
+                - generic [ref=e441]: USD 13.96 - 3/26/2026, 5:34:20 PM
+    - button "Owner AI Ask anything about the business" [ref=e442] [cursor=pointer]:
+      - generic [ref=e443]: Owner AI
+      - strong [ref=e444]: Ask anything about the business
+  - generic [ref=e445]: "0"

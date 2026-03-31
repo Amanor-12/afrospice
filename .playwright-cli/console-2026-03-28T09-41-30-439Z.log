@@ -1,0 +1,6 @@
+[ 1339380ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/src/components/pages/Login.jsx?t=1774692229725:0
+[ 1339388ms] [ERROR] [vite] Failed to reload /src/components/pages/Login.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:5173/@vite/client:904
+[ 1398968ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/src/components/pages/Login.css?t=1774692289388:0
+[ 1398969ms] [ERROR] [vite] Failed to reload /src/components/pages/Login.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:5173/@vite/client:904
+[ 4445479ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:5173/src/App.jsx?t=1774695335842:0
+[ 4445486ms] [ERROR] [vite] Failed to reload /src/App.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:5173/@vite/client:904

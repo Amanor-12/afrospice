@@ -1,0 +1,245 @@
+- generic [ref=e5]:
+  - complementary "Workspace navigation" [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]: AM
+      - generic [ref=e10]:
+        - heading "AfroSpice Main Branch" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Retail operations workspace
+    - generic [ref=e13]:
+      - generic [ref=e14]: Current workspace
+      - strong [ref=e15]: Settings
+      - paragraph [ref=e16]: Store profile, checkout policies, and workspace rules.
+    - navigation [ref=e17]:
+      - link "Dashboard Executive Flight Deck" [ref=e18] [cursor=pointer]:
+        - /url: /
+        - img [ref=e20]
+        - generic [ref=e23]:
+          - strong [ref=e24]: Dashboard
+          - generic [ref=e25]: Executive Flight Deck
+      - link "Inventory Inventory Command" [ref=e26] [cursor=pointer]:
+        - /url: /pos-dashboard
+        - img [ref=e28]
+        - generic [ref=e31]:
+          - strong [ref=e32]: Inventory
+          - generic [ref=e33]: Inventory Command
+      - link "POS Terminal Checkout Studio" [ref=e34] [cursor=pointer]:
+        - /url: /terminal
+        - img [ref=e36]
+        - generic [ref=e38]:
+          - strong [ref=e39]: POS Terminal
+          - generic [ref=e40]: Checkout Studio
+      - link "Orders Transaction Intelligence" [ref=e41] [cursor=pointer]:
+        - /url: /orders
+        - img [ref=e43]
+        - generic [ref=e47]:
+          - strong [ref=e48]: Orders
+          - generic [ref=e49]: Transaction Intelligence
+      - link "Reports Strategy Studio" [ref=e50] [cursor=pointer]:
+        - /url: /reports
+        - img [ref=e52]
+        - generic [ref=e53]:
+          - strong [ref=e54]: Reports
+          - generic [ref=e55]: Strategy Studio
+      - link "Customers Customer Intelligence" [ref=e56] [cursor=pointer]:
+        - /url: /customers
+        - img [ref=e58]
+        - generic [ref=e63]:
+          - strong [ref=e64]: Customers
+          - generic [ref=e65]: Customer Intelligence
+      - link "Suppliers Supplier Control" [ref=e66] [cursor=pointer]:
+        - /url: /suppliers
+        - img [ref=e68]
+        - generic [ref=e73]:
+          - strong [ref=e74]: Suppliers
+          - generic [ref=e75]: Supplier Control
+      - link "Users Workforce Control" [ref=e76] [cursor=pointer]:
+        - /url: /users
+        - img [ref=e78]
+        - generic [ref=e82]:
+          - strong [ref=e83]: Users
+          - generic [ref=e84]: Workforce Control
+      - link "Settings Operating Controls" [ref=e85] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e87]
+        - generic [ref=e90]:
+          - strong [ref=e91]: Settings
+          - generic [ref=e92]: Operating Controls
+    - generic [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]: Branch
+        - strong [ref=e96]: AFR-MAIN-001
+        - generic [ref=e97]: AfroSpice Main Branch
+      - generic [ref=e98]:
+        - generic [ref=e99]: Support
+        - strong [ref=e100]: support@afrospice.com
+        - generic [ref=e101]: +1 226 555 0199
+  - generic [ref=e102]:
+    - generic [ref=e103]:
+      - generic [ref=e105]:
+        - paragraph [ref=e106]: Operating Controls
+        - heading "Settings" [level=2] [ref=e107]
+        - paragraph [ref=e108]: Store profile, checkout policies, and workspace rules.
+      - generic [ref=e109]:
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - img [ref=e113]
+            - generic [ref=e116]:
+              - generic [ref=e117]: Branch
+              - strong [ref=e118]: AFR-MAIN-001
+          - generic [ref=e119]:
+            - img [ref=e121]
+            - generic [ref=e123]:
+              - generic [ref=e124]: Currency
+              - strong [ref=e125]: USD
+          - generic [ref=e126]:
+            - img [ref=e128]
+            - generic [ref=e132]:
+              - generic [ref=e133]: Role
+              - strong [ref=e134]: Owner
+          - generic [ref=e135]:
+            - img [ref=e137]
+            - generic [ref=e139]:
+              - generic [ref=e140]: Threshold
+              - strong [ref=e141]: 10 units
+        - button "SO Store Owner Owner" [ref=e143] [cursor=pointer]:
+          - generic [ref=e144]: SO
+          - generic [ref=e145]:
+            - strong [ref=e146]: Store Owner
+            - generic [ref=e147]: Owner
+    - main [ref=e148]:
+      - generic [ref=e149]:
+        - generic [ref=e150]:
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - paragraph [ref=e153]: Operating Console
+              - heading "Workspace Settings" [level=2] [ref=e154]
+              - paragraph [ref=e155]: Store identity, checkout policy, alerts, and AI routing in one control surface.
+            - generic [ref=e157]:
+              - 'button "Theme: Light" [ref=e158] [cursor=pointer]'
+              - button "Logout" [ref=e159] [cursor=pointer]
+          - generic [ref=e160]:
+            - article [ref=e161]:
+              - generic [ref=e162]: Branch
+              - generic [ref=e163]: AFR-MAIN-001
+              - generic [ref=e164]: Current operating location code.
+              - emphasis [ref=e165]: USD
+            - article [ref=e166]:
+              - generic [ref=e167]: Tax Rate
+              - generic [ref=e168]: 7.5%
+              - generic [ref=e169]: Applied by backend sale calculations.
+              - emphasis [ref=e170]: 10 low-stock threshold
+            - article [ref=e171]:
+              - generic [ref=e172]: AI Routing
+              - generic [ref=e173]: grounded-assistant-live
+              - generic [ref=e174]: The grounded owner assistant is live. External model routing is implemented and will activate when OPENAI_API_KEY is configured.
+              - emphasis [ref=e175]: Grounded mode
+        - generic [ref=e176]:
+          - article [ref=e177]:
+            - generic [ref=e179]:
+              - heading "Business Identity" [level=3] [ref=e180]
+              - paragraph [ref=e181]: Primary store identity and customer-facing contact details.
+            - generic [ref=e182]:
+              - textbox "Store name" [ref=e183]: AfroSpice Main Branch
+              - textbox "Manager name" [ref=e184]: Store Owner
+            - generic [ref=e185]:
+              - textbox "Branch code" [ref=e186]: AFR-MAIN-001
+              - textbox "Currency" [ref=e187]: USD
+            - generic [ref=e188]:
+              - textbox "Support email" [ref=e189]: support@afrospice.com
+              - textbox "Support phone" [ref=e190]: +1 226 555 0199
+            - textbox "Receipt footer" [ref=e191]: Thank you for shopping with AfroSpice.
+          - article [ref=e192]:
+            - generic [ref=e194]:
+              - heading "Operating Policies" [level=3] [ref=e195]
+              - paragraph [ref=e196]: These values drive backend-calculated checkout and inventory behavior.
+            - generic [ref=e197]:
+              - spinbutton [ref=e198]: "7.5"
+              - spinbutton [ref=e199]: "10"
+            - generic [ref=e200]:
+              - article [ref=e201]:
+                - generic [ref=e202]:
+                  - strong [ref=e203]: Checkout Guardrails
+                  - paragraph [ref=e204]: The rules that shape how sales are completed and approved.
+                - generic [ref=e205]:
+                  - generic [ref=e206]:
+                    - generic [ref=e207]: Quick checkout
+                    - checkbox "Quick checkout" [checked] [ref=e208]
+                  - generic [ref=e209]:
+                    - generic [ref=e210]: Enable discounts
+                    - checkbox "Enable discounts" [checked] [ref=e211]
+                  - generic [ref=e212]:
+                    - generic [ref=e213]: Require PIN for refunds
+                    - checkbox "Require PIN for refunds" [checked] [ref=e214]
+                  - generic [ref=e215]:
+                    - generic [ref=e216]: Auto-print receipt
+                    - checkbox "Auto-print receipt" [ref=e217]
+              - article [ref=e218]:
+                - generic [ref=e219]:
+                  - strong [ref=e220]: Operations Signals
+                  - paragraph [ref=e221]: Notifications and reporting surfaces for daily operations.
+                - generic [ref=e222]:
+                  - generic [ref=e223]:
+                    - generic [ref=e224]: Stock warnings
+                    - checkbox "Stock warnings" [checked] [ref=e225]
+                  - generic [ref=e226]:
+                    - generic [ref=e227]: Notifications
+                    - checkbox "Notifications" [checked] [ref=e228]
+                  - generic [ref=e229]:
+                    - generic [ref=e230]: Sales email reports
+                    - checkbox "Sales email reports" [ref=e231]
+              - article [ref=e232]:
+                - generic [ref=e233]:
+                  - strong [ref=e234]: Workspace Experience
+                  - paragraph [ref=e235]: Display-level preferences that do not change business logic.
+                - generic [ref=e236]:
+                  - generic [ref=e237]:
+                    - generic [ref=e238]: Compact tables
+                    - checkbox "Compact tables" [ref=e239]
+                  - generic [ref=e240]:
+                    - generic [ref=e241]: Dashboard animations
+                    - checkbox "Dashboard animations" [checked] [ref=e242]
+                  - generic [ref=e243]:
+                    - generic [ref=e244]: Sound effects
+                    - checkbox "Sound effects" [ref=e245]
+          - article [ref=e246]:
+            - generic [ref=e248]:
+              - heading "Control Posture" [level=3] [ref=e249]
+              - paragraph [ref=e250]: A quick read on the workspace configuration posture you are saving.
+            - generic [ref=e251]:
+              - article [ref=e252]:
+                - generic [ref=e253]: Enabled controls
+                - strong [ref=e254]: "6"
+                - generic [ref=e255]: Operational toggles currently enabled across checkout, alerts, and UI experience.
+              - article [ref=e256]:
+                - generic [ref=e257]: Refund protection
+                - strong [ref=e258]: Protected
+                - generic [ref=e259]: Refund PIN enforcement stays on the backend and should remain enabled in production.
+              - article [ref=e260]:
+                - generic [ref=e261]: Sales reporting
+                - strong [ref=e262]: Manual
+                - generic [ref=e263]: Sales reporting visibility depends on backend-generated reporting and delivery settings.
+          - article [ref=e264]:
+            - generic [ref=e266]:
+              - heading "AI Routing" [level=3] [ref=e267]
+              - paragraph [ref=e268]: Live backend AI mode, provider, and grounding posture.
+            - generic [ref=e269]:
+              - generic [ref=e270]:
+                - generic [ref=e271]: Mode
+                - strong [ref=e272]: grounded-assistant
+              - generic [ref=e273]:
+                - generic [ref=e274]: Provider
+                - strong [ref=e275]: Grounded only
+              - generic [ref=e276]:
+                - generic [ref=e277]: Model
+                - strong [ref=e278]: n/a
+              - generic [ref=e279]:
+                - generic [ref=e280]: Configured
+                - strong [ref=e281]: "No"
+          - generic [ref=e282]:
+            - generic [ref=e283]:
+              - strong [ref=e284]: Save authoritative settings
+              - paragraph [ref=e285]: These values control how the backend calculates sales, stock, alerts, and diagnostics.
+            - button "Save Settings" [ref=e286] [cursor=pointer]
+  - button "Owner AI Ask anything about the business" [ref=e287] [cursor=pointer]:
+    - generic [ref=e288]: Owner AI
+    - strong [ref=e289]: Ask anything about the business

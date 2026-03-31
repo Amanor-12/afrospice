@@ -1,0 +1,367 @@
+- generic [ref=e5]:
+  - complementary "Workspace navigation" [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]: AM
+      - generic [ref=e10]:
+        - heading "AfroSpice Main Branch" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Retail operations workspace
+    - generic [ref=e13]:
+      - generic [ref=e14]: Current workspace
+      - strong [ref=e15]: Suppliers
+      - paragraph [ref=e16]: Inbound exposure, fill rate, lead time, and supplier pressure.
+    - navigation [ref=e17]:
+      - link "Dashboard Executive Flight Deck" [ref=e18] [cursor=pointer]:
+        - /url: /
+        - img [ref=e20]
+        - generic [ref=e23]:
+          - strong [ref=e24]: Dashboard
+          - generic [ref=e25]: Executive Flight Deck
+      - link "Inventory Inventory Command" [ref=e26] [cursor=pointer]:
+        - /url: /pos-dashboard
+        - img [ref=e28]
+        - generic [ref=e31]:
+          - strong [ref=e32]: Inventory
+          - generic [ref=e33]: Inventory Command
+      - link "POS Terminal Checkout Studio" [ref=e34] [cursor=pointer]:
+        - /url: /terminal
+        - img [ref=e36]
+        - generic [ref=e38]:
+          - strong [ref=e39]: POS Terminal
+          - generic [ref=e40]: Checkout Studio
+      - link "Orders Transaction Intelligence" [ref=e41] [cursor=pointer]:
+        - /url: /orders
+        - img [ref=e43]
+        - generic [ref=e47]:
+          - strong [ref=e48]: Orders
+          - generic [ref=e49]: Transaction Intelligence
+      - link "Reports Strategy Studio" [ref=e50] [cursor=pointer]:
+        - /url: /reports
+        - img [ref=e52]
+        - generic [ref=e53]:
+          - strong [ref=e54]: Reports
+          - generic [ref=e55]: Strategy Studio
+      - link "Customers Customer Intelligence" [ref=e56] [cursor=pointer]:
+        - /url: /customers
+        - img [ref=e58]
+        - generic [ref=e63]:
+          - strong [ref=e64]: Customers
+          - generic [ref=e65]: Customer Intelligence
+      - link "Suppliers Supplier Control" [ref=e66] [cursor=pointer]:
+        - /url: /suppliers
+        - img [ref=e68]
+        - generic [ref=e73]:
+          - strong [ref=e74]: Suppliers
+          - generic [ref=e75]: Supplier Control
+      - link "Users Workforce Control" [ref=e76] [cursor=pointer]:
+        - /url: /users
+        - img [ref=e78]
+        - generic [ref=e82]:
+          - strong [ref=e83]: Users
+          - generic [ref=e84]: Workforce Control
+      - link "Settings Operating Controls" [ref=e85] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e87]
+        - generic [ref=e90]:
+          - strong [ref=e91]: Settings
+          - generic [ref=e92]: Operating Controls
+    - generic [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]: Branch
+        - strong [ref=e96]: AFR-MAIN-001
+        - generic [ref=e97]: AfroSpice Main Branch
+      - generic [ref=e98]:
+        - generic [ref=e99]: Support
+        - strong [ref=e100]: support@afrospice.com
+        - generic [ref=e101]: +1 226 555 0199
+  - generic [ref=e102]:
+    - generic [ref=e103]:
+      - generic [ref=e105]:
+        - paragraph [ref=e106]: Supplier Control
+        - heading "Suppliers" [level=2] [ref=e107]
+        - paragraph [ref=e108]: Inbound exposure, fill rate, lead time, and supplier pressure.
+      - generic [ref=e109]:
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - img [ref=e113]
+            - generic [ref=e116]:
+              - generic [ref=e117]: Branch
+              - strong [ref=e118]: AFR-MAIN-001
+          - generic [ref=e119]:
+            - img [ref=e121]
+            - generic [ref=e123]:
+              - generic [ref=e124]: Currency
+              - strong [ref=e125]: USD
+          - generic [ref=e126]:
+            - img [ref=e128]
+            - generic [ref=e132]:
+              - generic [ref=e133]: Role
+              - strong [ref=e134]: Owner
+          - generic [ref=e135]:
+            - img [ref=e137]
+            - generic [ref=e139]:
+              - generic [ref=e140]: Threshold
+              - strong [ref=e141]: 10 units
+        - button "SO Store Owner Owner" [ref=e143] [cursor=pointer]:
+          - generic [ref=e144]: SO
+          - generic [ref=e145]:
+            - strong [ref=e146]: Store Owner
+            - generic [ref=e147]: Owner
+    - main [ref=e148]:
+      - generic [ref=e149]:
+        - generic [ref=e150]:
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - paragraph [ref=e153]: Supply Control Tower
+              - heading "Supplier Intelligence" [level=2] [ref=e154]
+              - paragraph [ref=e155]: Supplier cover is stable enough to operate cleanly.
+            - generic [ref=e157]:
+              - combobox [ref=e158]:
+                - option "Daily"
+                - option "Weekly"
+                - option "Monthly" [selected]
+                - option "Yearly"
+              - button "Refresh" [ref=e159] [cursor=pointer]
+          - generic [ref=e160]:
+            - article [ref=e161]:
+              - generic [ref=e162]: Tracked Suppliers
+              - generic [ref=e163]: "18"
+              - generic [ref=e164]: Suppliers carrying inventory or inbound commitments.
+              - emphasis [ref=e165]: 14 open commitments
+            - article [ref=e166]:
+              - generic [ref=e167]: Weighted Fill Rate
+              - generic [ref=e168]: 0.0%
+              - generic [ref=e169]: Receipt completeness across tracked purchase order history.
+              - emphasis [ref=e170]: 47/100 service
+            - article [ref=e171]:
+              - generic [ref=e172]: Average Lead Time
+              - generic [ref=e173]: 1.8 days
+              - generic [ref=e174]: Mean supplier turnaround from ordering to receiving.
+              - emphasis [ref=e175]: 2 under pressure
+        - generic [ref=e176]:
+          - article [ref=e177]:
+            - generic [ref=e179]:
+              - heading "Service Board" [level=3] [ref=e180]
+              - paragraph [ref=e181]: How the strongest suppliers are performing against service, fill, and pressure.
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - generic [ref=e184]:
+                  - generic [ref=e185]:
+                    - generic [ref=e186]: "01"
+                    - generic [ref=e187]:
+                      - strong [ref=e188]: Golden Grain
+                      - generic [ref=e189]: Watch supplier posture
+                    - generic [ref=e190]:
+                      - strong [ref=e191]: 35/100
+                      - generic [ref=e192]: 0.0% fill / 0.0d lead
+                  - generic [ref=e193]:
+                    - generic [ref=e194]: "02"
+                    - generic [ref=e195]:
+                      - strong [ref=e196]: Prime Farm
+                      - generic [ref=e197]: Watch supplier posture
+                    - generic [ref=e198]:
+                      - strong [ref=e199]: 35/100
+                      - generic [ref=e200]: 0.0% fill / 0.0d lead
+                  - generic [ref=e201]:
+                    - generic [ref=e202]: "03"
+                    - generic [ref=e203]:
+                      - strong [ref=e204]: Rootline Mills
+                      - generic [ref=e205]: Stable supplier posture
+                    - generic [ref=e206]:
+                      - strong [ref=e207]: 49/100
+                      - generic [ref=e208]: 0.0% fill / 4.0d lead
+                  - generic [ref=e209]:
+                    - generic [ref=e210]: "04"
+                    - generic [ref=e211]:
+                      - strong [ref=e212]: Fresh Foods
+                      - generic [ref=e213]: Stable supplier posture
+                    - generic [ref=e214]:
+                      - strong [ref=e215]: 49/100
+                      - generic [ref=e216]: 0.0% fill / 0.5d lead
+                  - generic [ref=e217]:
+                    - generic [ref=e218]: "05"
+                    - generic [ref=e219]:
+                      - strong [ref=e220]: Mama Gold Foods
+                      - generic [ref=e221]: Stable supplier posture
+                    - generic [ref=e222]:
+                      - strong [ref=e223]: 49/100
+                      - generic [ref=e224]: 0.0% fill / 1.0d lead
+                  - generic [ref=e225]:
+                    - generic [ref=e226]: "06"
+                    - generic [ref=e227]:
+                      - strong [ref=e228]: Mill House
+                      - generic [ref=e229]: Stable supplier posture
+                    - generic [ref=e230]:
+                      - strong [ref=e231]: 49/100
+                      - generic [ref=e232]: 0.0% fill / 0.0d lead
+                - generic [ref=e233]:
+                  - article [ref=e234]:
+                    - generic [ref=e235]: Lead supplier
+                    - strong [ref=e236]: Golden Grain
+                    - generic [ref=e237]: 0 low-stock lines and 3 open purchase orders.
+                  - article [ref=e238]:
+                    - generic [ref=e239]: Open commitment
+                    - strong [ref=e240]: USD 1,969.99
+                    - generic [ref=e241]: Committed purchase-order value not yet landed into stock.
+                  - article [ref=e242]:
+                    - generic [ref=e243]: Exposure
+                    - strong [ref=e244]: 0 exposed SKUs
+                    - generic [ref=e245]: Critical lines still depending on incoming supply continuity.
+              - complementary [ref=e246]:
+                - generic [ref=e247]:
+                  - generic [ref=e248]:
+                    - generic [ref=e249]: success
+                    - generic [ref=e250]: Network brief
+                  - heading "Supplier cover is stable enough to operate cleanly." [level=4] [ref=e251]
+                  - paragraph [ref=e252]: 18 suppliers are active and USD 1,969.99 is still sitting in open purchase orders.
+                  - generic [ref=e253]:
+                    - generic [ref=e254]:
+                      - generic [ref=e255]: Why it matters
+                      - strong [ref=e256]: Supplier quality determines whether planned replenishment becomes real stock on the shelf.
+                    - generic [ref=e257]:
+                      - generic [ref=e258]: Next move
+                      - strong [ref=e259]: Close the biggest open commitment with Golden Grain before exposed SKUs turn into floor breaks.
+                - generic [ref=e260]:
+                  - article [ref=e261]:
+                    - generic [ref=e262]: Open Commitments
+                    - strong [ref=e263]: USD 1,969.99
+                    - generic [ref=e264]: Purchase-order value is still sitting outside received stock.
+                  - article [ref=e265]:
+                    - generic [ref=e266]: Tracked Fill Rate
+                    - strong [ref=e267]: 0.0%
+                    - generic [ref=e268]: Fill-rate history appears once received purchase orders build up.
+                  - article [ref=e269]:
+                    - generic [ref=e270]: Average Lead Time
+                    - strong [ref=e271]: 1.8 days
+                    - generic [ref=e272]: Shorter lead times give the business more room before low-stock pressure turns urgent.
+                  - article [ref=e273]:
+                    - generic [ref=e274]: Supplier Pressure
+                    - strong [ref=e275]: "2"
+                    - generic [ref=e276]: Suppliers are already on watch because of stock, fill, or receiving pressure.
+          - article [ref=e277]:
+            - generic [ref=e279]:
+              - heading "Open Commitments" [level=3] [ref=e280]
+              - paragraph [ref=e281]: The purchase orders still carrying inbound value and timing risk.
+            - table [ref=e283]:
+              - rowgroup [ref=e284]:
+                - row "Order Supplier Status Value Expected" [ref=e285]:
+                  - columnheader "Order" [ref=e286]
+                  - columnheader "Supplier" [ref=e287]
+                  - columnheader "Status" [ref=e288]
+                  - columnheader "Value" [ref=e289]
+                  - columnheader "Expected" [ref=e290]
+              - rowgroup [ref=e291]:
+                - row "PO-1006 Rootline Mills Draft USD 0.00 n/a" [ref=e292]:
+                  - cell "PO-1006" [ref=e293]
+                  - cell "Rootline Mills" [ref=e294]
+                  - cell "Draft" [ref=e295]:
+                    - generic [ref=e296]: Draft
+                  - cell "USD 0.00" [ref=e297]
+                  - cell "n/a" [ref=e298]
+                - row "PO-1003 Rootline Mills Draft USD 0.00 n/a" [ref=e299]:
+                  - cell "PO-1003" [ref=e300]
+                  - cell "Rootline Mills" [ref=e301]
+                  - cell "Draft" [ref=e302]:
+                    - generic [ref=e303]: Draft
+                  - cell "USD 0.00" [ref=e304]
+                  - cell "n/a" [ref=e305]
+                - row "PO-1004 Golden Grain Draft USD 0.00 n/a" [ref=e306]:
+                  - cell "PO-1004" [ref=e307]
+                  - cell "Golden Grain" [ref=e308]
+                  - cell "Draft" [ref=e309]:
+                    - generic [ref=e310]: Draft
+                  - cell "USD 0.00" [ref=e311]
+                  - cell "n/a" [ref=e312]
+                - row "PO-2002 Golden Grain Sent USD 0.00 3/14/2026, 2:00:00 PM" [ref=e313]:
+                  - cell "PO-2002" [ref=e314]
+                  - cell "Golden Grain" [ref=e315]
+                  - cell "Sent" [ref=e316]:
+                    - generic [ref=e317]: Sent
+                  - cell "USD 0.00" [ref=e318]
+                  - cell "3/14/2026, 2:00:00 PM" [ref=e319]
+                - row "PO-1008 Golden Grain Draft USD 0.00 n/a" [ref=e320]:
+                  - cell "PO-1008" [ref=e321]
+                  - cell "Golden Grain" [ref=e322]
+                  - cell "Draft" [ref=e323]:
+                    - generic [ref=e324]: Draft
+                  - cell "USD 0.00" [ref=e325]
+                  - cell "n/a" [ref=e326]
+                - row "PO-1007 Fresh Foods Draft USD 0.00 n/a" [ref=e327]:
+                  - cell "PO-1007" [ref=e328]
+                  - cell "Fresh Foods" [ref=e329]
+                  - cell "Draft" [ref=e330]:
+                    - generic [ref=e331]: Draft
+                  - cell "USD 0.00" [ref=e332]
+                  - cell "n/a" [ref=e333]
+          - article [ref=e334]:
+            - generic [ref=e336]:
+              - heading "Exposure Ledger" [level=3] [ref=e337]
+              - paragraph [ref=e338]: Supplier-level exposure based on low-stock pressure and inbound dependence.
+            - generic [ref=e339]:
+              - generic [ref=e340]:
+                - generic [ref=e341]:
+                  - strong [ref=e342]: Golden Grain
+                  - generic [ref=e343]: 0 exposed SKUs
+                - generic [ref=e346]: 0 low-stock lines across this supplier.
+              - generic [ref=e347]:
+                - generic [ref=e348]:
+                  - strong [ref=e349]: Prime Farm
+                  - generic [ref=e350]: 0 exposed SKUs
+                - generic [ref=e353]: 0 low-stock lines across this supplier.
+              - generic [ref=e354]:
+                - generic [ref=e355]:
+                  - strong [ref=e356]: Rootline Mills
+                  - generic [ref=e357]: 0 exposed SKUs
+                - generic [ref=e360]: 0 low-stock lines across this supplier.
+              - generic [ref=e361]:
+                - generic [ref=e362]:
+                  - strong [ref=e363]: Fresh Foods
+                  - generic [ref=e364]: 0 exposed SKUs
+                - generic [ref=e367]: 0 low-stock lines across this supplier.
+              - generic [ref=e368]:
+                - generic [ref=e369]:
+                  - strong [ref=e370]: Mama Gold Foods
+                  - generic [ref=e371]: 0 exposed SKUs
+                - generic [ref=e374]: 0 low-stock lines across this supplier.
+              - generic [ref=e375]:
+                - generic [ref=e376]:
+                  - strong [ref=e377]: Mill House
+                  - generic [ref=e378]: 0 exposed SKUs
+                - generic [ref=e381]: 0 low-stock lines across this supplier.
+              - generic [ref=e382]:
+                - generic [ref=e383]:
+                  - strong [ref=e384]: Kitchen Essentials
+                  - generic [ref=e385]: 0 exposed SKUs
+                - generic [ref=e388]: 0 low-stock lines across this supplier.
+              - generic [ref=e389]:
+                - generic [ref=e390]:
+                  - strong [ref=e391]: Sweet Supply
+                  - generic [ref=e392]: 0 exposed SKUs
+                - generic [ref=e395]: 0 low-stock lines across this supplier.
+          - article [ref=e396]:
+            - generic [ref=e398]:
+              - heading "Control Signals" [level=3] [ref=e399]
+              - paragraph [ref=e400]: The supplier watchlist and recommended follow-through actions.
+            - generic [ref=e401]:
+              - generic [ref=e402]:
+                - generic [ref=e403]:
+                  - strong [ref=e404]: Open Commitments
+                  - generic [ref=e405]: USD 1,969.99
+                - paragraph [ref=e406]: Purchase-order value is still sitting outside received stock.
+              - generic [ref=e407]:
+                - generic:
+                  - strong [ref=e408]: Tracked Fill Rate
+                  - generic [ref=e409]: 0.0%
+                - paragraph [ref=e410]: Fill-rate history appears once received purchase orders build up.
+              - generic [ref=e411]:
+                - generic:
+                  - strong [ref=e412]: Average Lead Time
+                  - generic [ref=e413]: 1.8 days
+                - paragraph [ref=e414]: Shorter lead times give the business more room before low-stock pressure turns urgent.
+              - generic [ref=e415]:
+                - generic:
+                  - strong [ref=e416]: Supplier Pressure
+                  - generic [ref=e417]: "2"
+                - paragraph [ref=e418]: Suppliers are already on watch because of stock, fill, or receiving pressure.
+  - button "Owner AI Ask anything about the business" [ref=e419] [cursor=pointer]:
+    - generic [ref=e420]: Owner AI
+    - strong [ref=e421]: Ask anything about the business

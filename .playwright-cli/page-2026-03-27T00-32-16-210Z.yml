@@ -1,0 +1,51 @@
+- generic [ref=e8]:
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - paragraph [ref=e11]: Retail Operations Platform
+      - generic [ref=e13]: AS
+    - generic [ref=e14]:
+      - heading "AfroSpice Main Branch" [level=1] [ref=e15]
+      - paragraph [ref=e16]: Secure access to the operating system for sales, stock, supplier control, and decision-making.
+    - generic [ref=e17]:
+      - article [ref=e18]:
+        - generic [ref=e19]: Inventory
+        - strong [ref=e20]: Receiving, counts, supplier continuity, and stock movement trails.
+      - article [ref=e21]:
+        - generic [ref=e22]: Checkout
+        - strong [ref=e23]: Fast lane execution with backend totals, refunds, and payment-state control.
+      - article [ref=e24]:
+        - generic [ref=e25]: Oversight
+        - strong [ref=e26]: Revenue, margin, customer quality, and risk signals for owners and managers.
+    - generic [ref=e27]:
+      - article [ref=e28]:
+        - generic [ref=e29]: Branch
+        - strong [ref=e30]: AFR-MAIN-001
+        - generic [ref=e31]: AfroSpice Main Branch
+      - article [ref=e32]:
+        - generic [ref=e33]: Support
+        - strong [ref=e34]: support@afrospice.com
+        - generic [ref=e35]: +1 226 555 0199
+  - generic [ref=e36]:
+    - generic [ref=e37]:
+      - generic [ref=e38]: Secure Access
+      - button "Dark Mode" [ref=e39] [cursor=pointer]
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - heading "Sign In" [level=2] [ref=e42]
+        - paragraph [ref=e43]: Use your assigned staff credentials to enter the workspace.
+      - generic [ref=e44]: Staff ID
+      - textbox "Staff ID" [ref=e45]:
+        - /placeholder: Enter Staff ID
+      - generic [ref=e46]: PIN
+      - textbox "PIN" [ref=e47]:
+        - /placeholder: Enter PIN
+      - button "Enter Workspace" [ref=e48] [cursor=pointer]
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - generic [ref=e51]: Access Policy
+          - strong [ref=e52]: Authorized Staff Only
+          - generic [ref=e53]: Role and session checks are enforced server-side.
+        - generic [ref=e54]:
+          - generic [ref=e55]: Workspace
+          - strong [ref=e56]: AFR-MAIN-001
+          - generic [ref=e57]: AfroSpice Main Branch

@@ -1,0 +1,888 @@
+- generic [ref=e5]:
+  - complementary "Workspace navigation" [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]: AM
+      - generic [ref=e10]:
+        - heading "AfroSpice Main Branch" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Retail operations workspace
+    - generic [ref=e13]:
+      - generic [ref=e14]: Current workspace
+      - strong [ref=e15]: Inventory
+      - paragraph [ref=e16]: Replenishment, receiving, counts, and stock control.
+    - navigation [ref=e17]:
+      - link "Dashboard Executive Flight Deck" [ref=e18] [cursor=pointer]:
+        - /url: /
+        - img [ref=e20]
+        - generic [ref=e23]:
+          - strong [ref=e24]: Dashboard
+          - generic [ref=e25]: Executive Flight Deck
+      - link "Inventory Inventory Command" [ref=e26] [cursor=pointer]:
+        - /url: /pos-dashboard
+        - img [ref=e28]
+        - generic [ref=e31]:
+          - strong [ref=e32]: Inventory
+          - generic [ref=e33]: Inventory Command
+      - link "POS Terminal Checkout Studio" [ref=e34] [cursor=pointer]:
+        - /url: /terminal
+        - img [ref=e36]
+        - generic [ref=e38]:
+          - strong [ref=e39]: POS Terminal
+          - generic [ref=e40]: Checkout Studio
+      - link "Orders Transaction Intelligence" [ref=e41] [cursor=pointer]:
+        - /url: /orders
+        - img [ref=e43]
+        - generic [ref=e47]:
+          - strong [ref=e48]: Orders
+          - generic [ref=e49]: Transaction Intelligence
+      - link "Reports Strategy Studio" [ref=e50] [cursor=pointer]:
+        - /url: /reports
+        - img [ref=e52]
+        - generic [ref=e53]:
+          - strong [ref=e54]: Reports
+          - generic [ref=e55]: Strategy Studio
+      - link "Customers Customer Intelligence" [ref=e56] [cursor=pointer]:
+        - /url: /customers
+        - img [ref=e58]
+        - generic [ref=e63]:
+          - strong [ref=e64]: Customers
+          - generic [ref=e65]: Customer Intelligence
+      - link "Suppliers Supplier Control" [ref=e66] [cursor=pointer]:
+        - /url: /suppliers
+        - img [ref=e68]
+        - generic [ref=e73]:
+          - strong [ref=e74]: Suppliers
+          - generic [ref=e75]: Supplier Control
+      - link "Users Workforce Control" [ref=e76] [cursor=pointer]:
+        - /url: /users
+        - img [ref=e78]
+        - generic [ref=e82]:
+          - strong [ref=e83]: Users
+          - generic [ref=e84]: Workforce Control
+      - link "Settings Operating Controls" [ref=e85] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e87]
+        - generic [ref=e90]:
+          - strong [ref=e91]: Settings
+          - generic [ref=e92]: Operating Controls
+    - generic [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]: Branch
+        - strong [ref=e96]: AFR-MAIN-001
+        - text: AfroSpice Main Branch
+      - generic [ref=e97]:
+        - generic [ref=e98]: Support
+        - strong [ref=e99]: support@afrospice.com
+        - text: +1 226 555 0199
+  - generic [ref=e100]:
+    - generic [ref=e101]:
+      - generic [ref=e102]:
+        - button "Open navigation" [ref=e103] [cursor=pointer]:
+          - img [ref=e104]
+        - generic [ref=e105]:
+          - paragraph [ref=e106]: Inventory Command
+          - heading "Inventory" [level=2] [ref=e107]
+          - paragraph [ref=e108]: Replenishment, receiving, counts, and stock control.
+      - generic [ref=e109]:
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - img [ref=e113]
+            - generic [ref=e116]:
+              - generic [ref=e117]: Branch
+              - strong [ref=e118]: AFR-MAIN-001
+          - generic [ref=e119]:
+            - img [ref=e121]
+            - generic [ref=e123]:
+              - generic [ref=e124]: Currency
+              - strong [ref=e125]: USD
+          - generic [ref=e126]:
+            - img [ref=e128]
+            - generic [ref=e132]:
+              - generic [ref=e133]: Role
+              - strong [ref=e134]: Owner
+          - generic [ref=e135]:
+            - img [ref=e137]
+            - generic [ref=e139]:
+              - generic [ref=e140]: Threshold
+              - strong [ref=e141]: 10 units
+        - button "SO Store Owner Owner" [ref=e143] [cursor=pointer]:
+          - generic [ref=e144]: SO
+          - generic [ref=e145]:
+            - strong [ref=e146]: Store Owner
+            - generic [ref=e147]: Owner
+    - main [ref=e148]:
+      - generic [ref=e149]:
+        - generic [ref=e150]:
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - paragraph [ref=e153]: Inventory Command
+              - heading "Inventory" [level=2] [ref=e154]
+              - paragraph [ref=e155]: Reorder risk, receiving pressure, stock health, and live movement arranged so an owner or inventory lead can decide what to buy, count, or correct in seconds.
+              - generic [ref=e156]:
+                - generic [ref=e157]: Watchlist
+                - generic [ref=e158]: 1 critical lines
+                - generic [ref=e159]: Draft lines 0
+            - generic [ref=e161]:
+              - generic [ref=e162]:
+                - strong [ref=e164]: Inventory Live
+                - generic [ref=e165]: Last change just now
+              - button "Review Reorder Queue" [ref=e166] [cursor=pointer]
+          - generic [ref=e167]:
+            - article [ref=e168]:
+              - generic [ref=e169]: Health Score
+              - generic "Inventory health score 78 out of 100" [ref=e171]:
+                - strong [ref=e172]:
+                  - generic [ref=e173]: "78"
+                  - generic [ref=e174]: "100"
+              - generic [ref=e175]: 1 critical lines need immediate attention.
+              - emphasis [ref=e176]: Watchlist
+            - article [ref=e177]:
+              - generic [ref=e178]: Products
+              - generic [ref=e179]: "23"
+              - generic [ref=e180]: 2810 units across the store.
+              - emphasis [ref=e181]: 0 draft lines
+            - article [ref=e182]:
+              - generic [ref=e183]: Low Stock
+              - generic [ref=e184]: "1"
+              - generic [ref=e185]: 1 lines are already critical.
+              - emphasis [ref=e186]: 1 critical
+            - article [ref=e187]:
+              - generic [ref=e188]: Stock Value
+              - generic [ref=e189]: USD 25,856.76
+              - generic [ref=e190]: USD 2,021.92 is currently dormant capital.
+              - emphasis [ref=e191]: USD 2,021.92 dormant
+        - generic [ref=e192]:
+          - article [ref=e193]:
+            - generic [ref=e194]: Inbound queue
+            - strong [ref=e195]: 12 open orders
+            - paragraph [ref=e196]: 280 units are still waiting to land.
+            - generic [ref=e197]: 10 drafts
+          - article [ref=e198]:
+            - generic [ref=e199]: Cycle count lane
+            - strong [ref=e200]: No open count
+            - paragraph [ref=e201]: Start a quick count from the priority queue below.
+            - generic [ref=e202]: Ready
+          - article [ref=e203]:
+            - generic [ref=e204]: Latest movement
+            - strong [ref=e205]: Cycle Count Validation
+            - paragraph [ref=e206]: New Line just now
+            - generic [ref=e207]: Mar 27, 12:13 AM
+        - generic [ref=e208]:
+          - generic [ref=e210]:
+            - generic [ref=e211]:
+              - generic [ref=e212]:
+                - heading "Reorder Planner" [level=3] [ref=e213]
+                - paragraph [ref=e214]: Priority purchase draft built from stock pressure, sell-through, and dormant stock signals.
+              - generic [ref=e215]:
+                - button "Select All" [ref=e216] [cursor=pointer]
+                - button "Create Orders" [disabled] [ref=e217]
+                - button "Export Draft" [ref=e218] [cursor=pointer]
+            - generic [ref=e219]:
+              - article [ref=e220]:
+                - generic [ref=e221]: Draft Lines
+                - strong [ref=e222]: "0"
+                - generic [ref=e223]: Selected replenishment lines.
+              - article [ref=e224]:
+                - generic [ref=e225]: Draft Quantity
+                - strong [ref=e226]: "0"
+                - generic [ref=e227]: Suggested units to buy.
+              - article [ref=e228]:
+                - generic [ref=e229]: Dormant Capital
+                - strong [ref=e230]: USD 2,021.92
+                - generic [ref=e231]: 6 lines are not moving.
+            - article [ref=e233]:
+              - checkbox [ref=e235]
+              - generic [ref=e236]:
+                - strong [ref=e237]: Cycle Count Validation
+                - paragraph [ref=e238]: Groceries - Fresh Foods
+                - generic [ref=e239]: Last sale - No activity yet
+              - generic [ref=e240]:
+                - generic [ref=e241]: Critical
+                - strong [ref=e242]: 1 units
+                - generic [ref=e243]: Cover - Unknown
+              - generic [ref=e244]:
+                - generic [ref=e245]:
+                  - generic [ref=e246]: "19"
+                  - text: Suggested reorder qty
+                - generic [ref=e247]:
+                  - button "Edit" [ref=e248] [cursor=pointer]
+                  - button "Restock" [ref=e249] [cursor=pointer]
+          - generic [ref=e251]:
+            - generic [ref=e252]:
+              - generic [ref=e253]:
+                - heading "Command Dock" [level=3] [ref=e254]
+                - paragraph [ref=e255]: Scan a code, edit an existing SKU, or register a new line cleanly.
+              - generic [ref=e256]: Ready
+            - generic [ref=e258]:
+              - generic [ref=e259]: Scanner Dock
+              - generic [ref=e260]:
+                - textbox "Scanner Dock Load" [ref=e261]:
+                  - /placeholder: Scan barcode or enter SKU
+                - button "Load" [ref=e262] [cursor=pointer]
+            - generic [ref=e263]: Scan to pull an existing SKU into the dock. No match means the dock is ready to register a new product immediately.
+            - generic [ref=e265]:
+              - generic [ref=e266]:
+                - textbox "Product name" [ref=e267]
+                - textbox "SKU" [ref=e268]
+                - textbox "Barcode" [ref=e269]
+                - textbox "Category" [ref=e270]
+                - textbox "Supplier" [ref=e271]
+                - spinbutton [ref=e272]
+                - spinbutton [ref=e273]
+              - spinbutton [ref=e274]
+              - generic [ref=e275]:
+                - button "Add Product" [ref=e276] [cursor=pointer]
+                - button "Reset Dock" [ref=e277] [cursor=pointer]
+            - generic [ref=e279]: Product edits here write directly to the live catalog and feed the receiving and cycle-count tools below.
+          - generic [ref=e281]:
+            - generic [ref=e282]:
+              - generic [ref=e283]:
+                - heading "Inventory Directory" [level=3] [ref=e284]
+                - paragraph [ref=e285]: Search, segment, and act on the full inventory with cleaner visibility.
+              - generic [ref=e286]: Showing 23 of 23
+            - generic [ref=e287]:
+              - textbox "Search name, SKU, barcode, supplier, or category" [ref=e288]
+              - combobox [ref=e289]:
+                - option "All" [selected]
+                - option "Groceries"
+                - option "Meat & Protein"
+                - option "Food Staples"
+                - option "Dairy"
+                - option "Snacks"
+                - option "Drinks"
+                - option "Bakery"
+                - option "Cooking Essentials"
+            - generic [ref=e290]:
+              - button "All23" [ref=e291] [cursor=pointer]:
+                - text: All
+                - strong [ref=e292]: "23"
+              - button "Critical1" [ref=e293] [cursor=pointer]:
+                - text: Critical
+                - strong [ref=e294]: "1"
+              - button "Reorder0" [ref=e295] [cursor=pointer]:
+                - text: Reorder
+                - strong [ref=e296]: "0"
+              - button "Dormant6" [ref=e297] [cursor=pointer]:
+                - text: Dormant
+                - strong [ref=e298]: "6"
+              - button "Healthy16" [ref=e299] [cursor=pointer]:
+                - text: Healthy
+                - strong [ref=e300]: "16"
+            - table [ref=e302]:
+              - rowgroup [ref=e303]:
+                - row "Name Supplier Category Stock Unit Price Stock Value Status Action" [ref=e304]:
+                  - columnheader "Name" [ref=e305]
+                  - columnheader "Supplier" [ref=e306]
+                  - columnheader "Category" [ref=e307]
+                  - columnheader "Stock" [ref=e308]
+                  - columnheader "Unit Price" [ref=e309]
+                  - columnheader "Stock Value" [ref=e310]
+                  - columnheader "Status" [ref=e311]
+                  - columnheader "Action" [ref=e312]
+              - rowgroup [ref=e313]:
+                - row "Cycle Count Validation SKU-VAL-COUNT-001 Fresh Foods Groceries 1 USD 1.99 USD 1.10 Critical Edit Restock Delete" [ref=e314]:
+                  - cell "Cycle Count Validation SKU-VAL-COUNT-001" [ref=e315]:
+                    - generic [ref=e316]: Cycle Count Validation
+                    - generic [ref=e317]: SKU-VAL-COUNT-001
+                  - cell "Fresh Foods" [ref=e318]
+                  - cell "Groceries" [ref=e319]
+                  - cell "1" [ref=e320]
+                  - cell "USD 1.99" [ref=e321]
+                  - cell "USD 1.10" [ref=e322]
+                  - cell "Critical" [ref=e323]:
+                    - generic [ref=e324]: Critical
+                  - cell "Edit Restock Delete" [ref=e325]:
+                    - generic [ref=e326]:
+                      - button "Edit" [ref=e327] [cursor=pointer]
+                      - button "Restock" [ref=e328] [cursor=pointer]
+                      - button "Delete" [ref=e329] [cursor=pointer]
+                - row "Beef Strips SKU-MEAT-022 Prime Farm Meat & Protein 27 USD 15.75 USD 425.25 Dormant Edit Restock Delete" [ref=e330]:
+                  - cell "Beef Strips SKU-MEAT-022" [ref=e331]:
+                    - generic [ref=e332]: Beef Strips
+                    - generic [ref=e333]: SKU-MEAT-022
+                  - cell "Prime Farm" [ref=e334]
+                  - cell "Meat & Protein" [ref=e335]
+                  - cell "27" [ref=e336]
+                  - cell "USD 15.75" [ref=e337]
+                  - cell "USD 425.25" [ref=e338]
+                  - cell "Dormant" [ref=e339]:
+                    - generic [ref=e340]: Dormant
+                  - cell "Edit Restock Delete" [ref=e341]:
+                    - generic [ref=e342]:
+                      - button "Edit" [ref=e343] [cursor=pointer]
+                      - button "Restock" [ref=e344] [cursor=pointer]
+                      - button "Delete" [ref=e345] [cursor=pointer]
+                - row "Cassava Flour SKU-FOOD-005 Mill House Food Staples 54 USD 8.40 USD 453.60 Dormant Edit Restock Delete" [ref=e346]:
+                  - cell "Cassava Flour SKU-FOOD-005" [ref=e347]:
+                    - generic [ref=e348]: Cassava Flour
+                    - generic [ref=e349]: SKU-FOOD-005
+                  - cell "Mill House" [ref=e350]
+                  - cell "Food Staples" [ref=e351]
+                  - cell "54" [ref=e352]
+                  - cell "USD 8.40" [ref=e353]
+                  - cell "USD 453.60" [ref=e354]
+                  - cell "Dormant" [ref=e355]:
+                    - generic [ref=e356]: Dormant
+                  - cell "Edit Restock Delete" [ref=e357]:
+                    - generic [ref=e358]:
+                      - button "Edit" [ref=e359] [cursor=pointer]
+                      - button "Restock" [ref=e360] [cursor=pointer]
+                      - button "Delete" [ref=e361] [cursor=pointer]
+                - row "Egg Tray SKU-DAIR-016 Happy Hen Dairy 29 USD 11.75 USD 340.75 Dormant Edit Restock Delete" [ref=e362]:
+                  - cell "Egg Tray SKU-DAIR-016" [ref=e363]:
+                    - generic [ref=e364]: Egg Tray
+                    - generic [ref=e365]: SKU-DAIR-016
+                  - cell "Happy Hen" [ref=e366]
+                  - cell "Dairy" [ref=e367]
+                  - cell "29" [ref=e368]
+                  - cell "USD 11.75" [ref=e369]
+                  - cell "USD 340.75" [ref=e370]
+                  - cell "Dormant" [ref=e371]:
+                    - generic [ref=e372]: Dormant
+                  - cell "Edit Restock Delete" [ref=e373]:
+                    - generic [ref=e374]:
+                      - button "Edit" [ref=e375] [cursor=pointer]
+                      - button "Restock" [ref=e376] [cursor=pointer]
+                      - button "Delete" [ref=e377] [cursor=pointer]
+                - row "Groundnut Mix SKU-SNCK-020 Crunch House Snacks 48 USD 3.50 USD 168.00 Dormant Edit Restock Delete" [ref=e378]:
+                  - cell "Groundnut Mix SKU-SNCK-020" [ref=e379]:
+                    - generic [ref=e380]: Groundnut Mix
+                    - generic [ref=e381]: SKU-SNCK-020
+                  - cell "Crunch House" [ref=e382]
+                  - cell "Snacks" [ref=e383]
+                  - cell "48" [ref=e384]
+                  - cell "USD 3.50" [ref=e385]
+                  - cell "USD 168.00" [ref=e386]
+                  - cell "Dormant" [ref=e387]:
+                    - generic [ref=e388]: Dormant
+                  - cell "Edit Restock Delete" [ref=e389]:
+                    - generic [ref=e390]:
+                      - button "Edit" [ref=e391] [cursor=pointer]
+                      - button "Restock" [ref=e392] [cursor=pointer]
+                      - button "Delete" [ref=e393] [cursor=pointer]
+                - row "Milo Tin SKU-DRNK-013 Nestle Drinks 43 USD 9.99 USD 429.57 Dormant Edit Restock Delete" [ref=e394]:
+                  - cell "Milo Tin SKU-DRNK-013" [ref=e395]:
+                    - generic [ref=e396]: Milo Tin
+                    - generic [ref=e397]: SKU-DRNK-013
+                  - cell "Nestle" [ref=e398]
+                  - cell "Drinks" [ref=e399]
+                  - cell "43" [ref=e400]
+                  - cell "USD 9.99" [ref=e401]
+                  - cell "USD 429.57" [ref=e402]
+                  - cell "Dormant" [ref=e403]:
+                    - generic [ref=e404]: Dormant
+                  - cell "Edit Restock Delete" [ref=e405]:
+                    - generic [ref=e406]:
+                      - button "Edit" [ref=e407] [cursor=pointer]
+                      - button "Restock" [ref=e408] [cursor=pointer]
+                      - button "Delete" [ref=e409] [cursor=pointer]
+                - row "Peanut Butter SKU-GROC-009 Nut Spread Co Groceries 35 USD 5.85 USD 204.75 Dormant Edit Restock Delete" [ref=e410]:
+                  - cell "Peanut Butter SKU-GROC-009" [ref=e411]:
+                    - generic [ref=e412]: Peanut Butter
+                    - generic [ref=e413]: SKU-GROC-009
+                  - cell "Nut Spread Co" [ref=e414]
+                  - cell "Groceries" [ref=e415]
+                  - cell "35" [ref=e416]
+                  - cell "USD 5.85" [ref=e417]
+                  - cell "USD 204.75" [ref=e418]
+                  - cell "Dormant" [ref=e419]:
+                    - generic [ref=e420]: Dormant
+                  - cell "Edit Restock Delete" [ref=e421]:
+                    - generic [ref=e422]:
+                      - button "Edit" [ref=e423] [cursor=pointer]
+                      - button "Restock" [ref=e424] [cursor=pointer]
+                      - button "Delete" [ref=e425] [cursor=pointer]
+                - row "Basmati Rice 5kg SKU-FOOD-003 Golden Grain Food Staples 104 USD 18.99 USD 1,974.96 Healthy Edit Restock Delete" [ref=e426]:
+                  - cell "Basmati Rice 5kg SKU-FOOD-003" [ref=e427]:
+                    - generic [ref=e428]: Basmati Rice 5kg
+                    - generic [ref=e429]: SKU-FOOD-003
+                  - cell "Golden Grain" [ref=e430]
+                  - cell "Food Staples" [ref=e431]
+                  - cell "104" [ref=e432]
+                  - cell "USD 18.99" [ref=e433]
+                  - cell "USD 1,974.96" [ref=e434]
+                  - cell "Healthy" [ref=e435]:
+                    - generic [ref=e436]: Healthy
+                  - cell "Edit Restock Delete" [ref=e437]:
+                    - generic [ref=e438]:
+                      - button "Edit" [ref=e439] [cursor=pointer]
+                      - button "Restock" [ref=e440] [cursor=pointer]
+                      - button "Delete" [ref=e441] [cursor=pointer]
+                - row "Bottled Water 24pk SKU-DRNK-011 Clear Spring Drinks 139 USD 8.50 USD 1,181.50 Healthy Edit Restock Delete" [ref=e442]:
+                  - cell "Bottled Water 24pk SKU-DRNK-011" [ref=e443]:
+                    - generic [ref=e444]: Bottled Water 24pk
+                    - generic [ref=e445]: SKU-DRNK-011
+                  - cell "Clear Spring" [ref=e446]
+                  - cell "Drinks" [ref=e447]
+                  - cell "139" [ref=e448]
+                  - cell "USD 8.50" [ref=e449]
+                  - cell "USD 1,181.50" [ref=e450]
+                  - cell "Healthy" [ref=e451]:
+                    - generic [ref=e452]: Healthy
+                  - cell "Edit Restock Delete" [ref=e453]:
+                    - generic [ref=e454]:
+                      - button "Edit" [ref=e455] [cursor=pointer]
+                      - button "Restock" [ref=e456] [cursor=pointer]
+                      - button "Delete" [ref=e457] [cursor=pointer]
+                - row "Bread Loaf SKU-BAKE-017 Sunrise Bakery Bakery 70 USD 2.99 USD 209.30 Healthy Edit Restock Delete" [ref=e458]:
+                  - cell "Bread Loaf SKU-BAKE-017" [ref=e459]:
+                    - generic [ref=e460]: Bread Loaf
+                    - generic [ref=e461]: SKU-BAKE-017
+                  - cell "Sunrise Bakery" [ref=e462]
+                  - cell "Bakery" [ref=e463]
+                  - cell "70" [ref=e464]
+                  - cell "USD 2.99" [ref=e465]
+                  - cell "USD 209.30" [ref=e466]
+                  - cell "Healthy" [ref=e467]:
+                    - generic [ref=e468]: Healthy
+                  - cell "Edit Restock Delete" [ref=e469]:
+                    - generic [ref=e470]:
+                      - button "Edit" [ref=e471] [cursor=pointer]
+                      - button "Restock" [ref=e472] [cursor=pointer]
+                      - button "Delete" [ref=e473] [cursor=pointer]
+                - row "Butter Spread SKU-DAIR-015 Farm Fresh Dairy 17 USD 7.25 USD 123.25 Healthy Edit Restock Delete" [ref=e474]:
+                  - cell "Butter Spread SKU-DAIR-015" [ref=e475]:
+                    - generic [ref=e476]: Butter Spread
+                    - generic [ref=e477]: SKU-DAIR-015
+                  - cell "Farm Fresh" [ref=e478]
+                  - cell "Dairy" [ref=e479]
+                  - cell "17" [ref=e480]
+                  - cell "USD 7.25" [ref=e481]
+                  - cell "USD 123.25" [ref=e482]
+                  - cell "Healthy" [ref=e483]:
+                    - generic [ref=e484]: Healthy
+                  - cell "Edit Restock Delete" [ref=e485]:
+                    - generic [ref=e486]:
+                      - button "Edit" [ref=e487] [cursor=pointer]
+                      - button "Restock" [ref=e488] [cursor=pointer]
+                      - button "Delete" [ref=e489] [cursor=pointer]
+                - row "Coke Pack SKU-DRNK-010 Coca-Cola Drinks 59 USD 12.00 USD 708.00 Healthy Edit Restock Delete" [ref=e490]:
+                  - cell "Coke Pack SKU-DRNK-010" [ref=e491]:
+                    - generic [ref=e492]: Coke Pack
+                    - generic [ref=e493]: SKU-DRNK-010
+                  - cell "Coca-Cola" [ref=e494]
+                  - cell "Drinks" [ref=e495]
+                  - cell "59" [ref=e496]
+                  - cell "USD 12.00" [ref=e497]
+                  - cell "USD 708.00" [ref=e498]
+                  - cell "Healthy" [ref=e499]:
+                    - generic [ref=e500]: Healthy
+                  - cell "Edit Restock Delete" [ref=e501]:
+                    - generic [ref=e502]:
+                      - button "Edit" [ref=e503] [cursor=pointer]
+                      - button "Restock" [ref=e504] [cursor=pointer]
+                      - button "Delete" [ref=e505] [cursor=pointer]
+                - row "Cooking Salt SKU-GROC-007 Kitchen Essentials Groceries 153 USD 1.50 USD 229.50 Healthy Edit Restock Delete" [ref=e506]:
+                  - cell "Cooking Salt SKU-GROC-007" [ref=e507]:
+                    - generic [ref=e508]: Cooking Salt
+                    - generic [ref=e509]: SKU-GROC-007
+                  - cell "Kitchen Essentials" [ref=e510]
+                  - cell "Groceries" [ref=e511]
+                  - cell "153" [ref=e512]
+                  - cell "USD 1.50" [ref=e513]
+                  - cell "USD 229.50" [ref=e514]
+                  - cell "Healthy" [ref=e515]:
+                    - generic [ref=e516]: Healthy
+                  - cell "Edit Restock Delete" [ref=e517]:
+                    - generic [ref=e518]:
+                      - button "Edit" [ref=e519] [cursor=pointer]
+                      - button "Restock" [ref=e520] [cursor=pointer]
+                      - button "Delete" [ref=e521] [cursor=pointer]
+                - row "Frozen Chicken SKU-MEAT-021 Prime Farm Meat & Protein 92 USD 18.50 USD 1,702.00 Healthy Edit Restock Delete" [ref=e522]:
+                  - cell "Frozen Chicken SKU-MEAT-021" [ref=e523]:
+                    - generic [ref=e524]: Frozen Chicken
+                    - generic [ref=e525]: SKU-MEAT-021
+                  - cell "Prime Farm" [ref=e526]
+                  - cell "Meat & Protein" [ref=e527]
+                  - cell "92" [ref=e528]
+                  - cell "USD 18.50" [ref=e529]
+                  - cell "USD 1,702.00" [ref=e530]
+                  - cell "Healthy" [ref=e531]:
+                    - generic [ref=e532]: Healthy
+                  - cell "Edit Restock Delete" [ref=e533]:
+                    - generic [ref=e534]:
+                      - button "Edit" [ref=e535] [cursor=pointer]
+                      - button "Restock" [ref=e536] [cursor=pointer]
+                      - button "Delete" [ref=e537] [cursor=pointer]
+                - row "Jollof Rice Mix SKU-FOOD-001 Mama Gold Foods Food Staples 1011 USD 12.99 USD 11,323.20 Healthy Edit Restock Delete" [ref=e538]:
+                  - cell "Jollof Rice Mix SKU-FOOD-001" [ref=e539]:
+                    - generic [ref=e540]: Jollof Rice Mix
+                    - generic [ref=e541]: SKU-FOOD-001
+                  - cell "Mama Gold Foods" [ref=e542]
+                  - cell "Food Staples" [ref=e543]
+                  - cell "1011" [ref=e544]
+                  - cell "USD 12.99" [ref=e545]
+                  - cell "USD 11,323.20" [ref=e546]
+                  - cell "Healthy" [ref=e547]:
+                    - generic [ref=e548]: Healthy
+                  - cell "Edit Restock Delete" [ref=e549]:
+                    - generic [ref=e550]:
+                      - button "Edit" [ref=e551] [cursor=pointer]
+                      - button "Restock" [ref=e552] [cursor=pointer]
+                      - button "Delete" [ref=e553] [cursor=pointer]
+                - row "Meat Pie Pack SKU-BAKE-018 Sunrise Bakery Bakery 21 USD 6.50 USD 136.50 Healthy Edit Restock Delete" [ref=e554]:
+                  - cell "Meat Pie Pack SKU-BAKE-018" [ref=e555]:
+                    - generic [ref=e556]: Meat Pie Pack
+                    - generic [ref=e557]: SKU-BAKE-018
+                  - cell "Sunrise Bakery" [ref=e558]
+                  - cell "Bakery" [ref=e559]
+                  - cell "21" [ref=e560]
+                  - cell "USD 6.50" [ref=e561]
+                  - cell "USD 136.50" [ref=e562]
+                  - cell "Healthy" [ref=e563]:
+                    - generic [ref=e564]: Healthy
+                  - cell "Edit Restock Delete" [ref=e565]:
+                    - generic [ref=e566]:
+                      - button "Edit" [ref=e567] [cursor=pointer]
+                      - button "Restock" [ref=e568] [cursor=pointer]
+                      - button "Delete" [ref=e569] [cursor=pointer]
+                - row "Milk Powder SKU-DAIR-014 CreamLine Dairy 26 USD 14.25 USD 370.50 Healthy Edit Restock Delete" [ref=e570]:
+                  - cell "Milk Powder SKU-DAIR-014" [ref=e571]:
+                    - generic [ref=e572]: Milk Powder
+                    - generic [ref=e573]: SKU-DAIR-014
+                  - cell "CreamLine" [ref=e574]
+                  - cell "Dairy" [ref=e575]
+                  - cell "26" [ref=e576]
+                  - cell "USD 14.25" [ref=e577]
+                  - cell "USD 370.50" [ref=e578]
+                  - cell "Healthy" [ref=e579]:
+                    - generic [ref=e580]: Healthy
+                  - cell "Edit Restock Delete" [ref=e581]:
+                    - generic [ref=e582]:
+                      - button "Edit" [ref=e583] [cursor=pointer]
+                      - button "Restock" [ref=e584] [cursor=pointer]
+                      - button "Delete" [ref=e585] [cursor=pointer]
+                - row "Orange Juice SKU-DRNK-012 Pure Squeeze Drinks 33 USD 6.99 USD 230.67 Healthy Edit Restock Delete" [ref=e586]:
+                  - cell "Orange Juice SKU-DRNK-012" [ref=e587]:
+                    - generic [ref=e588]: Orange Juice
+                    - generic [ref=e589]: SKU-DRNK-012
+                  - cell "Pure Squeeze" [ref=e590]
+                  - cell "Drinks" [ref=e591]
+                  - cell "33" [ref=e592]
+                  - cell "USD 6.99" [ref=e593]
+                  - cell "USD 230.67" [ref=e594]
+                  - cell "Healthy" [ref=e595]:
+                    - generic [ref=e596]: Healthy
+                  - cell "Edit Restock Delete" [ref=e597]:
+                    - generic [ref=e598]:
+                      - button "Edit" [ref=e599] [cursor=pointer]
+                      - button "Restock" [ref=e600] [cursor=pointer]
+                      - button "Delete" [ref=e601] [cursor=pointer]
+                - row "Palm Oil SKU-COOK-002 Rootline Mills Cooking Essentials 408 USD 9.50 USD 3,876.00 Healthy Edit Restock Delete" [ref=e602]:
+                  - cell "Palm Oil SKU-COOK-002" [ref=e603]:
+                    - generic [ref=e604]: Palm Oil
+                    - generic [ref=e605]: SKU-COOK-002
+                  - cell "Rootline Mills" [ref=e606]
+                  - cell "Cooking Essentials" [ref=e607]
+                  - cell "408" [ref=e608]
+                  - cell "USD 9.50" [ref=e609]
+                  - cell "USD 3,876.00" [ref=e610]
+                  - cell "Healthy" [ref=e611]:
+                    - generic [ref=e612]: Healthy
+                  - cell "Edit Restock Delete" [ref=e613]:
+                    - generic [ref=e614]:
+                      - button "Edit" [ref=e615] [cursor=pointer]
+                      - button "Restock" [ref=e616] [cursor=pointer]
+                      - button "Delete" [ref=e617] [cursor=pointer]
+                - row "Plantain Chips SKU-SNCK-019 Crunch House Snacks 60 USD 4.25 USD 255.00 Healthy Edit Restock Delete" [ref=e618]:
+                  - cell "Plantain Chips SKU-SNCK-019" [ref=e619]:
+                    - generic [ref=e620]: Plantain Chips
+                    - generic [ref=e621]: SKU-SNCK-019
+                  - cell "Crunch House" [ref=e622]
+                  - cell "Snacks" [ref=e623]
+                  - cell "60" [ref=e624]
+                  - cell "USD 4.25" [ref=e625]
+                  - cell "USD 255.00" [ref=e626]
+                  - cell "Healthy" [ref=e627]:
+                    - generic [ref=e628]: Healthy
+                  - cell "Edit Restock Delete" [ref=e629]:
+                    - generic [ref=e630]:
+                      - button "Edit" [ref=e631] [cursor=pointer]
+                      - button "Restock" [ref=e632] [cursor=pointer]
+                      - button "Delete" [ref=e633] [cursor=pointer]
+                - row "Semolina Flour SKU-FOOD-004 Mill House Food Staples 58 USD 7.25 USD 420.50 Healthy Edit Restock Delete" [ref=e634]:
+                  - cell "Semolina Flour SKU-FOOD-004" [ref=e635]:
+                    - generic [ref=e636]: Semolina Flour
+                    - generic [ref=e637]: SKU-FOOD-004
+                  - cell "Mill House" [ref=e638]
+                  - cell "Food Staples" [ref=e639]
+                  - cell "58" [ref=e640]
+                  - cell "USD 7.25" [ref=e641]
+                  - cell "USD 420.50" [ref=e642]
+                  - cell "Healthy" [ref=e643]:
+                    - generic [ref=e644]: Healthy
+                  - cell "Edit Restock Delete" [ref=e645]:
+                    - generic [ref=e646]:
+                      - button "Edit" [ref=e647] [cursor=pointer]
+                      - button "Restock" [ref=e648] [cursor=pointer]
+                      - button "Delete" [ref=e649] [cursor=pointer]
+                - row "Sugar 2kg SKU-GROC-008 Sweet Supply Groceries 64 USD 5.99 USD 383.36 Healthy Edit Restock Delete" [ref=e650]:
+                  - cell "Sugar 2kg SKU-GROC-008" [ref=e651]:
+                    - generic [ref=e652]: Sugar 2kg
+                    - generic [ref=e653]: SKU-GROC-008
+                  - cell "Sweet Supply" [ref=e654]
+                  - cell "Groceries" [ref=e655]
+                  - cell "64" [ref=e656]
+                  - cell "USD 5.99" [ref=e657]
+                  - cell "USD 383.36" [ref=e658]
+                  - cell "Healthy" [ref=e659]:
+                    - generic [ref=e660]: Healthy
+                  - cell "Edit Restock Delete" [ref=e661]:
+                    - generic [ref=e662]:
+                      - button "Edit" [ref=e663] [cursor=pointer]
+                      - button "Restock" [ref=e664] [cursor=pointer]
+                      - button "Delete" [ref=e665] [cursor=pointer]
+                - row "Tomato Paste SKU-GROC-006 Fresh Foods Groceries 258 USD 2.75 USD 709.50 Healthy Edit Restock Delete" [ref=e666]:
+                  - cell "Tomato Paste SKU-GROC-006" [ref=e667]:
+                    - generic [ref=e668]: Tomato Paste
+                    - generic [ref=e669]: SKU-GROC-006
+                  - cell "Fresh Foods" [ref=e670]
+                  - cell "Groceries" [ref=e671]
+                  - cell "258" [ref=e672]
+                  - cell "USD 2.75" [ref=e673]
+                  - cell "USD 709.50" [ref=e674]
+                  - cell "Healthy" [ref=e675]:
+                    - generic [ref=e676]: Healthy
+                  - cell "Edit Restock Delete" [ref=e677]:
+                    - generic [ref=e678]:
+                      - button "Edit" [ref=e679] [cursor=pointer]
+                      - button "Restock" [ref=e680] [cursor=pointer]
+                      - button "Delete" [ref=e681] [cursor=pointer]
+        - generic [ref=e683]:
+          - generic [ref=e684]:
+            - generic [ref=e685]:
+              - heading "Operations Rail" [level=3] [ref=e686]
+              - paragraph [ref=e687]: Purchasing, receiving, movement history, and cycle-count execution without leaving inventory.
+            - button "Backup in Settings" [ref=e688] [cursor=pointer]
+          - generic [ref=e689]:
+            - article [ref=e690]:
+              - generic [ref=e691]: Open Orders
+              - strong [ref=e692]: "12"
+              - generic [ref=e693]: 10 still in draft.
+            - article [ref=e694]:
+              - generic [ref=e695]: Inbound Units
+              - strong [ref=e696]: "280"
+              - generic [ref=e697]: Units not yet received.
+            - article [ref=e698]:
+              - generic [ref=e699]: Open Count
+              - strong [ref=e700]: None
+              - generic [ref=e701]: 239 variance units across recent completed counts.
+          - generic [ref=e702]:
+            - button "Purchase Orders" [ref=e703] [cursor=pointer]
+            - button "Movement Feed" [ref=e704] [cursor=pointer]
+            - button "Cycle Counts" [ref=e705] [cursor=pointer]
+          - generic [ref=e706]:
+            - article [ref=e707]:
+              - generic [ref=e708]:
+                - generic [ref=e709]:
+                  - strong [ref=e710]: Rootline Mills
+                  - paragraph [ref=e711]: PO-1014 - Mar 24, 7:39 AM
+                - generic [ref=e712]: Received
+              - generic [ref=e713]:
+                - generic [ref=e714]: 1 lines
+                - generic [ref=e715]: 0 open units
+                - text: USD 57.00
+            - article [ref=e716]:
+              - generic [ref=e717]:
+                - generic [ref=e718]:
+                  - strong [ref=e719]: Fresh Foods
+                  - paragraph [ref=e720]: PO-1013 - Mar 24, 7:39 AM
+                - generic [ref=e721]: Received
+              - generic [ref=e722]:
+                - generic [ref=e723]: 1 lines
+                - generic [ref=e724]: 0 open units
+                - text: USD 101.75
+            - article [ref=e725]:
+              - generic [ref=e726]:
+                - generic [ref=e727]:
+                  - strong [ref=e728]: Rootline Mills
+                  - paragraph [ref=e729]: PO-1012 - Mar 24, 7:21 AM
+                - generic [ref=e730]: Draft
+              - generic [ref=e731]:
+                - generic [ref=e732]: 1 lines
+                - generic [ref=e733]: 6 open units
+                - text: USD 57.00
+              - generic [ref=e734]:
+                - button "Mark Sent" [ref=e735] [cursor=pointer]
+                - button "Receive All" [ref=e736] [cursor=pointer]
+            - article [ref=e737]:
+              - generic [ref=e738]:
+                - generic [ref=e739]:
+                  - strong [ref=e740]: Fresh Foods
+                  - paragraph [ref=e741]: PO-1011 - Mar 24, 7:21 AM
+                - generic [ref=e742]: Draft
+              - generic [ref=e743]:
+                - generic [ref=e744]: 1 lines
+                - generic [ref=e745]: 37 open units
+                - text: USD 101.75
+              - generic [ref=e746]:
+                - button "Mark Sent" [ref=e747] [cursor=pointer]
+                - button "Receive All" [ref=e748] [cursor=pointer]
+            - article [ref=e749]:
+              - generic [ref=e750]:
+                - generic [ref=e751]:
+                  - strong [ref=e752]: Rootline Mills
+                  - paragraph [ref=e753]: PO-1010 - Mar 24, 1:26 AM
+                - generic [ref=e754]: Draft
+              - generic [ref=e755]:
+                - generic [ref=e756]: 1 lines
+                - generic [ref=e757]: 11 open units
+                - text: USD 104.50
+              - generic [ref=e758]:
+                - button "Mark Sent" [ref=e759] [cursor=pointer]
+                - button "Receive All" [ref=e760] [cursor=pointer]
+            - article [ref=e761]:
+              - generic [ref=e762]:
+                - generic [ref=e763]:
+                  - strong [ref=e764]: Fresh Foods
+                  - paragraph [ref=e765]: PO-1009 - Mar 24, 1:26 AM
+                - generic [ref=e766]: Draft
+              - generic [ref=e767]:
+                - generic [ref=e768]: 1 lines
+                - generic [ref=e769]: 40 open units
+                - text: USD 110.00
+              - generic [ref=e770]:
+                - button "Mark Sent" [ref=e771] [cursor=pointer]
+                - button "Receive All" [ref=e772] [cursor=pointer]
+            - article [ref=e773]:
+              - generic [ref=e774]:
+                - generic [ref=e775]:
+                  - strong [ref=e776]: Golden Grain
+                  - paragraph [ref=e777]: PO-1008 - Mar 24, 1:26 AM
+                - generic [ref=e778]: Draft
+              - generic [ref=e779]:
+                - generic [ref=e780]: 1 lines
+                - generic [ref=e781]: 9 open units
+                - text: USD 170.91
+              - generic [ref=e782]:
+                - button "Mark Sent" [ref=e783] [cursor=pointer]
+                - button "Receive All" [ref=e784] [cursor=pointer]
+            - article [ref=e785]:
+              - generic [ref=e786]:
+                - generic [ref=e787]:
+                  - strong [ref=e788]: Fresh Foods
+                  - paragraph [ref=e789]: PO-1007 - Mar 24, 12:35 AM
+                - generic [ref=e790]: Draft
+              - generic [ref=e791]:
+                - generic [ref=e792]: 1 lines
+                - generic [ref=e793]: 52 open units
+                - text: USD 143.00
+              - generic [ref=e794]:
+                - button "Mark Sent" [ref=e795] [cursor=pointer]
+                - button "Receive All" [ref=e796] [cursor=pointer]
+            - article [ref=e797]:
+              - generic [ref=e798]:
+                - generic [ref=e799]:
+                  - strong [ref=e800]: Rootline Mills
+                  - paragraph [ref=e801]: PO-1006 - Mar 24, 12:35 AM
+                - generic [ref=e802]: Draft
+              - generic [ref=e803]:
+                - generic [ref=e804]: 1 lines
+                - generic [ref=e805]: 24 open units
+                - text: USD 228.00
+              - generic [ref=e806]:
+                - button "Mark Sent" [ref=e807] [cursor=pointer]
+                - button "Receive All" [ref=e808] [cursor=pointer]
+            - article [ref=e809]:
+              - generic [ref=e810]:
+                - generic [ref=e811]:
+                  - strong [ref=e812]: Fresh Foods
+                  - paragraph [ref=e813]: PO-1005 - Mar 24, 12:35 AM
+                - generic [ref=e814]: Draft
+              - generic [ref=e815]:
+                - generic [ref=e816]: 1 lines
+                - generic [ref=e817]: 52 open units
+                - text: USD 143.00
+              - generic [ref=e818]:
+                - button "Mark Sent" [ref=e819] [cursor=pointer]
+                - button "Receive All" [ref=e820] [cursor=pointer]
+            - article [ref=e821]:
+              - generic [ref=e822]:
+                - generic [ref=e823]:
+                  - strong [ref=e824]: Golden Grain
+                  - paragraph [ref=e825]: PO-1004 - Mar 24, 12:35 AM
+                - generic [ref=e826]: Draft
+              - generic [ref=e827]:
+                - generic [ref=e828]: 1 lines
+                - generic [ref=e829]: 12 open units
+                - text: USD 227.88
+              - generic [ref=e830]:
+                - button "Mark Sent" [ref=e831] [cursor=pointer]
+                - button "Receive All" [ref=e832] [cursor=pointer]
+            - article [ref=e833]:
+              - generic [ref=e834]:
+                - generic [ref=e835]:
+                  - strong [ref=e836]: Rootline Mills
+                  - paragraph [ref=e837]: PO-1003 - Mar 24, 12:35 AM
+                - generic [ref=e838]: Draft
+              - generic [ref=e839]:
+                - generic [ref=e840]: 1 lines
+                - generic [ref=e841]: 24 open units
+                - text: USD 228.00
+              - generic [ref=e842]:
+                - button "Mark Sent" [ref=e843] [cursor=pointer]
+                - button "Receive All" [ref=e844] [cursor=pointer]
+            - article [ref=e845]:
+              - generic [ref=e846]:
+                - generic [ref=e847]:
+                  - strong [ref=e848]: Fresh Foods
+                  - paragraph [ref=e849]: PO-1002 - Mar 23, 9:25 PM
+                - generic [ref=e850]: Received
+              - generic [ref=e851]:
+                - generic [ref=e852]: 1 lines
+                - generic [ref=e853]: 0 open units
+                - text: USD 30.25
+            - article [ref=e854]:
+              - generic [ref=e855]:
+                - generic [ref=e856]:
+                  - strong [ref=e857]: Prime Farm
+                  - paragraph [ref=e858]: PO-1001 - Mar 23, 9:18 PM
+                - generic [ref=e859]: Received
+              - generic [ref=e860]:
+                - generic [ref=e861]: 1 lines
+                - generic [ref=e862]: 0 open units
+                - text: USD 15.75
+            - article [ref=e863]:
+              - generic [ref=e864]:
+                - generic [ref=e865]:
+                  - strong [ref=e866]: Mama Gold Foods
+                  - paragraph [ref=e867]: PO-2005 - Mar 16, 4:00 AM
+                - generic [ref=e868]: Received
+              - generic [ref=e869]:
+                - generic [ref=e870]: 1 lines
+                - generic [ref=e871]: 0 open units
+                - text: USD 224.00
+            - article [ref=e872]:
+              - generic [ref=e873]:
+                - generic [ref=e874]:
+                  - strong [ref=e875]: Prime Farm
+                  - paragraph [ref=e876]: PO-2004 - Mar 15, 5:10 AM
+                - generic [ref=e877]: Partially Received
+              - generic [ref=e878]:
+                - generic [ref=e879]: 1 lines
+                - generic [ref=e880]: 3 open units
+                - text: USD 119.20
+              - button "Receive All" [ref=e882] [cursor=pointer]
+            - article [ref=e883]:
+              - generic [ref=e884]:
+                - generic [ref=e885]:
+                  - strong [ref=e886]: Fresh Foods
+                  - paragraph [ref=e887]: PO-2003 - Mar 11, 3:50 AM
+                - generic [ref=e888]: Received
+              - generic [ref=e889]:
+                - generic [ref=e890]: 1 lines
+                - generic [ref=e891]: 0 open units
+                - text: USD 73.50
+            - article [ref=e892]:
+              - generic [ref=e893]:
+                - generic [ref=e894]:
+                  - strong [ref=e895]: Golden Grain
+                  - paragraph [ref=e896]: PO-2002 - Mar 10, 4:20 AM
+                - generic [ref=e897]: Sent
+              - generic [ref=e898]:
+                - generic [ref=e899]: 1 lines
+                - generic [ref=e900]: 10 open units
+                - text: USD 178.00
+              - button "Receive All" [ref=e902] [cursor=pointer]
+  - button "Owner AI Ask anything about the business" [ref=e903] [cursor=pointer]:
+    - generic [ref=e904]: Owner AI
+    - strong [ref=e905]: Ask anything about the business

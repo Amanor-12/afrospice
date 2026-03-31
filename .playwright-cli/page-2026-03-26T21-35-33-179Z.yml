@@ -1,0 +1,699 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - complementary "Workspace navigation" [ref=e6]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: AM
+        - generic [ref=e10]:
+          - heading "AfroSpice Main Branch" [level=1] [ref=e11]
+          - paragraph [ref=e12]: Retail operations workspace
+      - generic [ref=e13]:
+        - generic [ref=e14]: Current workspace
+        - strong [ref=e15]: Orders
+        - paragraph [ref=e16]: Order quality, payment flow, channels, and cashier performance.
+      - navigation [ref=e17]:
+        - link "Dashboard Executive Flight Deck" [ref=e18] [cursor=pointer]:
+          - /url: /
+          - img [ref=e20]
+          - generic [ref=e23]:
+            - strong [ref=e24]: Dashboard
+            - generic [ref=e25]: Executive Flight Deck
+        - link "Inventory Inventory Command" [ref=e26] [cursor=pointer]:
+          - /url: /pos-dashboard
+          - img [ref=e28]
+          - generic [ref=e31]:
+            - strong [ref=e32]: Inventory
+            - generic [ref=e33]: Inventory Command
+        - link "POS Terminal Checkout Studio" [ref=e34] [cursor=pointer]:
+          - /url: /terminal
+          - img [ref=e36]
+          - generic [ref=e38]:
+            - strong [ref=e39]: POS Terminal
+            - generic [ref=e40]: Checkout Studio
+        - link "Orders Transaction Intelligence" [ref=e41] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e43]
+          - generic [ref=e47]:
+            - strong [ref=e48]: Orders
+            - generic [ref=e49]: Transaction Intelligence
+        - link "Reports Strategy Studio" [ref=e50] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e52]
+          - generic [ref=e53]:
+            - strong [ref=e54]: Reports
+            - generic [ref=e55]: Strategy Studio
+        - link "Customers Customer Intelligence" [ref=e56] [cursor=pointer]:
+          - /url: /customers
+          - img [ref=e58]
+          - generic [ref=e63]:
+            - strong [ref=e64]: Customers
+            - generic [ref=e65]: Customer Intelligence
+        - link "Suppliers Supplier Control" [ref=e66] [cursor=pointer]:
+          - /url: /suppliers
+          - img [ref=e68]
+          - generic [ref=e73]:
+            - strong [ref=e74]: Suppliers
+            - generic [ref=e75]: Supplier Control
+        - link "Users Workforce Control" [ref=e76] [cursor=pointer]:
+          - /url: /users
+          - img [ref=e78]
+          - generic [ref=e82]:
+            - strong [ref=e83]: Users
+            - generic [ref=e84]: Workforce Control
+        - link "Settings Operating Controls" [ref=e85] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e87]
+          - generic [ref=e90]:
+            - strong [ref=e91]: Settings
+            - generic [ref=e92]: Operating Controls
+      - generic [ref=e93]:
+        - generic [ref=e94]:
+          - generic [ref=e95]: Branch
+          - strong [ref=e96]: AFR-MAIN-001
+          - generic [ref=e97]: AfroSpice Main Branch
+        - generic [ref=e98]:
+          - generic [ref=e99]: Support
+          - strong [ref=e100]: support@afrospice.com
+          - generic [ref=e101]: +1 226 555 0199
+    - generic [ref=e102]:
+      - generic [ref=e103]:
+        - generic [ref=e105]:
+          - paragraph [ref=e106]: Transaction Intelligence
+          - heading "Orders" [level=2] [ref=e107]
+          - paragraph [ref=e108]: Order quality, payment flow, channels, and cashier performance.
+        - generic [ref=e109]:
+          - generic [ref=e110]:
+            - generic [ref=e111]:
+              - img [ref=e113]
+              - generic [ref=e116]:
+                - generic [ref=e117]: Branch
+                - strong [ref=e118]: AFR-MAIN-001
+            - generic [ref=e119]:
+              - img [ref=e121]
+              - generic [ref=e123]:
+                - generic [ref=e124]: Currency
+                - strong [ref=e125]: USD
+            - generic [ref=e126]:
+              - img [ref=e128]
+              - generic [ref=e132]:
+                - generic [ref=e133]: Role
+                - strong [ref=e134]: Owner
+            - generic [ref=e135]:
+              - img [ref=e137]
+              - generic [ref=e139]:
+                - generic [ref=e140]: Threshold
+                - strong [ref=e141]: 10 units
+          - button "SO Store Owner Owner" [ref=e143] [cursor=pointer]:
+            - generic [ref=e144]: SO
+            - generic [ref=e145]:
+              - strong [ref=e146]: Store Owner
+              - generic [ref=e147]: Owner
+      - main [ref=e148]:
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - generic [ref=e151]:
+              - generic [ref=e152]:
+                - paragraph [ref=e153]: Flow Console
+                - heading "Order Operations" [level=2] [ref=e154]
+                - paragraph [ref=e155]: A cleaner command view for payment-state drift, channel mix, cashier performance, and live ticket control.
+              - generic [ref=e157]:
+                - combobox [ref=e158]:
+                  - option "Daily"
+                  - option "Weekly"
+                  - option "Monthly" [selected]
+                  - option "Yearly"
+                - button "Refresh" [ref=e159] [cursor=pointer]
+            - generic [ref=e160]:
+              - article [ref=e161]:
+                - generic [ref=e162]: Captured Revenue
+                - generic [ref=e163]: USD 1,119.75
+                - generic [ref=e164]: Confirmed order revenue in the selected reporting cadence.
+                - emphasis [ref=e165]: 26 orders
+              - article [ref=e166]:
+                - generic [ref=e167]: Collection Rate
+                - generic [ref=e168]: 96.2%
+                - generic [ref=e169]: Share of orders that completed as paid revenue.
+                - emphasis [ref=e170]: USD 44.79
+              - article [ref=e171]:
+                - generic [ref=e172]: Pending Exposure
+                - generic [ref=e173]: USD 0.00
+                - generic [ref=e174]: Value still waiting for completion or resolution.
+                - emphasis [ref=e175]: 0 pending
+          - generic [ref=e176]:
+            - article [ref=e177]:
+              - generic [ref=e179]:
+                - heading "Payment-State Flow" [level=3] [ref=e180]
+                - paragraph [ref=e181]: Paid, pending, and declined value by reporting period.
+              - generic [ref=e182]:
+                - generic [ref=e183]:
+                  - application [ref=e187]:
+                    - generic [ref=e206]:
+                      - generic [ref=e207]:
+                        - generic [ref=e209]: Aug 2025
+                        - generic [ref=e211]: Mar 2026
+                      - generic [ref=e212]:
+                        - generic [ref=e214]: "0"
+                        - generic [ref=e216]: "300"
+                        - generic [ref=e218]: "600"
+                        - generic [ref=e220]: "900"
+                        - generic [ref=e222]: "1200"
+                  - generic [ref=e223]:
+                    - article [ref=e224]:
+                      - generic [ref=e225]: Lead cashier
+                      - strong [ref=e226]: Front Desk
+                      - generic [ref=e227]: USD 552.28 across 15 paid orders
+                    - article [ref=e228]:
+                      - generic [ref=e229]: Top status
+                      - strong [ref=e230]: Paid
+                      - generic [ref=e231]: 25 orders / USD 1,119.75
+                    - article [ref=e232]:
+                      - generic [ref=e233]: Peak trading window
+                      - strong [ref=e234]: Morning
+                      - generic [ref=e235]: USD 699.53 with 12 orders
+                - complementary [ref=e236]:
+                  - generic [ref=e237]:
+                    - generic [ref=e238]:
+                      - generic [ref=e239]: success
+                      - generic [ref=e240]: Operations brief
+                    - heading "Order flow is currently landing cleanly." [level=4] [ref=e241]
+                    - paragraph [ref=e242]: There is no visible pending-ticket pileup in the current order flow.
+                    - generic [ref=e243]:
+                      - generic [ref=e244]:
+                        - generic [ref=e245]: Collection posture
+                        - strong [ref=e246]: 96.2% of orders currently convert to paid revenue.
+                      - generic [ref=e247]:
+                        - generic [ref=e248]: Next move
+                        - strong [ref=e249]: Protect the strongest cashier and channel patterns without slowing checkout.
+                  - generic [ref=e250]:
+                    - article [ref=e251]:
+                      - generic [ref=e252]: Recognized revenue
+                      - strong [ref=e253]: USD 1,119.75
+                      - generic [ref=e254]: 25 paid orders are grounding this view.
+                    - article [ref=e255]:
+                      - generic [ref=e256]: Cash at risk
+                      - strong [ref=e257]: USD 0.00
+                      - generic [ref=e258]: 0 orders are outside paid capture.
+                    - article [ref=e259]:
+                      - generic [ref=e260]: Runout queue
+                      - strong [ref=e261]: "0"
+                      - generic [ref=e262]: No immediate stock break is visible right now.
+            - article [ref=e263]:
+              - generic [ref=e265]:
+                - heading "Mix Boards" [level=3] [ref=e266]
+                - paragraph [ref=e267]: Payment, channel, and cashier concentration across the order flow.
+              - generic [ref=e268]:
+                - generic [ref=e269]:
+                  - heading "Payment Methods" [level=4] [ref=e270]
+                  - generic [ref=e271]:
+                    - generic [ref=e272]:
+                      - generic [ref=e273]:
+                        - strong [ref=e274]: Card
+                        - generic [ref=e275]: 73.1% of order volume
+                      - generic [ref=e276]: USD 648.75
+                    - generic [ref=e277]:
+                      - generic [ref=e278]:
+                        - strong [ref=e279]: Cash
+                        - generic [ref=e280]: 15.4% of order volume
+                      - generic [ref=e281]: USD 299.09
+                    - generic [ref=e282]:
+                      - generic [ref=e283]:
+                        - strong [ref=e284]: Transfer
+                        - generic [ref=e285]: 11.5% of order volume
+                      - generic [ref=e286]: USD 171.91
+                - generic [ref=e287]:
+                  - heading "Channels" [level=4] [ref=e288]
+                  - generic [ref=e289]:
+                    - generic [ref=e290]:
+                      - generic [ref=e291]:
+                        - strong [ref=e292]: In-Store
+                        - generic [ref=e293]: 80.8% of order volume
+                      - generic [ref=e294]: USD 862.67
+                    - generic [ref=e295]:
+                      - generic [ref=e296]:
+                        - strong [ref=e297]: Online
+                        - generic [ref=e298]: 11.5% of order volume
+                      - generic [ref=e299]: USD 171.91
+                    - generic [ref=e300]:
+                      - generic [ref=e301]:
+                        - strong [ref=e302]: Pickup
+                        - generic [ref=e303]: 3.8% of order volume
+                      - generic [ref=e304]: USD 48.11
+                    - generic [ref=e305]:
+                      - generic [ref=e306]:
+                        - strong [ref=e307]: Delivery
+                        - generic [ref=e308]: 3.8% of order volume
+                      - generic [ref=e309]: USD 37.06
+            - article [ref=e310]:
+              - generic [ref=e312]:
+                - heading "Cashier Board" [level=3] [ref=e313]
+                - paragraph [ref=e314]: Cashiers carrying the strongest captured revenue and paid-rate posture.
+              - generic [ref=e315]:
+                - generic [ref=e316]:
+                  - generic [ref=e317]: "01"
+                  - generic [ref=e318]:
+                    - strong [ref=e319]: Front Desk
+                    - generic [ref=e320]: 15 paid orders
+                  - generic [ref=e321]:
+                    - strong [ref=e322]: USD 552.28
+                    - generic [ref=e323]: 100.0% paid rate
+                - generic [ref=e324]:
+                  - generic [ref=e325]: "02"
+                  - generic [ref=e326]:
+                    - strong [ref=e327]: Ama Mensah
+                    - generic [ref=e328]: 4 paid orders
+                  - generic [ref=e329]:
+                    - strong [ref=e330]: USD 335.61
+                    - generic [ref=e331]: 100.0% paid rate
+                - generic [ref=e332]:
+                  - generic [ref=e333]: "03"
+                  - generic [ref=e334]:
+                    - strong [ref=e335]: Kojo Asare
+                    - generic [ref=e336]: 3 paid orders
+                  - generic [ref=e337]:
+                    - strong [ref=e338]: USD 137.85
+                    - generic [ref=e339]: 100.0% paid rate
+                - generic [ref=e340]:
+                  - generic [ref=e341]: "04"
+                  - generic [ref=e342]:
+                    - strong [ref=e343]: Regan Amanor
+                    - generic [ref=e344]: 2 paid orders
+                  - generic [ref=e345]:
+                    - strong [ref=e346]: USD 80.05
+                    - generic [ref=e347]: 100.0% paid rate
+                - generic [ref=e348]:
+                  - generic [ref=e349]: "05"
+                  - generic [ref=e350]:
+                    - strong [ref=e351]: Store Owner
+                    - generic [ref=e352]: 1 paid orders
+                  - generic [ref=e353]:
+                    - strong [ref=e354]: USD 13.96
+                    - generic [ref=e355]: 50.0% paid rate
+            - article [ref=e356]:
+              - generic [ref=e358]:
+                - heading "Recent Flow" [level=3] [ref=e359]
+                - paragraph [ref=e360]: Latest tickets returned by the reporting service.
+              - generic [ref=e361]:
+                - article [ref=e362]:
+                  - generic [ref=e363]:
+                    - strong [ref=e364]: SALE-2013
+                    - generic [ref=e365]: Store Owner
+                  - generic [ref=e366]:
+                    - strong [ref=e367]: USD 13.96
+                    - generic [ref=e368]: 3/26/2026, 5:34:20 PM
+                  - generic [ref=e369]: Paid
+                - article [ref=e370]:
+                  - generic [ref=e371]:
+                    - strong [ref=e372]: SALE-2012
+                    - generic [ref=e373]: Store Owner
+                  - generic [ref=e374]:
+                    - strong [ref=e375]: USD 13.96
+                    - generic [ref=e376]: 3/26/2026, 5:06:06 PM
+                  - generic [ref=e377]: Refunded
+                - article [ref=e378]:
+                  - generic [ref=e379]:
+                    - strong [ref=e380]: SALE-2011
+                    - generic [ref=e381]: Front Desk
+                  - generic [ref=e382]:
+                    - strong [ref=e383]: USD 24.18
+                    - generic [ref=e384]: 3/25/2026, 4:46:49 AM
+                  - generic [ref=e385]: Paid
+                - article [ref=e386]:
+                  - generic [ref=e387]:
+                    - strong [ref=e388]: SALE-2010
+                    - generic [ref=e389]: Front Desk
+                  - generic [ref=e390]:
+                    - strong [ref=e391]: USD 27.13
+                    - generic [ref=e392]: 3/24/2026, 10:18:09 PM
+                  - generic [ref=e393]: Paid
+                - article [ref=e394]:
+                  - generic [ref=e395]:
+                    - strong [ref=e396]: SALE-2009
+                    - generic [ref=e397]: Front Desk
+                  - generic [ref=e398]:
+                    - strong [ref=e399]: USD 18.01
+                    - generic [ref=e400]: 3/24/2026, 9:50:15 PM
+                  - generic [ref=e401]: Paid
+                - article [ref=e402]:
+                  - generic [ref=e403]:
+                    - strong [ref=e404]: SALE-1013
+                    - generic [ref=e405]: Front Desk
+                  - generic [ref=e406]:
+                    - strong [ref=e407]: USD 7.79
+                    - generic [ref=e408]: 3/24/2026, 8:23:54 AM
+                  - generic [ref=e409]: Paid
+            - article [ref=e410]:
+              - generic [ref=e412]:
+                - heading "Order Ledger" [level=3] [ref=e413]
+                - paragraph [ref=e414]: Live transaction rows with status controls that respect backend workflow rules.
+              - table [ref=e416]:
+                - rowgroup [ref=e417]:
+                  - row "Order Cashier Channel Payment Status Total Date Update" [ref=e418]:
+                    - columnheader "Order" [ref=e419]
+                    - columnheader "Cashier" [ref=e420]
+                    - columnheader "Channel" [ref=e421]
+                    - columnheader "Payment" [ref=e422]
+                    - columnheader "Status" [ref=e423]
+                    - columnheader "Total" [ref=e424]
+                    - columnheader "Date" [ref=e425]
+                    - columnheader "Update" [ref=e426]
+                - rowgroup [ref=e427]:
+                  - row "SALE-2013 Store Owner In-Store Card Paid USD 13.96 3/26/2026, 5:34:20 PM Paid" [ref=e428]:
+                    - cell "SALE-2013" [ref=e429]
+                    - cell "Store Owner" [ref=e430]
+                    - cell "In-Store" [ref=e431]
+                    - cell "Card" [ref=e432]
+                    - cell "Paid" [ref=e433]:
+                      - generic [ref=e434]: Paid
+                    - cell "USD 13.96" [ref=e435]
+                    - cell "3/26/2026, 5:34:20 PM" [ref=e436]
+                    - cell "Paid" [ref=e437]:
+                      - combobox [ref=e438]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2012 Store Owner In-Store Cash Refunded USD 13.96 3/26/2026, 5:06:06 PM Refunded" [ref=e439]:
+                    - cell "SALE-2012" [ref=e440]
+                    - cell "Store Owner" [ref=e441]
+                    - cell "In-Store" [ref=e442]
+                    - cell "Cash" [ref=e443]
+                    - cell "Refunded" [ref=e444]:
+                      - generic [ref=e445]: Refunded
+                    - cell "USD 13.96" [ref=e446]
+                    - cell "3/26/2026, 5:06:06 PM" [ref=e447]
+                    - cell "Refunded" [ref=e448]:
+                      - combobox [ref=e449]:
+                        - option "Refunded" [selected]
+                  - row "SALE-2011 Front Desk In-Store Card Paid USD 24.18 3/25/2026, 4:46:49 AM Paid" [ref=e450]:
+                    - cell "SALE-2011" [ref=e451]
+                    - cell "Front Desk" [ref=e452]
+                    - cell "In-Store" [ref=e453]
+                    - cell "Card" [ref=e454]
+                    - cell "Paid" [ref=e455]:
+                      - generic [ref=e456]: Paid
+                    - cell "USD 24.18" [ref=e457]
+                    - cell "3/25/2026, 4:46:49 AM" [ref=e458]
+                    - cell "Paid" [ref=e459]:
+                      - combobox [ref=e460]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2010 Front Desk In-Store Card Paid USD 27.13 3/24/2026, 10:18:09 PM Paid" [ref=e461]:
+                    - cell "SALE-2010" [ref=e462]
+                    - cell "Front Desk" [ref=e463]
+                    - cell "In-Store" [ref=e464]
+                    - cell "Card" [ref=e465]
+                    - cell "Paid" [ref=e466]:
+                      - generic [ref=e467]: Paid
+                    - cell "USD 27.13" [ref=e468]
+                    - cell "3/24/2026, 10:18:09 PM" [ref=e469]
+                    - cell "Paid" [ref=e470]:
+                      - combobox [ref=e471]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2009 Front Desk In-Store Card Paid USD 18.01 3/24/2026, 9:50:15 PM Paid" [ref=e472]:
+                    - cell "SALE-2009" [ref=e473]
+                    - cell "Front Desk" [ref=e474]
+                    - cell "In-Store" [ref=e475]
+                    - cell "Card" [ref=e476]
+                    - cell "Paid" [ref=e477]:
+                      - generic [ref=e478]: Paid
+                    - cell "USD 18.01" [ref=e479]
+                    - cell "3/24/2026, 9:50:15 PM" [ref=e480]
+                    - cell "Paid" [ref=e481]:
+                      - combobox [ref=e482]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2005 Ama Mensah Delivery Card Paid USD 37.06 3/22/2026, 12:50:00 PM Paid" [ref=e483]:
+                    - cell "SALE-2005" [ref=e484]
+                    - cell "Ama Mensah" [ref=e485]
+                    - cell "Delivery" [ref=e486]
+                    - cell "Card" [ref=e487]
+                    - cell "Paid" [ref=e488]:
+                      - generic [ref=e489]: Paid
+                    - cell "USD 37.06" [ref=e490]
+                    - cell "3/22/2026, 12:50:00 PM" [ref=e491]
+                    - cell "Paid" [ref=e492]:
+                      - combobox [ref=e493]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1013 Front Desk In-Store Card Paid USD 7.79 3/24/2026, 8:23:54 AM Paid" [ref=e494]:
+                    - cell "SALE-1013" [ref=e495]
+                    - cell "Front Desk" [ref=e496]
+                    - cell "In-Store" [ref=e497]
+                    - cell "Card" [ref=e498]
+                    - cell "Paid" [ref=e499]:
+                      - generic [ref=e500]: Paid
+                    - cell "USD 7.79" [ref=e501]
+                    - cell "3/24/2026, 8:23:54 AM" [ref=e502]
+                    - cell "Paid" [ref=e503]:
+                      - combobox [ref=e504]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1012 Front Desk In-Store Card Paid USD 34.39 3/24/2026, 8:20:16 AM Paid" [ref=e505]:
+                    - cell "SALE-1012" [ref=e506]
+                    - cell "Front Desk" [ref=e507]
+                    - cell "In-Store" [ref=e508]
+                    - cell "Card" [ref=e509]
+                    - cell "Paid" [ref=e510]:
+                      - generic [ref=e511]: Paid
+                    - cell "USD 34.39" [ref=e512]
+                    - cell "3/24/2026, 8:20:16 AM" [ref=e513]
+                    - cell "Paid" [ref=e514]:
+                      - combobox [ref=e515]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1011 Front Desk In-Store Card Paid USD 13.98 3/24/2026, 8:16:49 AM Paid" [ref=e516]:
+                    - cell "SALE-1011" [ref=e517]
+                    - cell "Front Desk" [ref=e518]
+                    - cell "In-Store" [ref=e519]
+                    - cell "Card" [ref=e520]
+                    - cell "Paid" [ref=e521]:
+                      - generic [ref=e522]: Paid
+                    - cell "USD 13.98" [ref=e523]
+                    - cell "3/24/2026, 8:16:49 AM" [ref=e524]
+                    - cell "Paid" [ref=e525]:
+                      - combobox [ref=e526]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1010 Front Desk In-Store Card Paid USD 24.18 3/24/2026, 8:09:57 AM Paid" [ref=e527]:
+                    - cell "SALE-1010" [ref=e528]
+                    - cell "Front Desk" [ref=e529]
+                    - cell "In-Store" [ref=e530]
+                    - cell "Card" [ref=e531]
+                    - cell "Paid" [ref=e532]:
+                      - generic [ref=e533]: Paid
+                    - cell "USD 24.18" [ref=e534]
+                    - cell "3/24/2026, 8:09:57 AM" [ref=e535]
+                    - cell "Paid" [ref=e536]:
+                      - combobox [ref=e537]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1009 Front Desk In-Store Card Paid USD 13.96 3/24/2026, 7:15:17 AM Paid" [ref=e538]:
+                    - cell "SALE-1009" [ref=e539]
+                    - cell "Front Desk" [ref=e540]
+                    - cell "In-Store" [ref=e541]
+                    - cell "Card" [ref=e542]
+                    - cell "Paid" [ref=e543]:
+                      - generic [ref=e544]: Paid
+                    - cell "USD 13.96" [ref=e545]
+                    - cell "3/24/2026, 7:15:17 AM" [ref=e546]
+                    - cell "Paid" [ref=e547]:
+                      - combobox [ref=e548]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1008 Front Desk In-Store Card Paid USD 16.65 3/24/2026, 7:11:47 AM Paid" [ref=e549]:
+                    - cell "SALE-1008" [ref=e550]
+                    - cell "Front Desk" [ref=e551]
+                    - cell "In-Store" [ref=e552]
+                    - cell "Card" [ref=e553]
+                    - cell "Paid" [ref=e554]:
+                      - generic [ref=e555]: Paid
+                    - cell "USD 16.65" [ref=e556]
+                    - cell "3/24/2026, 7:11:47 AM" [ref=e557]
+                    - cell "Paid" [ref=e558]:
+                      - combobox [ref=e559]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1006 Front Desk In-Store Card Paid USD 31.97 3/24/2026, 1:03:05 AM Paid" [ref=e560]:
+                    - cell "SALE-1006" [ref=e561]
+                    - cell "Front Desk" [ref=e562]
+                    - cell "In-Store" [ref=e563]
+                    - cell "Card" [ref=e564]
+                    - cell "Paid" [ref=e565]:
+                      - generic [ref=e566]: Paid
+                    - cell "USD 31.97" [ref=e567]
+                    - cell "3/24/2026, 1:03:05 AM" [ref=e568]
+                    - cell "Paid" [ref=e569]:
+                      - combobox [ref=e570]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1002 Front Desk Online Transfer Paid USD 92.40 3/18/2026, 9:15:00 AM Paid" [ref=e571]:
+                    - cell "SALE-1002" [ref=e572]
+                    - cell "Front Desk" [ref=e573]
+                    - cell "Online" [ref=e574]
+                    - cell "Transfer" [ref=e575]
+                    - cell "Paid" [ref=e576]:
+                      - generic [ref=e577]: Paid
+                    - cell "USD 92.40" [ref=e578]
+                    - cell "3/18/2026, 9:15:00 AM" [ref=e579]
+                    - cell "Paid" [ref=e580]:
+                      - combobox [ref=e581]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2008 Ama Mensah Online Transfer Paid USD 37.07 3/24/2026, 4:25:00 AM Paid" [ref=e582]:
+                    - cell "SALE-2008" [ref=e583]
+                    - cell "Ama Mensah" [ref=e584]
+                    - cell "Online" [ref=e585]
+                    - cell "Transfer" [ref=e586]
+                    - cell "Paid" [ref=e587]:
+                      - generic [ref=e588]: Paid
+                    - cell "USD 37.07" [ref=e589]
+                    - cell "3/24/2026, 4:25:00 AM" [ref=e590]
+                    - cell "Paid" [ref=e591]:
+                      - combobox [ref=e592]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1007 Front Desk In-Store Card Paid USD 54.29 3/24/2026, 3:20:25 AM Paid" [ref=e593]:
+                    - cell "SALE-1007" [ref=e594]
+                    - cell "Front Desk" [ref=e595]
+                    - cell "In-Store" [ref=e596]
+                    - cell "Card" [ref=e597]
+                    - cell "Paid" [ref=e598]:
+                      - generic [ref=e599]: Paid
+                    - cell "USD 54.29" [ref=e600]
+                    - cell "3/24/2026, 3:20:25 AM" [ref=e601]
+                    - cell "Paid" [ref=e602]:
+                      - combobox [ref=e603]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1005 Front Desk In-Store Card Paid USD 20.43 3/23/2026, 11:51:41 PM Paid" [ref=e604]:
+                    - cell "SALE-1005" [ref=e605]
+                    - cell "Front Desk" [ref=e606]
+                    - cell "In-Store" [ref=e607]
+                    - cell "Card" [ref=e608]
+                    - cell "Paid" [ref=e609]:
+                      - generic [ref=e610]: Paid
+                    - cell "USD 20.43" [ref=e611]
+                    - cell "3/23/2026, 11:51:41 PM" [ref=e612]
+                    - cell "Paid" [ref=e613]:
+                      - combobox [ref=e614]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1004 Front Desk In-Store Card Paid USD 24.18 3/23/2026, 11:09:40 PM Paid" [ref=e615]:
+                    - cell "SALE-1004" [ref=e616]
+                    - cell "Front Desk" [ref=e617]
+                    - cell "In-Store" [ref=e618]
+                    - cell "Card" [ref=e619]
+                    - cell "Paid" [ref=e620]:
+                      - generic [ref=e621]: Paid
+                    - cell "USD 24.18" [ref=e622]
+                    - cell "3/23/2026, 11:09:40 PM" [ref=e623]
+                    - cell "Paid" [ref=e624]:
+                      - combobox [ref=e625]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2007 Kojo Asare In-Store Card Paid USD 42.46 3/23/2026, 2:10:00 PM Paid" [ref=e626]:
+                    - cell "SALE-2007" [ref=e627]
+                    - cell "Kojo Asare" [ref=e628]
+                    - cell "In-Store" [ref=e629]
+                    - cell "Card" [ref=e630]
+                    - cell "Paid" [ref=e631]:
+                      - generic [ref=e632]: Paid
+                    - cell "USD 42.46" [ref=e633]
+                    - cell "3/23/2026, 2:10:00 PM" [ref=e634]
+                    - cell "Paid" [ref=e635]:
+                      - combobox [ref=e636]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2006 Regan Amanor In-Store Cash Paid USD 37.61 3/23/2026, 7:05:00 AM Paid" [ref=e637]:
+                    - cell "SALE-2006" [ref=e638]
+                    - cell "Regan Amanor" [ref=e639]
+                    - cell "In-Store" [ref=e640]
+                    - cell "Cash" [ref=e641]
+                    - cell "Paid" [ref=e642]:
+                      - generic [ref=e643]: Paid
+                    - cell "USD 37.61" [ref=e644]
+                    - cell "3/23/2026, 7:05:00 AM" [ref=e645]
+                    - cell "Paid" [ref=e646]:
+                      - combobox [ref=e647]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2004 Kojo Asare Pickup Card Paid USD 48.11 3/22/2026, 5:20:00 AM Paid" [ref=e648]:
+                    - cell "SALE-2004" [ref=e649]
+                    - cell "Kojo Asare" [ref=e650]
+                    - cell "Pickup" [ref=e651]
+                    - cell "Card" [ref=e652]
+                    - cell "Paid" [ref=e653]:
+                      - generic [ref=e654]: Paid
+                    - cell "USD 48.11" [ref=e655]
+                    - cell "3/22/2026, 5:20:00 AM" [ref=e656]
+                    - cell "Paid" [ref=e657]:
+                      - combobox [ref=e658]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2003 Regan Amanor Online Transfer Paid USD 42.44 3/21/2026, 8:30:00 AM Paid" [ref=e659]:
+                    - cell "SALE-2003" [ref=e660]
+                    - cell "Regan Amanor" [ref=e661]
+                    - cell "Online" [ref=e662]
+                    - cell "Transfer" [ref=e663]
+                    - cell "Paid" [ref=e664]:
+                      - generic [ref=e665]: Paid
+                    - cell "USD 42.44" [ref=e666]
+                    - cell "3/21/2026, 8:30:00 AM" [ref=e667]
+                    - cell "Paid" [ref=e668]:
+                      - combobox [ref=e669]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2002 Ama Mensah In-Store Cash Paid USD 41.38 3/20/2026, 11:40:00 AM Paid" [ref=e670]:
+                    - cell "SALE-2002" [ref=e671]
+                    - cell "Ama Mensah" [ref=e672]
+                    - cell "In-Store" [ref=e673]
+                    - cell "Cash" [ref=e674]
+                    - cell "Paid" [ref=e675]:
+                      - generic [ref=e676]: Paid
+                    - cell "USD 41.38" [ref=e677]
+                    - cell "3/20/2026, 11:40:00 AM" [ref=e678]
+                    - cell "Paid" [ref=e679]:
+                      - combobox [ref=e680]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-2001 Kojo Asare In-Store Card Paid USD 47.28 3/20/2026, 6:15:00 AM Paid" [ref=e681]:
+                    - cell "SALE-2001" [ref=e682]
+                    - cell "Kojo Asare" [ref=e683]
+                    - cell "In-Store" [ref=e684]
+                    - cell "Card" [ref=e685]
+                    - cell "Paid" [ref=e686]:
+                      - generic [ref=e687]: Paid
+                    - cell "USD 47.28" [ref=e688]
+                    - cell "3/20/2026, 6:15:00 AM" [ref=e689]
+                    - cell "Paid" [ref=e690]:
+                      - combobox [ref=e691]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1003 Ama Mensah In-Store Cash Paid USD 220.10 3/19/2026, 7:42:00 AM Paid" [ref=e692]:
+                    - cell "SALE-1003" [ref=e693]
+                    - cell "Ama Mensah" [ref=e694]
+                    - cell "In-Store" [ref=e695]
+                    - cell "Cash" [ref=e696]
+                    - cell "Paid" [ref=e697]:
+                      - generic [ref=e698]: Paid
+                    - cell "USD 220.10" [ref=e699]
+                    - cell "3/19/2026, 7:42:00 AM" [ref=e700]
+                    - cell "Paid" [ref=e701]:
+                      - combobox [ref=e702]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+                  - row "SALE-1001 Front Desk In-Store Card Paid USD 148.75 3/18/2026, 6:00:00 AM Paid" [ref=e703]:
+                    - cell "SALE-1001" [ref=e704]
+                    - cell "Front Desk" [ref=e705]
+                    - cell "In-Store" [ref=e706]
+                    - cell "Card" [ref=e707]
+                    - cell "Paid" [ref=e708]:
+                      - generic [ref=e709]: Paid
+                    - cell "USD 148.75" [ref=e710]
+                    - cell "3/18/2026, 6:00:00 AM" [ref=e711]
+                    - cell "Paid" [ref=e712]:
+                      - combobox [ref=e713]:
+                        - option "Paid" [selected]
+                        - option "Refunded"
+    - button "Owner AI Ask anything about the business" [ref=e714] [cursor=pointer]:
+      - generic [ref=e715]: Owner AI
+      - strong [ref=e716]: Ask anything about the business
+  - generic [ref=e717]: "0"
