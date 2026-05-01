@@ -1,6 +1,7 @@
 const AppError = require("../errors/AppError");
 const purchaseOrderRepository = require("../data/repositories/purchaseOrderRepository");
 const auditLogService = require("./auditLogService");
+const { assertRoleAllowed, normalizeRole } = require("./accessControlService");
 const { compactText } = require("../validation/helpers");
 
 function buildActorName(user) {
@@ -23,6 +24,72 @@ function normalizeStatus(status) {
   return ["Draft", "Sent", "Cancelled"].includes(value) ? value : "";
 }
 
+function normalizePriority(priority) {
+  const value = compactText(priority || "Standard");
+  return ["Standard", "Expedite", "Critical"].includes(value) ? value : "Standard";
+}
+
+function normalizeContactSnapshot(contactSnapshot = {}) {
+  return {
+    name: compactText(contactSnapshot?.name || ""),
+    email: compactText(contactSnapshot?.email || ""),
+    phone: compactText(contactSnapshot?.phone || ""),
+  };
+}
+
+async function buildPurchaseOrderEnvelope(payload = {}, supplierName = "") {
+  const supplierProfile = supplierName
+    ? await purchaseOrderRepository.getSupplierByName(supplierName)
+    : null;
+
+  const contactSnapshot = normalizeContactSnapshot({
+    name: payload?.contactSnapshot?.name || supplierProfile?.contactName || "",
+    email: payload?.contactSnapshot?.email || supplierProfile?.email || "",
+    phone: payload?.contactSnapshot?.phone || supplierProfile?.phone || "",
+  });
+
+  return {
+    supplierId:
+      supplierProfile?.id === null || supplierProfile?.id === undefined
+        ? null
+        : Number(supplierProfile.id),
+    priority: normalizePriority(payload?.priority),
+    internalReference: compactText(payload?.internalReference || ""),
+    supplierReference: compactText(payload?.supplierReference || ""),
+    shipVia: compactText(payload?.shipVia || ""),
+    receivingLocation: compactText(payload?.receivingLocation || ""),
+    paymentTermsSnapshot: compactText(
+      payload?.paymentTermsSnapshot || supplierProfile?.paymentTerms || ""
+    ),
+    contactSnapshot,
+  };
+}
+
+function assertPurchaseOrderStatusTransition(existingStatus, nextStatus) {
+  const allowedTransitions = {
+    Draft: new Set(["Sent", "Cancelled"]),
+    Sent: new Set(["Cancelled"]),
+    "Partially Received": new Set(["Cancelled"]),
+    Cancelled: new Set([]),
+    Received: new Set([]),
+  };
+
+  if (String(existingStatus || "").trim() === String(nextStatus || "").trim()) {
+    return;
+  }
+
+  const transitions = allowedTransitions[String(existingStatus || "").trim()] || new Set();
+  if (!transitions.has(String(nextStatus || "").trim())) {
+    throw new AppError(
+      409,
+      `Cannot change a ${existingStatus} purchase order to ${nextStatus}.`,
+      {
+        code: "PURCHASE_ORDER_STATUS_TRANSITION_INVALID",
+      }
+    );
+  }
+}
+
 async function listPurchaseOrders(limit = 6) {
   const normalizedLimit = Number(limit);
   return purchaseOrderRepository.getPurchaseOrders(
@@ -43,6 +110,16 @@ async function getPurchaseOrderById(id) {
 }
 
 async function createPurchaseOrder(payload, actor) {
+  await assertRoleAllowed({
+    actor,
+    allowedRoles: ["Owner", "Manager", "Inventory Clerk"],
+    action: "purchase_order.create",
+    entityType: "purchase_order",
+    entityId: "pending:new",
+    message: "Only procurement staff can create purchase orders.",
+    code: "PURCHASE_ORDER_CREATE_ROLE_REQUIRED",
+  });
+
   const supplier = compactText(payload?.supplier || "");
   const items = normalizeDraftItems(payload?.items);
 
@@ -78,12 +155,15 @@ async function createPurchaseOrder(payload, actor) {
     });
   }
 
+  const envelope = await buildPurchaseOrderEnvelope(payload, supplier);
+
   const order = await purchaseOrderRepository.createPurchaseOrder({
     supplier,
     status: "Draft",
     note: compactText(payload?.note || ""),
     createdBy: buildActorName(actor),
     expectedDate: payload?.expectedDate ? String(payload.expectedDate) : null,
+    ...envelope,
     items: normalizedItems,
   });
 
@@ -96,6 +176,8 @@ async function createPurchaseOrder(payload, actor) {
       supplier: order.supplier,
       linesCount: order.linesCount,
       totalEstimatedCost: order.totalEstimatedCost,
+      priority: order.priority,
+      receivingLocation: order.receivingLocation,
     },
   });
 
@@ -103,6 +185,16 @@ async function createPurchaseOrder(payload, actor) {
 }
 
 async function createBulkDraftPurchaseOrders(payload, actor) {
+  await assertRoleAllowed({
+    actor,
+    allowedRoles: ["Owner", "Manager", "Inventory Clerk"],
+    action: "purchase_order.bulk_draft",
+    entityType: "purchase_order",
+    entityId: "bulk",
+    message: "Only procurement staff can draft purchase orders.",
+    code: "PURCHASE_ORDER_BULK_DRAFT_ROLE_REQUIRED",
+  });
+
   const items = normalizeDraftItems(payload?.items);
 
   if (!items.length) {
@@ -140,12 +232,14 @@ async function createBulkDraftPurchaseOrders(payload, actor) {
 
   const orders = [];
   for (const [supplier, orderItems] of Object.entries(grouped)) {
+    const envelope = await buildPurchaseOrderEnvelope({}, supplier);
     // eslint-disable-next-line no-await-in-loop
     const order = await purchaseOrderRepository.createPurchaseOrder({
       supplier,
       status: "Draft",
       note: "Drafted from the reorder planner.",
       createdBy: buildActorName(actor),
+      ...envelope,
       items: orderItems,
     });
     orders.push(order);
@@ -178,6 +272,20 @@ async function updatePurchaseOrderStatus(id, payload, actor) {
   }
 
   const existing = await getPurchaseOrderById(id);
+  await assertRoleAllowed({
+    actor,
+    allowedRoles: ["Owner", "Manager"],
+    action: "purchase_order.status_update",
+    entityType: "purchase_order",
+    entityId: String(existing.id),
+    message: "Only owners and managers can send or cancel purchase orders.",
+    code: "PURCHASE_ORDER_STATUS_ROLE_REQUIRED",
+    details: {
+      requestedStatus: status,
+      actorRole: normalizeRole(actor),
+    },
+  });
+  assertPurchaseOrderStatusTransition(existing.status, status);
   const order = await purchaseOrderRepository.updatePurchaseOrderStatus(id, status);
 
   await auditLogService.recordAuditEvent({
@@ -195,6 +303,16 @@ async function updatePurchaseOrderStatus(id, payload, actor) {
 }
 
 async function receivePurchaseOrder(id, payload, actor) {
+  await assertRoleAllowed({
+    actor,
+    allowedRoles: ["Owner", "Manager", "Inventory Clerk"],
+    action: "purchase_order.receive",
+    entityType: "purchase_order",
+    entityId: String(id),
+    message: "Only procurement staff can receive purchase orders.",
+    code: "PURCHASE_ORDER_RECEIVE_ROLE_REQUIRED",
+  });
+
   try {
     const order = await purchaseOrderRepository.receivePurchaseOrder(id, {
       items: payload?.items,

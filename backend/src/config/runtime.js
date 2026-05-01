@@ -22,6 +22,18 @@ function readBoolean(rawValue, fallbackValue = false) {
   return String(rawValue).trim().toLowerCase() === "true";
 }
 
+function readBoundedDecimal(rawValue, fallbackValue, options = {}) {
+  const minimum = Number.isFinite(options.min) ? Number(options.min) : Number.MIN_SAFE_INTEGER;
+  const maximum = Number.isFinite(options.max) ? Number(options.max) : Number.MAX_SAFE_INTEGER;
+  const parsed = Number(rawValue);
+
+  if (!Number.isFinite(parsed)) {
+    return fallbackValue;
+  }
+
+  return Math.min(maximum, Math.max(minimum, parsed));
+}
+
 function readCookieSameSite(rawValue, fallbackValue = "strict") {
   const normalized = String(rawValue || fallbackValue).trim().toLowerCase();
 
@@ -49,6 +61,75 @@ function readTrustProxy(rawValue, fallbackValue = false) {
   return String(rawValue).trim();
 }
 
+function defaultPortForProtocol(protocol = "") {
+  const normalized = String(protocol || "").trim().toLowerCase();
+  if (normalized === "https") {
+    return 443;
+  }
+
+  if (normalized === "http") {
+    return 80;
+  }
+
+  return null;
+}
+
+function normalizeHostname(value = "") {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\.+$/, "");
+}
+
+function parseHostEntry(rawValue) {
+  const candidate = String(rawValue || "").trim();
+  if (!candidate) {
+    return null;
+  }
+
+  try {
+    const hasProtocol = /^[a-z]+:\/\//i.test(candidate);
+    const parsed = new URL(hasProtocol ? candidate : `http://${candidate}`);
+    const hostname = normalizeHostname(parsed.hostname);
+
+    if (!hostname) {
+      return null;
+    }
+
+    const effectivePort = parsed.port
+      ? Number(parsed.port)
+      : hasProtocol
+        ? defaultPortForProtocol(String(parsed.protocol || "").replace(/:$/, ""))
+        : null;
+
+    return {
+      raw: candidate,
+      hostname,
+      port: Number.isFinite(effectivePort) ? effectivePort : null,
+      host: Number.isFinite(effectivePort) ? `${hostname}:${effectivePort}` : hostname,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function buildRequestHostAllowlist(values = []) {
+  const seen = new Set();
+
+  return values
+    .map(parseHostEntry)
+    .filter(Boolean)
+    .filter((entry) => {
+      const key = `${entry.hostname}:${entry.port ?? "*"}`;
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+}
+
 const environment = String(process.env.NODE_ENV || "development").trim() || "development";
 const isProduction = environment === "production";
 const isDevelopment = !isProduction;
@@ -68,9 +149,15 @@ const jwtIssuer = String(process.env.JWT_ISSUER || "afrospice-api").trim() || "a
 const jwtAudience =
   String(process.env.JWT_AUDIENCE || "afrospice-workspace").trim() || "afrospice-workspace";
 const jwtExpires = String(process.env.JWT_EXPIRES || "12h").trim() || "12h";
-const publicBaseUrl = String(process.env.PUBLIC_BASE_URL || "").trim();
+const requestedPort = readBoundedInteger(process.env.PORT, 5000, {
+  min: 1,
+  max: 65535,
+});
+const explicitPublicBaseUrl = String(process.env.PUBLIC_BASE_URL || "").trim();
+const publicBaseUrl =
+  explicitPublicBaseUrl || (isDevelopment ? `http://localhost:${requestedPort}` : "");
 const trustProxy = readTrustProxy(process.env.TRUST_PROXY, isProduction ? 1 : false);
-const enforceHttps = isProduction && readBoolean(process.env.ENFORCE_HTTPS, true);
+const enforceHttps = readBoolean(process.env.ENFORCE_HTTPS, isProduction);
 const authCookieName =
   String(
     process.env.AUTH_COOKIE_NAME || (isProduction ? "__Host-afrospice_session" : "afrospice_session")
@@ -99,6 +186,61 @@ const authChangePinRateLimitMax = readBoundedInteger(
     max: 30,
   }
 );
+const serverRequestTimeoutMs = readBoundedInteger(
+  process.env.SERVER_REQUEST_TIMEOUT_MS,
+  30000,
+  { min: 5000, max: 120000 }
+);
+const serverHeadersTimeoutMs = readBoundedInteger(
+  process.env.SERVER_HEADERS_TIMEOUT_MS,
+  serverRequestTimeoutMs + 5000,
+  { min: serverRequestTimeoutMs + 1000, max: 180000 }
+);
+const serverKeepAliveTimeoutMs = readBoundedInteger(
+  process.env.SERVER_KEEP_ALIVE_TIMEOUT_MS,
+  5000,
+  { min: 1000, max: 30000 }
+);
+const serverMaxRequestsPerSocket = readBoundedInteger(
+  process.env.SERVER_MAX_REQUESTS_PER_SOCKET,
+  1000,
+  { min: 0, max: 10000 }
+);
+const serverShutdownGracePeriodMs = readBoundedInteger(
+  process.env.SERVER_SHUTDOWN_GRACE_PERIOD_MS,
+  15000,
+  { min: 1000, max: 120000 }
+);
+const observabilityServiceName =
+  String(process.env.OBSERVABILITY_SERVICE_NAME || "afrospice-api").trim() || "afrospice-api";
+const observabilityEnvironment =
+  String(process.env.OBSERVABILITY_ENVIRONMENT || environment).trim() || environment;
+const observabilityRelease = String(
+  process.env.OBSERVABILITY_RELEASE || process.env.RELEASE_SHA || ""
+).trim();
+const observabilityWebhookUrl = String(process.env.OBSERVABILITY_WEBHOOK_URL || "").trim();
+const observabilityWebhookTimeoutMs = readBoundedInteger(
+  process.env.OBSERVABILITY_WEBHOOK_TIMEOUT_MS,
+  3000,
+  { min: 1000, max: 10000 }
+);
+const clientErrorReportingEnabled = readBoolean(process.env.CLIENT_ERROR_REPORTING_ENABLED, true);
+const clientErrorReportingRateLimitMax = readBoundedInteger(
+  process.env.CLIENT_ERROR_REPORTING_RATE_LIMIT_MAX,
+  120,
+  { min: 10, max: 2000 }
+);
+const clientErrorReportingSampleRate = readBoundedDecimal(
+  process.env.CLIENT_ERROR_REPORTING_SAMPLE_RATE,
+  1,
+  { min: 0, max: 1 }
+);
+const sentryDsn = String(process.env.SENTRY_DSN || "").trim();
+const sentryEnabled = readBoolean(process.env.SENTRY_ENABLED, Boolean(sentryDsn)) && Boolean(sentryDsn);
+const sentryTracesSampleRate = readBoundedDecimal(process.env.SENTRY_TRACES_SAMPLE_RATE, 0, {
+  min: 0,
+  max: 1,
+});
 
 if (generatedDevelopmentJwtSecret) {
   console.warn(
@@ -115,8 +257,20 @@ const allowedOrigins =
   frontendOrigins.length > 0
     ? frontendOrigins
     : isDevelopment
-      ? ["http://localhost:5173", "http://127.0.0.1:5173"]
+      ? ["http://localhost:5173"]
       : [];
+const configuredRequestHosts = String(process.env.ALLOWED_HOSTS || "")
+  .split(",")
+  .map((entry) => entry.trim())
+  .filter(Boolean);
+const requestHostAllowlist = buildRequestHostAllowlist([
+  publicBaseUrl,
+  ...configuredRequestHosts,
+  ...(isDevelopment
+    ? [`http://localhost:${requestedPort}`, `http://127.0.0.1:${requestedPort}`]
+    : []),
+]);
+const hostValidationEnabled = requestHostAllowlist.length > 0;
 
 const rateLimitEnabled =
   isProduction && String(process.env.DISABLE_RATE_LIMIT || "").toLowerCase() !== "true";
@@ -190,6 +344,10 @@ function assertRuntimeConfig() {
     throw new Error("FRONTEND_ORIGIN must be configured before running in production.");
   }
 
+  if (isProduction && requestHostAllowlist.length === 0) {
+    throw new Error("Request host allowlist must be configured before running in production.");
+  }
+
   if (
     isProduction &&
     frontendOrigins.some((origin) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin))
@@ -208,12 +366,21 @@ function assertRuntimeConfig() {
   ) {
     throw new Error("OPENAI_BASE_URL must use HTTPS when external AI routing is enabled in production.");
   }
+
+  if (isProduction && observabilityWebhookUrl && !/^https:\/\//i.test(observabilityWebhookUrl)) {
+    throw new Error("OBSERVABILITY_WEBHOOK_URL must use HTTPS in production.");
+  }
+
+  if (isProduction && sentryEnabled && !/^https:\/\/.+@/i.test(sentryDsn)) {
+    throw new Error("SENTRY_DSN must be a valid HTTPS DSN in production.");
+  }
 }
 
 module.exports = {
   environment,
   isProduction,
   isDevelopment,
+  port: requestedPort,
   mongoUri,
   mongoUriConfigured: Boolean(requestedMongoUri),
   authBypassEnabled,
@@ -234,7 +401,25 @@ module.exports = {
   sessionAbsoluteTimeoutMinutes,
   authLoginRateLimitMax,
   authChangePinRateLimitMax,
+  serverRequestTimeoutMs,
+  serverHeadersTimeoutMs,
+  serverKeepAliveTimeoutMs,
+  serverMaxRequestsPerSocket,
+  serverShutdownGracePeriodMs,
+  observabilityServiceName,
+  observabilityEnvironment,
+  observabilityRelease,
+  observabilityWebhookUrl,
+  observabilityWebhookTimeoutMs,
+  clientErrorReportingEnabled,
+  clientErrorReportingRateLimitMax,
+  clientErrorReportingSampleRate,
+  sentryDsn,
+  sentryEnabled,
+  sentryTracesSampleRate,
   allowedOrigins,
+  requestHostAllowlist,
+  hostValidationEnabled,
   rateLimitEnabled,
   openAiApiKey,
   openAiModel,

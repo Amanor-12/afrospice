@@ -1,6 +1,7 @@
 const AppError = require("../errors/AppError");
 const cycleCountRepository = require("../data/repositories/cycleCountRepository");
 const auditLogService = require("./auditLogService");
+const { assertRoleAllowed } = require("./accessControlService");
 const { compactText } = require("../validation/helpers");
 
 function normalizeDraftItems(items = []) {
@@ -40,6 +41,16 @@ async function getCycleCountById(id) {
 }
 
 async function createQuickCycleCount(payload, actor) {
+  await assertRoleAllowed({
+    actor,
+    allowedRoles: ["Owner", "Manager", "Inventory Clerk"],
+    action: "cycle_count.create",
+    entityType: "cycle_count",
+    entityId: "pending:new",
+    message: "Only inventory operations staff can create cycle counts.",
+    code: "CYCLE_COUNT_CREATE_ROLE_REQUIRED",
+  });
+
   const selectedItems = normalizeDraftItems(payload?.items);
 
   if (!selectedItems.length) {
@@ -90,6 +101,16 @@ async function createQuickCycleCount(payload, actor) {
 }
 
 async function completeCycleCount(id, payload, actor) {
+  await assertRoleAllowed({
+    actor,
+    allowedRoles: ["Owner", "Manager", "Inventory Clerk"],
+    action: "cycle_count.complete",
+    entityType: "cycle_count",
+    entityId: String(id),
+    message: "Only inventory operations staff can complete cycle counts.",
+    code: "CYCLE_COUNT_COMPLETE_ROLE_REQUIRED",
+  });
+
   const items = normalizeCompletionItems(payload?.items);
 
   if (!items.length) {

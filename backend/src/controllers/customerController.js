@@ -1,4 +1,5 @@
 const customerService = require("../services/customerService");
+const customerCommunicationService = require("../services/customerCommunicationService");
 const asyncHandler = require("../utils/asyncHandler");
 const { success, created } = require("../utils/response");
 
@@ -18,11 +19,27 @@ const getCustomerById = asyncHandler(async (req, res) => {
   return success(res, await customerService.getCustomerById(req.params.id), "Customer fetched.");
 });
 
+const getCustomerCommunications = asyncHandler(async (req, res) => {
+  return success(
+    res,
+    await customerCommunicationService.getCustomerCommunicationSummary(req.params.id),
+    "Customer communications fetched."
+  );
+});
+
 const createCustomer = asyncHandler(async (req, res) => {
   return created(
     res,
     await customerService.createCustomer(req.body || {}, req.user),
     "Customer created successfully."
+  );
+});
+
+const sendCustomerWelcomeMessage = asyncHandler(async (req, res) => {
+  return success(
+    res,
+    await customerService.sendCustomerWelcomeDispatch(req.params.id, req.user),
+    "Loyalty welcome dispatch sent."
   );
 });
 
@@ -46,7 +63,9 @@ module.exports = {
   getCustomers,
   getCustomerEnrollmentPreview,
   getCustomerById,
+  getCustomerCommunications,
   createCustomer,
+  sendCustomerWelcomeMessage,
   updateCustomer,
   deleteCustomer,
 };

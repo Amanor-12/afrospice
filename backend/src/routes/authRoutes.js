@@ -3,7 +3,18 @@ const rateLimit = require("express-rate-limit");
 const router = express.Router();
 
 const runtime = require("../config/runtime");
-const { login, changePin, logout, me } = require("../controllers/authController");
+const {
+  login,
+  changePin,
+  logout,
+  me,
+  getPasskeys,
+  beginPasskeyRegistration,
+  finishPasskeyRegistration,
+  beginPasskeyLogin,
+  finishPasskeyLogin,
+  deletePasskey,
+} = require("../controllers/authController");
 const authMiddleware = require("../middleware/auth");
 
 const loginRateLimiter = rateLimit({
@@ -39,8 +50,14 @@ router.use((req, res, next) => {
 });
 
 router.post("/login", loginRateLimiter, login);
+router.post("/passkey-login/options", loginRateLimiter, beginPasskeyLogin);
+router.post("/passkey-login/verify", loginRateLimiter, finishPasskeyLogin);
 router.post("/change-pin", authMiddleware, changePinRateLimiter, changePin);
 router.post("/logout", authMiddleware, logout);
 router.get("/me", authMiddleware, me);
+router.get("/passkeys", authMiddleware, getPasskeys);
+router.post("/passkeys/options", authMiddleware, beginPasskeyRegistration);
+router.post("/passkeys/verify", authMiddleware, finishPasskeyRegistration);
+router.delete("/passkeys/:credentialId", authMiddleware, deletePasskey);
 
 module.exports = router;

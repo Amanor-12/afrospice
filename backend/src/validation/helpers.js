@@ -6,10 +6,12 @@ function isPlainObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function compactText(value) {
-  return String(value || "")
+function compactText(value, fallback = "") {
+  const normalized = String(value || "")
     .replace(/\s+/g, " ")
     .trim();
+
+  return normalized || String(fallback || "").trim();
 }
 
 function throwValidationError(message, details = null) {

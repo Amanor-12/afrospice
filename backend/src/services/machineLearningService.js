@@ -21,6 +21,10 @@ function mean(values = []) {
   return values.reduce((sum, value) => sum + toNumber(value), 0) / values.length;
 }
 
+function isFiniteNumber(value) {
+  return Number.isFinite(Number(value));
+}
+
 function normalizeSupplierName(value) {
   const normalized = String(value || "").trim();
   return normalized || "General Supplier";
@@ -47,26 +51,121 @@ function mergeModelCollections(fallbackItems = [], preferredItems = []) {
     return Array.isArray(fallbackItems) ? fallbackItems : [];
   }
 
+  const fallbackList = Array.isArray(fallbackItems) ? fallbackItems : [];
   const fallbackByKey = new Map(
-    (Array.isArray(fallbackItems) ? fallbackItems : []).map((item, index) => [
-      getModelItemKey(item, index),
-      item,
-    ])
+    fallbackList.map((item, index) => [getModelItemKey(item, index), item])
   );
-
-  return preferredItems.map((item, index) => {
-    const fallback = fallbackByKey.get(getModelItemKey(item, index)) || {};
+  const seenKeys = new Set();
+  const mergedItems = preferredItems.map((item, index) => {
+    const key = getModelItemKey(item, index);
+    seenKeys.add(key);
+    const fallback = fallbackByKey.get(key) || {};
     return {
       ...fallback,
       ...item,
     };
   });
+
+  fallbackList.forEach((item, index) => {
+    const key = getModelItemKey(item, index);
+    if (!seenKeys.has(key)) {
+      mergedItems.push(item);
+    }
+  });
+
+  return mergedItems;
 }
 
 function safeDate(value) {
   if (!value) return null;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function summarizeSkuForecasts(skuForecasts = []) {
+  return {
+    criticalCount: skuForecasts.filter((item) => item.riskLevel === "critical").length,
+    highRiskCount: skuForecasts.filter((item) => item.riskLevel === "high").length,
+    projectedRevenue: round(
+      skuForecasts.reduce((sum, item) => sum + toNumber(item.forecastRevenue), 0)
+    ),
+    recommendedOrderUnits: Math.round(
+      skuForecasts.reduce((sum, item) => sum + toNumber(item.recommendedOrderQty), 0)
+    ),
+    averageConfidenceScore: Math.round(
+      mean(skuForecasts.map((item) => toNumber(item.confidenceScore)))
+    ),
+  };
+}
+
+function buildRestockRecommendations(forecast, limit = 8) {
+  const skuForecasts = Array.isArray(forecast?.skuForecasts) ? forecast.skuForecasts : [];
+  const normalizedLimit = Math.max(1, Math.round(toNumber(limit, skuForecasts.length || 8)));
+
+  return skuForecasts
+    .filter(
+      (item) =>
+        toNumber(item.recommendedOrderQty) > 0 ||
+        ["critical", "high", "medium"].includes(String(item.riskLevel || "").toLowerCase())
+    )
+    .slice(0, normalizedLimit);
+}
+
+function sanitizePeriods(fallbackPeriods = [], preferredPeriods = []) {
+  if (!Array.isArray(preferredPeriods)) {
+    return Array.isArray(fallbackPeriods) ? fallbackPeriods : [];
+  }
+
+  const numericFields = [
+    "projectedRevenue",
+    "projectedOrders",
+    "projectedAverageOrderValue",
+    "projectedRevenueLower",
+    "projectedRevenueUpper",
+    "projectedOrdersLower",
+    "projectedOrdersUpper",
+    "confidenceScore",
+    "seasonalityFactor",
+  ];
+  const fallbackList = Array.isArray(fallbackPeriods) ? fallbackPeriods : [];
+  const sanitized = preferredPeriods.map((period, index) => {
+    const fallback = fallbackList[index] || {};
+    const merged = {
+      ...fallback,
+      ...(period && typeof period === "object" ? period : {}),
+    };
+
+    numericFields.forEach((field) => {
+      if (!isFiniteNumber(merged[field])) {
+        merged[field] = toNumber(fallback[field]);
+      }
+    });
+
+    merged.label = String(merged.label || fallback.label || `F-${index + 1}`).trim() || `F-${index + 1}`;
+    merged.bucketStart = safeDate(merged.bucketStart)?.toISOString() || fallback.bucketStart || null;
+    merged.projectedRevenue = round(Math.max(0, toNumber(merged.projectedRevenue)));
+    merged.projectedOrders = Math.max(0, Math.round(toNumber(merged.projectedOrders)));
+    merged.projectedAverageOrderValue = round(Math.max(0, toNumber(merged.projectedAverageOrderValue)));
+    merged.projectedRevenueLower = round(Math.max(0, toNumber(merged.projectedRevenueLower)));
+    merged.projectedRevenueUpper = round(
+      Math.max(merged.projectedRevenueLower, toNumber(merged.projectedRevenueUpper))
+    );
+    merged.projectedOrdersLower = Math.max(0, Math.round(toNumber(merged.projectedOrdersLower)));
+    merged.projectedOrdersUpper = Math.max(
+      merged.projectedOrdersLower,
+      Math.round(toNumber(merged.projectedOrdersUpper))
+    );
+    merged.confidenceScore = Math.round(clamp(merged.confidenceScore, 18, 100));
+    merged.seasonalityFactor = round(Math.max(0, toNumber(merged.seasonalityFactor, 1)), 2);
+
+    return merged;
+  });
+
+  if (fallbackList.length > sanitized.length) {
+    return sanitized.concat(fallbackList.slice(sanitized.length));
+  }
+
+  return sanitized;
 }
 
 function buildStockoutRisks(forecast) {
@@ -605,6 +704,39 @@ function buildPortfolioSummary(forecast, stockoutRisks = [], promotionCandidates
   };
 }
 
+function buildModelIntegrity({
+  engine,
+  pythonResult,
+  periods,
+  skuForecasts,
+  restockRecommendations,
+  stockoutRisks,
+  promotionCandidates,
+  supplierSignals,
+}) {
+  const pythonBridgeActive = Boolean(pythonResult);
+
+  return {
+    source: pythonBridgeActive ? "python-reconciled" : "node-fallback",
+    engine: String(engine || "").trim() || (pythonBridgeActive ? "python-operational-ml" : "node-operational-ml"),
+    pythonBridgeActive,
+    deterministicSectionsRebuilt: true,
+    checks: {
+      periodCount: Array.isArray(periods) ? periods.length : 0,
+      skuCount: Array.isArray(skuForecasts) ? skuForecasts.length : 0,
+      recommendationCount: Array.isArray(restockRecommendations) ? restockRecommendations.length : 0,
+      stockoutRiskCount: Array.isArray(stockoutRisks) ? stockoutRisks.length : 0,
+      promotionOpportunityCount: Array.isArray(promotionCandidates) ? promotionCandidates.length : 0,
+      supplierSignalCount: Array.isArray(supplierSignals) ? supplierSignals.length : 0,
+    },
+    warnings: [
+      pythonBridgeActive
+        ? null
+        : "Python forecasting bridge is unavailable in this runtime. The verified Node forecasting engine is active.",
+    ].filter(Boolean),
+  };
+}
+
 function buildFallbackModelOutputs(options = {}, context) {
   const forecast = forecastingService.getDemandForecast(options, context);
   const anomalies = anomalyDetectionService.getOperationalAnomalyAlerts(context);
@@ -636,50 +768,119 @@ function buildFallbackModelOutputs(options = {}, context) {
   };
 }
 
-function normalizeModelOutputs(pythonResult, fallback) {
+function normalizeModelOutputs(pythonResult, fallback, context, options = {}) {
   if (!pythonResult || typeof pythonResult !== "object") {
-    return fallback;
+    return {
+      ...fallback,
+      integrity: buildModelIntegrity({
+        engine: fallback.engine,
+        pythonResult: null,
+        periods: fallback.periods,
+        skuForecasts: fallback.skuForecasts,
+        restockRecommendations: fallback.restockRecommendations,
+        stockoutRisks: fallback.stockoutRisks,
+        promotionCandidates: fallback.promotionCandidates,
+        supplierSignals: fallback.supplierSignals,
+      }),
+    };
   }
 
-  return {
+  const normalizedPeriods = sanitizePeriods(fallback.periods, pythonResult.periods);
+  const skuForecasts = mergeModelCollections(fallback.skuForecasts, pythonResult.skuForecasts);
+  const anomalySummary = pythonResult.anomalySummary || fallback.anomalySummary;
+  const anomalyAlerts = Array.isArray(pythonResult.anomalyAlerts)
+    ? pythonResult.anomalyAlerts
+    : fallback.anomalyAlerts;
+  const anomalySeries = Array.isArray(pythonResult.anomalySeries)
+    ? pythonResult.anomalySeries
+    : fallback.anomalySeries;
+
+  const merged = {
     ...fallback,
     ...pythonResult,
     overview: {
       ...(fallback.overview || {}),
       ...(pythonResult.overview || {}),
     },
-    periods: Array.isArray(pythonResult.periods) ? pythonResult.periods : fallback.periods,
-    skuForecasts: mergeModelCollections(fallback.skuForecasts, pythonResult.skuForecasts),
-    restockRecommendations: mergeModelCollections(
-      fallback.restockRecommendations,
-      pythonResult.restockRecommendations
-    ),
-    anomalySummary: pythonResult.anomalySummary || fallback.anomalySummary,
-    anomalyAlerts: Array.isArray(pythonResult.anomalyAlerts)
-      ? pythonResult.anomalyAlerts
-      : fallback.anomalyAlerts,
-    anomalySeries: Array.isArray(pythonResult.anomalySeries)
-      ? pythonResult.anomalySeries
-      : fallback.anomalySeries,
-    stockoutRisks: mergeModelCollections(fallback.stockoutRisks, pythonResult.stockoutRisks),
-    promotionCandidates: mergeModelCollections(
-      fallback.promotionCandidates,
-      pythonResult.promotionCandidates
-    ),
-    supplierSignals: mergeModelCollections(fallback.supplierSignals, pythonResult.supplierSignals),
-    portfolioSummary: pythonResult.portfolioSummary || fallback.portfolioSummary,
-    modelSummary: {
-      ...(fallback.modelSummary || {}),
-      ...(pythonResult.modelSummary || {}),
+    periods: normalizedPeriods,
+    skuForecasts,
+    anomalySummary,
+    anomalyAlerts,
+    anomalySeries,
+  };
+
+  const restockRecommendations = buildRestockRecommendations(
+    { ...merged, skuForecasts },
+    options.limit || fallback.restockRecommendations?.length || skuForecasts.length || 8
+  );
+  const deterministicForecast = {
+    ...merged,
+    overview: {
+      ...(merged.overview || {}),
+      skuSummary: summarizeSkuForecasts(skuForecasts),
     },
-    dataFoundation: pythonResult.dataFoundation || fallback.dataFoundation,
+    skuForecasts,
+    restockRecommendations,
+  };
+  const stockoutRisks = buildStockoutRisks(deterministicForecast);
+  const promotionCandidates = buildPromotionCandidates(deterministicForecast);
+  const supplierSignals = buildSupplierSignals(deterministicForecast, context);
+  const dataFoundation = buildDataFoundation(context);
+  const overview = {
+    ...(deterministicForecast.overview || {}),
+    skuSummary: summarizeSkuForecasts(skuForecasts),
+    dataRichnessScore: toNumber(dataFoundation.richnessScore),
+    supplierSignalCount: supplierSignals.length,
+    leadSupplierRisk: supplierSignals[0]?.supplier || null,
+    qualityWarnings: Array.isArray(dataFoundation.qualityWarnings)
+      ? dataFoundation.qualityWarnings
+      : [],
+  };
+  const portfolioSummary = buildPortfolioSummary(
+    { ...deterministicForecast, overview },
+    stockoutRisks,
+    promotionCandidates,
+    supplierSignals
+  );
+  const modelSummary = buildModelSummary(
+    { ...deterministicForecast, overview },
+    {
+      summary: anomalySummary,
+      alerts: anomalyAlerts,
+    },
+    stockoutRisks,
+    promotionCandidates,
+    dataFoundation,
+    supplierSignals
+  );
+
+  return {
+    ...deterministicForecast,
+    overview,
+    restockRecommendations,
+    stockoutRisks,
+    promotionCandidates,
+    supplierSignals,
+    dataFoundation,
+    portfolioSummary,
+    modelSummary,
+    integrity: buildModelIntegrity({
+      engine: deterministicForecast.engine,
+      pythonResult,
+      periods: normalizedPeriods,
+      skuForecasts,
+      restockRecommendations,
+      stockoutRisks,
+      promotionCandidates,
+      supplierSignals,
+    }),
   };
 }
 
 function getOperationalModelOutputs(options = {}, context) {
   const fallback = buildFallbackModelOutputs(options, context);
   const pythonResult = pythonMlService.getOperationalModelOutputs(options, context);
-  return normalizeModelOutputs(pythonResult, fallback);
+  return normalizeModelOutputs(pythonResult, fallback, context, options);
 }
 
 module.exports = {

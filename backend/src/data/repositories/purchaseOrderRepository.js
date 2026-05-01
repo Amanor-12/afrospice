@@ -34,7 +34,18 @@ function normalizePurchaseOrder(row) {
     supplierId: row.supplierId === null || row.supplierId === undefined ? null : Number(row.supplierId),
     supplier: compactLookupText(row.supplier, "General Supplier"),
     status: String(row.status || "Draft").trim() || "Draft",
+    priority: String(row.priority || "Standard").trim() || "Standard",
     note: String(row.note || "").trim(),
+    internalReference: String(row.internalReference || "").trim(),
+    supplierReference: String(row.supplierReference || "").trim(),
+    shipVia: String(row.shipVia || "").trim(),
+    receivingLocation: String(row.receivingLocation || "").trim(),
+    paymentTermsSnapshot: String(row.paymentTermsSnapshot || "").trim(),
+    contactSnapshot: {
+      name: String(row.contactSnapshot?.name || "").trim(),
+      email: String(row.contactSnapshot?.email || "").trim(),
+      phone: String(row.contactSnapshot?.phone || "").trim(),
+    },
     createdBy: String(row.createdBy || "").trim(),
     createdAt: toIsoTimestamp(row.createdAt),
     updatedAt: toIsoTimestamp(row.updatedAt, row.createdAt),
@@ -72,6 +83,16 @@ async function loadPurchaseOrderDocument(id, session = null) {
 async function loadProductDocument(id, session = null) {
   return applySessionToQuery(
     models.Product.findOne({ id: Number(id) }).lean(),
+    session
+  );
+}
+
+async function loadSupplierDocumentByName(name, session = null) {
+  const normalized = compactLookupText(name, "General Supplier");
+  return applySessionToQuery(
+    models.Supplier.findOne({
+      name: buildExactCaseInsensitiveRegex(normalized),
+    }).lean(),
     session
   );
 }
@@ -202,7 +223,18 @@ async function createPurchaseOrder(order) {
     supplierId,
     supplier,
     status: String(order.status || "Draft").trim() || "Draft",
+    priority: String(order.priority || "Standard").trim() || "Standard",
     note: String(order.note || "").trim(),
+    internalReference: String(order.internalReference || "").trim(),
+    supplierReference: String(order.supplierReference || "").trim(),
+    shipVia: String(order.shipVia || "").trim(),
+    receivingLocation: String(order.receivingLocation || "").trim(),
+    paymentTermsSnapshot: String(order.paymentTermsSnapshot || "").trim(),
+    contactSnapshot: {
+      name: String(order.contactSnapshot?.name || "").trim(),
+      email: String(order.contactSnapshot?.email || "").trim(),
+      phone: String(order.contactSnapshot?.phone || "").trim(),
+    },
     createdBy: String(order.createdBy || "").trim(),
     createdAt,
     updatedAt,
@@ -356,6 +388,7 @@ async function receivePurchaseOrder(id, receipt = {}) {
 module.exports = {
   createPurchaseOrder,
   getProductById: productRepository.getProductById,
+  getSupplierByName: loadSupplierDocumentByName,
   getPurchaseOrderById,
   getPurchaseOrders,
   receivePurchaseOrder,

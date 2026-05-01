@@ -4,6 +4,7 @@ const runtime = require("../src/config/runtime");
 const { connectDB, disconnectDB, mongoose } = require("../src/config/db");
 const systemService = require("../src/services/systemService");
 const baseModels = require("../src/data/models");
+const defaultSettings = require("../src/data/defaultSettings");
 
 const COUNTER_KEYS = {
   role: "role_id",
@@ -175,6 +176,25 @@ function buildCounterDocuments(snapshot, timestamp) {
 
 function buildRestorePayload(snapshot) {
   const generatedAt = snapshot?.generatedAt || new Date().toISOString();
+  const normalizedSettings = snapshot?.settings
+    ? (() => {
+        const merged = {
+          id: Number(snapshot.settings.id || 1),
+          ...defaultSettings,
+          ...Object.fromEntries(
+            Object.entries(snapshot.settings).filter(
+              ([, value]) => value !== null && value !== undefined
+            )
+          ),
+          updatedAt: snapshot?.settings?.updatedAt || generatedAt,
+        };
+
+        return {
+          ...merged,
+          dailySummaryLastError: String(merged.dailySummaryLastError || "").trim() || "none",
+        };
+      })()
+    : null;
 
   return {
     Role: asArray(snapshot.roles),
@@ -186,7 +206,7 @@ function buildRestorePayload(snapshot) {
     InventoryMovement: asArray(snapshot.inventoryMovements),
     PurchaseOrder: asArray(snapshot.purchaseOrders),
     CycleCount: asArray(snapshot.cycleCounts),
-    AppSetting: snapshot?.settings ? [{ ...snapshot.settings, id: Number(snapshot.settings.id || 1) }] : [],
+    AppSetting: normalizedSettings ? [normalizedSettings] : [],
     UserAccessEvent: asArray(snapshot.userAccessEvents),
     UserSavedView: asArray(snapshot.userSavedViews),
     AuditLog: asArray(snapshot.auditLogs),

@@ -1,11 +1,16 @@
+const bcrypt = require("bcryptjs");
 const AppError = require("../errors/AppError");
 const salesRepository = require("../data/repositories/salesRepository");
 const auditLogService = require("./auditLogService");
 const customerService = require("./customerService");
+const authRepository = require("../data/repositories/authRepository");
+const { assertRoleAllowed } = require("./accessControlService");
 const { calculateTaxAmount } = require("../tax/ontarioProductTax");
 const {
   validateCreateSalePayload,
   validateSaleStatusPayload,
+  validateRefundRequestPayload,
+  validateRefundDecisionPayload,
 } = require("../validation/salesValidators");
 
 function normalizeStatus(status) {
@@ -15,6 +20,38 @@ function normalizeStatus(status) {
   if (["declined", "failed", "cancelled", "canceled"].includes(value)) return "Declined";
   if (["refunded", "refund"].includes(value)) return "Refunded";
   return "Paid";
+}
+
+function resolveActorName(actor, fallback = "Front Desk") {
+  return String(actor?.fullName || actor?.staffId || fallback).trim() || fallback;
+}
+
+async function verifyRefundApprovalPin({ approvalPin, actor, settings }) {
+  if (!settings?.requirePinForRefunds) {
+    return false;
+  }
+
+  if (!approvalPin) {
+    throw new AppError(400, "Approval PIN is required for refunds.", {
+      code: "REFUND_PIN_REQUIRED",
+    });
+  }
+
+  const actorUser = await authRepository.getUserById(actor?.id);
+  if (!actorUser?.pin) {
+    throw new AppError(403, "Your account does not have a valid approval PIN.", {
+      code: "REFUND_PIN_NOT_AVAILABLE",
+    });
+  }
+
+  const pinMatches = await bcrypt.compare(String(approvalPin), String(actorUser.pin || ""));
+  if (!pinMatches) {
+    throw new AppError(403, "Approval PIN is incorrect.", {
+      code: "REFUND_PIN_INVALID",
+    });
+  }
+
+  return true;
 }
 
 function computeSaleTotals(items, customerDiscountPercent = 0) {
@@ -157,8 +194,9 @@ async function createSale(payload, actor) {
 
 async function updateSaleStatus(id, payload, actor) {
   const existing = await getSaleById(id);
-  const { status, note } = validateSaleStatusPayload(payload);
+  const { status, reason, note, approvalPin } = validateSaleStatusPayload(payload);
   const nextStatus = normalizeStatus(status);
+  const settings = await salesRepository.getAppSettings();
 
   const allowedTransitions = {
     Pending: new Set(["Paid", "Declined"]),
@@ -167,10 +205,16 @@ async function updateSaleStatus(id, payload, actor) {
     Refunded: new Set([]),
   };
 
-  if (nextStatus === "Refunded" && !["Owner", "Manager"].includes(String(actor?.role || ""))) {
-    throw new AppError(403, "Only owners and managers can refund an order.", {
+  if (nextStatus === "Refunded" && String(actor?.role || "") !== "Owner") {
+    throw new AppError(403, "Only the owner can refund an order.", {
       code: "REFUND_NOT_ALLOWED",
     });
+  }
+
+  let approvalPinVerified = false;
+
+  if (nextStatus === "Refunded" && settings.requirePinForRefunds) {
+    approvalPinVerified = await verifyRefundApprovalPin({ approvalPin, actor, settings });
   }
 
   if (String(existing.status || "").trim() !== nextStatus) {
@@ -188,7 +232,11 @@ async function updateSaleStatus(id, payload, actor) {
   }
 
   const updatedSale = await salesRepository.updateSaleStatus(existing.id, nextStatus, {
-    actorName: String(actor?.fullName || actor?.staffId || existing.cashier || "Front Desk").trim(),
+    actorUserId: actor?.id ?? null,
+    actorName: resolveActorName(actor, existing.cashier || "Front Desk"),
+    reason,
+    note,
+    approvalPinVerified,
     updatedAt: new Date().toISOString(),
   });
 
@@ -201,16 +249,182 @@ async function updateSaleStatus(id, payload, actor) {
       previousStatus: existing.status,
       nextStatus: updatedSale.status,
       total: updatedSale.total,
+      reason,
       note,
+      approvalPinVerified,
     },
   });
 
   return updatedSale;
 }
 
+async function submitRefundRequest(id, payload, actor) {
+  const existing = await getSaleById(id);
+  await assertRoleAllowed({
+    actor,
+    allowedRoles: ["Owner", "Manager", "Cashier"],
+    action: "sale.refund_request.create",
+    entityType: "sale",
+    entityId: String(existing.id),
+    message: "Only store operators can file refund incident reports.",
+    code: "REFUND_REQUEST_ROLE_REQUIRED",
+  });
+
+  if (String(existing.status || "").trim() !== "Paid") {
+    throw new AppError(409, "Only paid orders can enter the refund approval queue.", {
+      code: "REFUND_REQUEST_STATUS_INVALID",
+    });
+  }
+
+  if (String(existing?.refundRequest?.status || "None").trim() === "Pending") {
+    throw new AppError(409, "A refund request is already pending for this order.", {
+      code: "REFUND_REQUEST_ALREADY_PENDING",
+    });
+  }
+
+  if (String(existing.status || "").trim() === "Refunded") {
+    throw new AppError(409, "This order has already been refunded.", {
+      code: "REFUND_ALREADY_COMPLETED",
+    });
+  }
+
+  const request = validateRefundRequestPayload(payload);
+  const now = new Date().toISOString();
+  const updatedSale = await salesRepository.updateRefundRequest(existing.id, {
+    status: "Pending",
+    reason: request.reason,
+    note: request.note,
+    incidentReport: request.incidentReport,
+    customerStatement: request.customerStatement,
+    requestedAt: now,
+    requestedByUserId: actor?.id ?? null,
+    requestedByName: resolveActorName(actor, existing.cashier || "Front Desk"),
+    reviewedAt: null,
+    reviewedByUserId: null,
+    reviewedByName: "",
+    decisionNote: "",
+    approvalPinVerified: false,
+    updatedAt: now,
+  });
+
+  await auditLogService.recordAuditEvent({
+    actor,
+    action: "sale.refund_requested",
+    entityType: "sale",
+    entityId: String(existing.id),
+    details: {
+      status: existing.status,
+      total: existing.total,
+      reason: request.reason,
+      note: request.note,
+      incidentReport: request.incidentReport,
+    },
+  });
+
+  return updatedSale;
+}
+
+async function decideRefundRequest(id, payload, actor) {
+  const existing = await getSaleById(id);
+  await assertRoleAllowed({
+    actor,
+    allowedRoles: ["Owner"],
+    action: "sale.refund_request.decision",
+    entityType: "sale",
+    entityId: String(existing.id),
+    message: "Only the owner can approve or reject refund requests.",
+    code: "REFUND_DECISION_ROLE_REQUIRED",
+  });
+
+  if (String(existing.status || "").trim() !== "Paid") {
+    throw new AppError(409, "Only paid orders can be reviewed for refund approval.", {
+      code: "REFUND_DECISION_STATUS_INVALID",
+    });
+  }
+
+  if (String(existing?.refundRequest?.status || "None").trim() !== "Pending") {
+    throw new AppError(409, "There is no pending refund request to review for this order.", {
+      code: "REFUND_REQUEST_NOT_PENDING",
+    });
+  }
+
+  const decision = validateRefundDecisionPayload(payload);
+  const now = new Date().toISOString();
+  const actorName = resolveActorName(actor, existing.cashier || "Front Desk");
+
+  if (decision.decision === "Rejected") {
+    const rejectedSale = await salesRepository.updateRefundRequest(existing.id, {
+      ...existing.refundRequest,
+      status: "Rejected",
+      reviewedAt: now,
+      reviewedByUserId: actor?.id ?? null,
+      reviewedByName: actorName,
+      decisionNote: decision.decisionNote,
+      approvalPinVerified: false,
+      updatedAt: now,
+    });
+
+    await auditLogService.recordAuditEvent({
+      actor,
+      action: "sale.refund_rejected",
+      entityType: "sale",
+      entityId: String(existing.id),
+      details: {
+        total: existing.total,
+        reason: existing?.refundRequest?.reason || "",
+        decisionNote: decision.decisionNote,
+      },
+    });
+
+    return rejectedSale;
+  }
+
+  const settings = await salesRepository.getAppSettings();
+  const approvalPinVerified = await verifyRefundApprovalPin({
+    approvalPin: decision.approvalPin,
+    actor,
+    settings,
+  });
+
+  const approvedSale = await salesRepository.updateSaleStatus(existing.id, "Refunded", {
+    actorUserId: actor?.id ?? null,
+    actorName,
+    reason: existing?.refundRequest?.reason || "Approved refund request",
+    note: existing?.refundRequest?.note || decision.decisionNote,
+    approvalPinVerified,
+    updatedAt: now,
+    refundRequestPatch: {
+      ...existing.refundRequest,
+      status: "Approved",
+      reviewedAt: now,
+      reviewedByUserId: actor?.id ?? null,
+      reviewedByName: actorName,
+      decisionNote: decision.decisionNote,
+      approvalPinVerified,
+    },
+  });
+
+  await auditLogService.recordAuditEvent({
+    actor,
+    action: "sale.refund_approved",
+    entityType: "sale",
+    entityId: String(existing.id),
+    details: {
+      total: existing.total,
+      reason: existing?.refundRequest?.reason || "",
+      decisionNote: decision.decisionNote,
+      approvalPinVerified,
+    },
+  });
+
+  return approvedSale;
+}
+
 module.exports = {
   getSales,
   getSaleById,
   createSale,
+  submitRefundRequest,
+  decideRefundRequest,
   updateSaleStatus,
 };

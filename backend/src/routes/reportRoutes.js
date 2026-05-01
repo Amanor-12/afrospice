@@ -9,6 +9,8 @@ const {
   getInventoryIntelligence,
   getCustomerAnalytics,
   getSupplierAnalytics,
+  getNotifications,
+  acknowledgeNotifications,
   getOwnerAssistantBootstrap,
   postOwnerAssistantChat,
   getMachineForecast,
@@ -21,25 +23,31 @@ const allowRoles = require("../middleware/roles");
 
 router.use(authMiddleware);
 
-router.get("/overview", allowRoles("Owner", "Manager"), getReportsOverview);
-router.get("/dashboard", allowRoles("Owner", "Manager"), getDashboardSummary);
-router.get("/orders", allowRoles("Owner", "Manager"), getOrderAnalytics);
-router.get("/business-pulse", allowRoles("Owner", "Manager"), getBusinessPulse);
-router.get("/inventory-intelligence", allowRoles("Owner", "Manager"), getInventoryIntelligence);
-router.get("/customers", allowRoles("Owner", "Manager"), getCustomerAnalytics);
-router.get("/suppliers", allowRoles("Owner", "Manager", "Inventory Clerk"), getSupplierAnalytics);
-router.get("/ml-forecast", allowRoles("Owner", "Manager"), getMachineForecast);
+router.get("/overview", allowRoles("Owner"), getReportsOverview);
+router.get("/dashboard", allowRoles("Owner"), getDashboardSummary);
+router.get("/orders", allowRoles("Owner"), getOrderAnalytics);
+router.get("/business-pulse", allowRoles("Owner"), getBusinessPulse);
+router.get("/inventory-intelligence", allowRoles("Owner"), getInventoryIntelligence);
+router.get("/customers", allowRoles("Owner"), getCustomerAnalytics);
+router.get("/suppliers", allowRoles("Owner"), getSupplierAnalytics);
+router.get("/notifications", allowRoles("Owner"), getNotifications);
+router.post(
+  "/notifications/acknowledge",
+  allowRoles("Owner"),
+  acknowledgeNotifications
+);
+router.get("/ml-forecast", allowRoles("Owner"), getMachineForecast);
 router.get(
   "/owner-assistant",
-  allowRoles("Owner", "Manager", "Cashier", "Inventory Clerk"),
+  allowRoles("Owner"),
   getOwnerAssistantBootstrap
 );
 router.post(
   "/owner-assistant",
-  allowRoles("Owner", "Manager", "Cashier", "Inventory Clerk"),
+  allowRoles("Owner"),
   postOwnerAssistantChat
 );
-router.get("/export", allowRoles("Owner", "Manager"), exportReportsCsv);
-router.get("/", allowRoles("Owner", "Manager"), getAdvancedReports);
+router.get("/export", allowRoles("Owner"), exportReportsCsv);
+router.get("/", allowRoles("Owner"), getAdvancedReports);
 
 module.exports = router;

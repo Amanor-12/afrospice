@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const runtime = require("./runtime");
 const { ensureLocalReplicaSet } = require("./localReplicaSet");
+const logger = require("../utils/logger");
 
 let connectionPromise = null;
 
@@ -31,7 +32,11 @@ async function connectDB() {
       return mongoose.connect(runtime.mongoUri, options);
     })
     .then((conn) => {
-      console.log(`MongoDB connected: ${conn.connection.host}:${conn.connection.port}`);
+      logger.info("mongo.connected", {
+        host: conn.connection.host,
+        port: conn.connection.port,
+        database: conn.connection.name,
+      });
       return conn.connection;
     })
     .catch((error) => {

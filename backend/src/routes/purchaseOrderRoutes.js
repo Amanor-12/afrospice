@@ -15,11 +15,11 @@ const allowRoles = require("../middleware/roles");
 
 router.use(authMiddleware);
 
-router.get("/", allowRoles("Owner", "Manager", "Inventory Clerk"), listPurchaseOrders);
-router.get("/:id", allowRoles("Owner", "Manager", "Inventory Clerk"), getPurchaseOrderById);
-router.post("/", allowRoles("Owner", "Manager", "Inventory Clerk"), createPurchaseOrder);
-router.post("/bulk-draft", allowRoles("Owner", "Manager", "Inventory Clerk"), createBulkDraftPurchaseOrders);
-router.patch("/:id/status", allowRoles("Owner", "Manager", "Inventory Clerk"), updatePurchaseOrderStatus);
-router.post("/:id/receive", allowRoles("Owner", "Manager", "Inventory Clerk"), receivePurchaseOrder);
+router.get("/", allowRoles("Owner"), listPurchaseOrders);
+router.get("/:id", allowRoles("Owner"), getPurchaseOrderById);
+router.post("/", allowRoles("Owner"), createPurchaseOrder);
+router.post("/bulk-draft", allowRoles("Owner"), createBulkDraftPurchaseOrders);
+router.patch("/:id/status", allowRoles("Owner"), updatePurchaseOrderStatus);
+router.post("/:id/receive", allowRoles("Owner"), receivePurchaseOrder);
 
 module.exports = router;

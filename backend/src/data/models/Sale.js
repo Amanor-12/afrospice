@@ -1,5 +1,5 @@
 const { Schema, model, models } = require("mongoose");
-const { requiredDateField } = require("./dateFields");
+const { optionalDateField, requiredDateField } = require("./dateFields");
 
 const saleItemSchema = new Schema(
   {
@@ -29,6 +29,57 @@ const saleItemSchema = new Schema(
   }
 );
 
+const saleStatusEventSchema = new Schema(
+  {
+    fromStatus: { type: String, required: true, default: "", trim: true },
+    toStatus: { type: String, required: true, default: "", trim: true },
+    reason: { type: String, default: "", trim: true },
+    note: { type: String, default: "", trim: true },
+    actorUserId: { type: Number, default: null },
+    actorName: { type: String, default: "", trim: true },
+    approvalPinVerified: { type: Boolean, required: true, default: false },
+    createdAt: requiredDateField(),
+  },
+  {
+    _id: false,
+  }
+);
+
+const saleRefundSchema = new Schema(
+  {
+    reason: { type: String, default: "", trim: true },
+    note: { type: String, default: "", trim: true },
+    refundedAt: optionalDateField({ index: true }),
+    refundedByUserId: { type: Number, default: null, index: true },
+    refundedByName: { type: String, default: "", trim: true },
+    approvalPinVerified: { type: Boolean, required: true, default: false },
+  },
+  {
+    _id: false,
+  }
+);
+
+const saleRefundRequestSchema = new Schema(
+  {
+    status: { type: String, required: true, default: "None", trim: true, index: true },
+    reason: { type: String, default: "", trim: true },
+    note: { type: String, default: "", trim: true },
+    incidentReport: { type: String, default: "", trim: true },
+    customerStatement: { type: String, default: "", trim: true },
+    requestedAt: optionalDateField({ index: true }),
+    requestedByUserId: { type: Number, default: null, index: true },
+    requestedByName: { type: String, default: "", trim: true },
+    reviewedAt: optionalDateField({ index: true }),
+    reviewedByUserId: { type: Number, default: null, index: true },
+    reviewedByName: { type: String, default: "", trim: true },
+    decisionNote: { type: String, default: "", trim: true },
+    approvalPinVerified: { type: Boolean, required: true, default: false },
+  },
+  {
+    _id: false,
+  }
+);
+
 const saleSchema = new Schema(
   {
     id: { type: String, required: true, unique: true, trim: true, index: true },
@@ -51,6 +102,9 @@ const saleSchema = new Schema(
     createdAt: requiredDateField(),
     updatedAt: requiredDateField({ index: true }),
     items: { type: [saleItemSchema], required: true, default: [] },
+    refund: { type: saleRefundSchema, required: true, default: () => ({}) },
+    refundRequest: { type: saleRefundRequestSchema, required: true, default: () => ({}) },
+    statusHistory: { type: [saleStatusEventSchema], required: true, default: [] },
   },
   {
     versionKey: false,

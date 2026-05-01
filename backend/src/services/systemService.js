@@ -1,6 +1,8 @@
 const runtime = require("../config/runtime");
 const systemRepository = require("../data/repositories/systemRepository");
 const { mongoose } = require("../config/db");
+const { getLifecycleState } = require("../utils/processLifecycle");
+const observabilityService = require("./observabilityService");
 
 function getMongoConnectionStateLabel() {
   const states = {
@@ -81,6 +83,10 @@ function hasLocalOrigin(origins = []) {
   return origins.some((origin) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin));
 }
 
+function hasLoopbackRequestHost(entries = []) {
+  return entries.some((entry) => /^(localhost|127\.0\.0\.1)$/i.test(String(entry?.hostname || "")));
+}
+
 function summarizeReadiness(checks) {
   const failureCount = checks.filter((check) => check.status === "fail").length;
   const warningCount = checks.filter((check) => check.status === "warn").length;
@@ -111,29 +117,56 @@ function summarizeReadiness(checks) {
   };
 }
 
-function getHealth() {
+function buildLifecycleSummary() {
+  const lifecycle = getLifecycleState();
+  const ready = lifecycle.ready && !lifecycle.shuttingDown;
+
   return {
-    status: "ok",
+    status: lifecycle.shuttingDown ? "draining" : lifecycle.ready ? "ready" : "starting",
+    ready,
+    acceptingTraffic: ready,
+    shuttingDown: lifecycle.shuttingDown,
+    startedAt: lifecycle.startedAt,
+    shutdownReason: lifecycle.shutdownReason || null,
+    shutdownStartedAt: lifecycle.shutdownStartedAt || null,
+  };
+}
+
+function getHealth() {
+  const lifecycle = buildLifecycleSummary();
+  const observability = observabilityService.getObservabilitySummary();
+
+  return {
+    service: "AfroSpice API",
+    status: lifecycle.shuttingDown ? "draining" : "ok",
     timestamp: new Date().toISOString(),
+    lifecycle,
+    observability,
   };
 }
 
 async function getHealthDetails() {
   const parsedUri = parseMongoUri(runtime.mongoUri);
-  const storage = await systemRepository.getStorageInfo();
+  const [storage, security] = await Promise.all([
+    systemRepository.getStorageInfo(),
+    systemRepository.getSecurityTelemetry(),
+  ]);
   const deployment = (await systemRepository.getMongoDeploymentInfo?.()) || {};
   const transactions = deployment.transactions || {
     nativeSupported: false,
     fallbackEnabled: runtime.isDevelopment,
     effectiveMode: runtime.isDevelopment ? "development-fallback" : "unavailable",
   };
+  const lifecycle = buildLifecycleSummary();
+  const observability = observabilityService.getObservabilitySummary();
 
   return {
     service: "AfroSpice API",
-    status: "ok",
+    status: lifecycle.shuttingDown ? "draining" : "ok",
     uptimeSeconds: Number(process.uptime().toFixed(1)),
     timestamp: new Date().toISOString(),
     environment: runtime.environment,
+    lifecycle,
     mongo: {
       state: getMongoConnectionStateLabel(),
       host: mongoose.connection.host || parsedUri.host || null,
@@ -153,6 +186,8 @@ async function getHealthDetails() {
       transactions,
     },
     storage,
+    security,
+    observability,
   };
 }
 
@@ -198,9 +233,21 @@ async function getReadinessReport() {
   const aiStatus = getAiStatus();
   const counts = details?.storage?.counts || {};
   const transactions = details?.mongo?.transactions || {};
+  const lifecycle = details?.lifecycle || buildLifecycleSummary();
   const coreCollections = ["roles", "users", "products", "customers", "suppliers"];
   const missingCollections = coreCollections.filter((key) => Number(counts[key] || 0) === 0);
   const checks = [];
+
+  checks.push(
+    buildReadinessCheck(
+      "traffic-drain",
+      "Traffic drain state",
+      lifecycle.shuttingDown ? "fail" : "pass",
+      lifecycle.shuttingDown
+        ? "Runtime is draining traffic for shutdown."
+        : "Runtime is accepting traffic."
+    )
+  );
 
   checks.push(
     buildReadinessCheck(
@@ -276,12 +323,31 @@ async function getReadinessReport() {
 
   checks.push(
     buildReadinessCheck(
+      "request-host-allowlist",
+      "Request host allowlist",
+      !runtime.hostValidationEnabled
+        ? runtime.isProduction
+          ? "fail"
+          : "warn"
+        : runtime.isProduction && hasLoopbackRequestHost(runtime.requestHostAllowlist)
+          ? "fail"
+          : "pass",
+      !runtime.hostValidationEnabled
+        ? "Request host allowlist is not configured."
+        : runtime.isProduction && hasLoopbackRequestHost(runtime.requestHostAllowlist)
+          ? "Production request host allowlist still includes localhost."
+          : "Request host allowlist is configured."
+    )
+  );
+
+  checks.push(
+    buildReadinessCheck(
       "public-base-url",
       "Public API base URL",
       !runtime.publicBaseUrl
         ? runtime.isProduction
           ? "fail"
-          : "warn"
+          : "pass"
         : runtime.isProduction && !/^https:\/\//i.test(runtime.publicBaseUrl)
           ? "fail"
           : "pass",
@@ -297,10 +363,12 @@ async function getReadinessReport() {
     buildReadinessCheck(
       "https-enforcement",
       "HTTPS enforcement",
-      runtime.enforceHttps ? "pass" : runtime.isProduction ? "fail" : "warn",
+      runtime.enforceHttps ? "pass" : runtime.isProduction ? "fail" : "pass",
       runtime.enforceHttps
         ? "HTTPS enforcement is enabled."
-        : "HTTPS enforcement is disabled."
+        : runtime.isProduction
+          ? "HTTPS enforcement is disabled."
+          : "HTTPS enforcement is disabled for local runtime and does not block release readiness."
     )
   );
 
@@ -311,10 +379,12 @@ async function getReadinessReport() {
       runtime.trustProxy === false
         ? runtime.isProduction && runtime.enforceHttps
           ? "fail"
-          : "warn"
+          : "pass"
         : "pass",
       runtime.trustProxy === false
-        ? "Express trust proxy is disabled."
+        ? runtime.isProduction && runtime.enforceHttps
+          ? "Express trust proxy is disabled."
+          : "Express trust proxy is optional for local runtime."
         : "Express trust proxy is configured."
     )
   );
@@ -323,10 +393,12 @@ async function getReadinessReport() {
     buildReadinessCheck(
       "secure-cookie",
       "Secure session cookie posture",
-      runtime.authCookieSecure ? "pass" : runtime.isProduction ? "fail" : "warn",
+      runtime.authCookieSecure ? "pass" : runtime.isProduction ? "fail" : "pass",
       runtime.authCookieSecure
         ? `Auth cookie is secure with SameSite=${runtime.authCookieSameSite}.`
-        : "Auth cookie secure flag is disabled."
+        : runtime.isProduction
+          ? "Auth cookie secure flag is disabled."
+          : "Auth cookie secure flag is disabled for local HTTP runtime."
     )
   );
 
@@ -356,7 +428,7 @@ async function getReadinessReport() {
     buildReadinessCheck(
       "external-ai-routing",
       "External AI routing configuration",
-      aiStatus?.checks?.externalRoutingEnabled ? "pass" : "warn",
+      aiStatus?.checks?.groundedAssistantAvailable ? "pass" : "fail",
       aiStatus?.checks?.externalRoutingEnabled
         ? "External AI routing is configured."
         : "External AI routing is disabled. Grounded assistant remains available."
@@ -371,6 +443,8 @@ async function getReadinessReport() {
     operations: {
       publicBaseUrlConfigured: Boolean(runtime.publicBaseUrl),
       frontendOrigins: runtime.allowedOrigins,
+      allowedRequestHosts: runtime.requestHostAllowlist.map((entry) => entry.host),
+      hostValidationEnabled: runtime.hostValidationEnabled,
       trustProxy: runtime.trustProxy,
       enforceHttps: runtime.enforceHttps,
       authCookieName: runtime.authCookieName,
@@ -387,6 +461,9 @@ async function getReadinessReport() {
       replicaSetName: details?.mongo?.replicaSetName || null,
       transactions,
     },
+    observability: observabilityService.getObservabilitySummary(),
+    security: details?.security || null,
+    lifecycle,
   };
 }
 

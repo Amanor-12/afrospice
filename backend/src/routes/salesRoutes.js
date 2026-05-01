@@ -5,6 +5,8 @@ const {
   getSales,
   getSaleById,
   createSale,
+  submitRefundRequest,
+  decideRefundRequest,
   updateSaleStatus
 } = require("../controllers/salesController");
 
@@ -13,9 +15,11 @@ const allowRoles = require("../middleware/roles");
 
 router.use(authMiddleware);
 
-router.get("/", allowRoles("Owner", "Manager", "Cashier"), getSales);
-router.get("/:id", allowRoles("Owner", "Manager", "Cashier"), getSaleById);
-router.post("/", allowRoles("Owner", "Manager", "Cashier"), createSale);
-router.patch("/:id/status", allowRoles("Owner", "Manager", "Cashier"), updateSaleStatus);
+router.get("/", allowRoles("Owner"), getSales);
+router.get("/:id", allowRoles("Owner"), getSaleById);
+router.post("/", allowRoles("Owner"), createSale);
+router.post("/:id/refund-request", allowRoles("Owner"), submitRefundRequest);
+router.post("/:id/refund-request/decision", allowRoles("Owner"), decideRefundRequest);
+router.patch("/:id/status", allowRoles("Owner"), updateSaleStatus);
 
 module.exports = router;

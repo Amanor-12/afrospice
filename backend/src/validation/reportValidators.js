@@ -95,8 +95,33 @@ function validateMachineForecastQuery(query = {}, fallbackRange = "daily") {
   };
 }
 
+function validateNotificationAcknowledgementPayload(payload) {
+  const body = ensureObject(payload);
+  const markAll = Boolean(body.markAll);
+  const idsInput = Array.isArray(body.ids) ? body.ids : [];
+  const ids = [...new Set(
+    idsInput
+      .map((item, index) =>
+        readRequiredString(item, `Notification id ${index + 1}`, {
+          maxLength: 120,
+        })
+      )
+      .filter(Boolean)
+  )].slice(0, 20);
+
+  if (!markAll && !ids.length) {
+    throwValidationError("At least one notification id is required.");
+  }
+
+  return {
+    ids,
+    markAll,
+  };
+}
+
 module.exports = {
   validateReportRange,
   validateOwnerAssistantPayload,
   validateMachineForecastQuery,
+  validateNotificationAcknowledgementPayload,
 };

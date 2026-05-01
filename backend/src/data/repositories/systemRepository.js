@@ -5,8 +5,65 @@ const productRepository = require("./productRepository");
 const salesRepository = require("./salesRepository");
 const settingsRepository = require("./settingsRepository");
 const supplierRepository = require("./supplierRepository");
+const authRepository = require("./authRepository");
 const userRepository = require("./userRepository");
 const { cloneValue, toIsoTimestamp, toNullableIsoTimestamp } = require("./mongoRepositoryUtils");
+
+const REVIEW_SECURITY_EVENT_TYPES = [
+  "login_failed",
+  "pin_changed_self",
+  "pin_reset",
+  "pin_assigned",
+  "session_context_changed",
+  "concurrent_session_started",
+  "access_deactivated",
+];
+
+function normalizeTextValue(value) {
+  return String(value || "").trim();
+}
+
+function normalizeIpAddress(value) {
+  const normalized = normalizeTextValue(value).toLowerCase();
+  if (!normalized) return "";
+
+  if (
+    normalized === "127.0.0.1" ||
+    normalized === "::1" ||
+    normalized.startsWith("::ffff:127.0.0.1")
+  ) {
+    return "loopback";
+  }
+
+  return normalized.startsWith("::ffff:") ? normalized.slice(7) : normalized;
+}
+
+function normalizeList(values) {
+  if (!Array.isArray(values)) return [];
+
+  return [...new Set(values.map((value) => normalizeTextValue(value).toLowerCase()).filter(Boolean))];
+}
+
+function normalizeSeverity(value) {
+  const normalized = normalizeTextValue(value).toLowerCase();
+  return ["info", "warn", "danger"].includes(normalized) ? normalized : "info";
+}
+
+function buildReviewSecurityEventQuery(createdAt = null) {
+  const query = {
+    $or: [
+      { severity: { $in: ["warn", "danger"] } },
+      { tags: { $in: ["security"] } },
+      { eventType: { $in: REVIEW_SECURITY_EVENT_TYPES } },
+    ],
+  };
+
+  if (createdAt) {
+    query.createdAt = createdAt;
+  }
+
+  return query;
+}
 
 function normalizeRole(row) {
   if (!row) return null;
@@ -130,10 +187,15 @@ function normalizeAccessEvent(row) {
     userId: row.userId === null || row.userId === undefined ? null : Number(row.userId),
     staffId: String(row.staffId || "").trim(),
     fullName: String(row.fullName || "").trim(),
+    sessionId: normalizeTextValue(row.sessionId),
     eventType: String(row.eventType || "").trim(),
     title: String(row.title || "").trim(),
     message: String(row.message || "").trim(),
     actorName: String(row.actorName || "").trim(),
+    sourceIp: normalizeIpAddress(row.sourceIp),
+    userAgent: normalizeTextValue(row.userAgent),
+    severity: normalizeSeverity(row.severity),
+    tags: normalizeList(row.tags),
     createdAt: toIsoTimestamp(row.createdAt),
   };
 }
@@ -164,6 +226,16 @@ function normalizeAuditLog(row) {
       row.actorUserId === null || row.actorUserId === undefined ? null : Number(row.actorUserId),
     actorStaffId: String(row.actorStaffId || "").trim(),
     actorName: String(row.actorName || "").trim(),
+    requestId: String(row.requestId || "").trim(),
+    request: row.request && typeof row.request === "object"
+      ? {
+          method: String(row.request.method || "").trim(),
+          path: String(row.request.path || "").trim(),
+          sourceIp: String(row.request.sourceIp || "").trim(),
+          userAgent: String(row.request.userAgent || "").trim(),
+          sessionId: String(row.request.sessionId || "").trim(),
+        }
+      : {},
     details: row.details && typeof row.details === "object" ? cloneValue(row.details) : {},
     createdAt: toIsoTimestamp(row.createdAt),
   };
@@ -269,6 +341,77 @@ async function getMongoDeploymentInfo() {
   }
 }
 
+async function getSecurityTelemetry() {
+  await authRepository.reconcileExpiredSessions();
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const [activeSessions, elevatedRiskSessions, highRiskSessions, anomalousSessions, anomalyAggregate, failedLogins24h, securityEvents24h, concurrentSessions24h, latestSecurityEventRow] =
+    await Promise.all([
+      models.UserSession.countDocuments({ status: "Active" }),
+      models.UserSession.countDocuments({
+        status: "Active",
+        riskLevel: { $in: ["elevated", "high"] },
+      }),
+      models.UserSession.countDocuments({
+        status: "Active",
+        riskLevel: "high",
+      }),
+      models.UserSession.countDocuments({
+        anomalyCount: { $gt: 0 },
+      }),
+      models.UserSession.aggregate([
+        {
+          $group: {
+            _id: null,
+            total: { $sum: "$anomalyCount" },
+          },
+        },
+      ]),
+      models.UserAccessEvent.countDocuments({
+        eventType: "login_failed",
+        createdAt: { $gte: dayAgo },
+      }),
+      models.UserAccessEvent.countDocuments(buildReviewSecurityEventQuery({ $gte: dayAgo })),
+      models.UserAccessEvent.countDocuments({
+        eventType: "concurrent_session_started",
+        createdAt: { $gte: dayAgo },
+      }),
+      models.UserAccessEvent.findOne(buildReviewSecurityEventQuery())
+        .sort({ createdAt: -1, id: -1 })
+        .lean(),
+    ]);
+
+  const totalSessionAnomalies = Number(anomalyAggregate?.[0]?.total || 0);
+  const latestSecurityEvent = normalizeAccessEvent(latestSecurityEventRow);
+  let posture = "stable";
+  let message = "No elevated session anomalies are currently active.";
+
+  if (Number(highRiskSessions || 0) > 0 || Number(failedLogins24h || 0) >= 5) {
+    posture = "attention";
+    message = "High-risk session activity needs review before production release confidence is claimed.";
+  } else if (
+    Number(elevatedRiskSessions || 0) > 0 ||
+    Number(securityEvents24h || 0) > 0 ||
+    Number(concurrentSessions24h || 0) > 0
+  ) {
+    posture = "watch";
+    message = "Session telemetry is active and has detected review-worthy security movement.";
+  }
+
+  return {
+    posture,
+    message,
+    activeSessions: Number(activeSessions || 0),
+    elevatedRiskSessions: Number(elevatedRiskSessions || 0),
+    highRiskSessions: Number(highRiskSessions || 0),
+    anomalousSessions: Number(anomalousSessions || 0),
+    totalSessionAnomalies,
+    failedLogins24h: Number(failedLogins24h || 0),
+    securityEvents24h: Number(securityEvents24h || 0),
+    concurrentSessions24h: Number(concurrentSessions24h || 0),
+    lastSecurityEventAt: latestSecurityEvent?.createdAt || null,
+  };
+}
+
 async function getBackupSnapshot() {
   const [
     storage,
@@ -325,5 +468,6 @@ async function getBackupSnapshot() {
 module.exports = {
   getBackupSnapshot,
   getMongoDeploymentInfo,
+  getSecurityTelemetry,
   getStorageInfo,
 };

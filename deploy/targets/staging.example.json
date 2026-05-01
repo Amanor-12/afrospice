@@ -1,0 +1,18 @@
+{
+  "environment": "staging",
+  "topology": "same-origin",
+  "frontendOrigin": "https://staging.afrospice.example.com",
+  "apiOrigin": "https://staging.afrospice.example.com",
+  "mongoUri": "mongodb+srv://afrospice-staging:<replace-me>@cluster0.mongodb.net/afrospice_staging",
+  "allowedHosts": [],
+  "release": "staging-sha-placeholder",
+  "observabilityWebhookUrl": "https://hooks.example.com/afrospice-staging",
+  "backendSentryDsn": "https://public@example.ingest.sentry.io/project-id",
+  "frontendSentryDsn": "https://public@example.ingest.sentry.io/project-id",
+  "mail": {
+    "provider": "resend",
+    "fromEmail": "staging-no-reply@afrospice.example.com",
+    "fromName": "AfroSpice Staging",
+    "replyTo": "ops@afrospice.example.com"
+  }
+}

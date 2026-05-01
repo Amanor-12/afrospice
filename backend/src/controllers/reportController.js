@@ -58,6 +58,22 @@ const getOwnerAssistantBootstrap = asyncHandler(async (req, res) => {
   );
 });
 
+const getNotifications = asyncHandler(async (req, res) => {
+  return success(
+    res,
+    await reportService.getNotifications(req.user),
+    "Workspace notifications fetched."
+  );
+});
+
+const acknowledgeNotifications = asyncHandler(async (req, res) => {
+  return success(
+    res,
+    await reportService.acknowledgeNotifications(req.body || {}, req.user),
+    "Workspace notifications acknowledged."
+  );
+});
+
 const postOwnerAssistantChat = asyncHandler(async (req, res) => {
   return success(
     res,
@@ -97,6 +113,8 @@ module.exports = {
   getInventoryIntelligence,
   getCustomerAnalytics,
   getSupplierAnalytics,
+  getNotifications,
+  acknowledgeNotifications,
   getOwnerAssistantBootstrap,
   postOwnerAssistantChat,
   getMachineForecast,

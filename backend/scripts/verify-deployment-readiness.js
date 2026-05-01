@@ -30,6 +30,14 @@ async function run() {
   printSection("Operational Profile");
   printKeyValue("publicBaseUrlConfigured", readiness?.operations?.publicBaseUrlConfigured ? "yes" : "no");
   printKeyValue("frontendOrigins", (readiness?.operations?.frontendOrigins || []).join(", ") || "none");
+  printKeyValue(
+    "allowedRequestHosts",
+    (readiness?.operations?.allowedRequestHosts || []).join(", ") || "none"
+  );
+  printKeyValue(
+    "hostValidationEnabled",
+    readiness?.operations?.hostValidationEnabled ? "yes" : "no"
+  );
   printKeyValue("trustProxy", readiness?.operations?.trustProxy ?? "false");
   printKeyValue("enforceHttps", readiness?.operations?.enforceHttps ? "yes" : "no");
   printKeyValue("authCookieSecure", readiness?.operations?.authCookieSecure ? "yes" : "no");

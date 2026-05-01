@@ -3,6 +3,7 @@ const customerRepository = require("../data/repositories/customerRepository");
 const salesRepository = require("../data/repositories/salesRepository");
 const settingsRepository = require("../data/repositories/settingsRepository");
 const auditLogService = require("./auditLogService");
+const customerCommunicationService = require("./customerCommunicationService");
 const {
   validateCustomerListQuery,
   validateCustomerPayload,
@@ -11,6 +12,9 @@ const { assertCondition } = require("../validation/helpers");
 
 const VIP_ORDER_THRESHOLD = 6;
 const VIP_SPEND_THRESHOLD = 350;
+const LOYALTY_POINTS_PER_CURRENCY_UNIT = 10;
+const LOYALTY_REWARD_STEP_POINTS = 2000;
+const LOYALTY_REWARD_STEP_VALUE = 10;
 
 function toFiniteNumber(value, fallback = 0) {
   const parsed = Number(value);
@@ -21,6 +25,77 @@ function normalizeTimestamp(value) {
   if (!value) return null;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+function normalizeSaleStatus(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s-]+/g, " ");
+}
+
+function isRecognizedSale(sale = {}) {
+  const status = normalizeSaleStatus(sale?.status);
+  return ["paid", "completed", "complete", "success", "succeeded"].includes(status);
+}
+
+function isRefundedSale(sale = {}) {
+  return ["refunded", "refund", "partial refund", "partially refunded"].includes(
+    normalizeSaleStatus(sale?.status)
+  );
+}
+
+function isDeclinedSale(sale = {}) {
+  return ["declined", "failed", "voided", "cancelled", "canceled"].includes(
+    normalizeSaleStatus(sale?.status)
+  );
+}
+
+function getSaleTimestamp(sale = {}) {
+  const candidate = sale?.date || sale?.createdAt || null;
+  return normalizeTimestamp(candidate);
+}
+
+function getSaleDate(sale = {}) {
+  const timestamp = getSaleTimestamp(sale);
+  return timestamp ? new Date(timestamp) : null;
+}
+
+function diffInDays(from, to) {
+  if (!(from instanceof Date) || Number.isNaN(from.getTime())) return null;
+  if (!(to instanceof Date) || Number.isNaN(to.getTime())) return null;
+  return Math.max(0, Math.floor((to.getTime() - from.getTime()) / 86400000));
+}
+
+function calculateAverageVisitCadence(sales = []) {
+  if (sales.length < 2) return null;
+
+  const ordered = [...sales]
+    .map((sale) => getSaleDate(sale))
+    .filter(Boolean)
+    .sort((left, right) => left.getTime() - right.getTime());
+
+  if (ordered.length < 2) return null;
+
+  let totalGap = 0;
+  let comparisons = 0;
+
+  for (let index = 1; index < ordered.length; index += 1) {
+    const gap = diffInDays(ordered[index - 1], ordered[index]);
+    if (gap === null) continue;
+    totalGap += gap;
+    comparisons += 1;
+  }
+
+  return comparisons ? Number((totalGap / comparisons).toFixed(1)) : null;
+}
+
+function getTrailingSales(sales = [], days = 90, anchorDate = new Date()) {
+  const threshold = anchorDate.getTime() - days * 86400000;
+  return sales.filter((sale) => {
+    const saleDate = getSaleDate(sale);
+    return saleDate ? saleDate.getTime() >= threshold : false;
+  });
 }
 
 function buildCustomerNumber(customer) {
@@ -123,6 +198,116 @@ function determineLoyaltyProfile(customer, settings, summary) {
   };
 }
 
+function determineCustomerHealth(summary = {}) {
+  const daysSinceLastPurchase = summary.daysSinceLastPurchase;
+  const trailing90DayOrders = summary.trailing90DayOrders || 0;
+  const trailing90DaySpend = summary.trailing90DaySpend || 0;
+
+  if (daysSinceLastPurchase === null) {
+    return {
+      label: "Newly enrolled",
+      tone: "neutral",
+      churnRiskLabel: "Unknown",
+      engagementSegment: "Prospect",
+      nextAction:
+        "Drive the first named purchase quickly so the profile starts building repeat behavior.",
+    };
+  }
+
+  if (daysSinceLastPurchase >= 120) {
+    return {
+      label: "Recovery needed",
+      tone: "danger",
+      churnRiskLabel: "High risk",
+      engagementSegment: "Lapsed",
+      nextAction:
+        "Launch a win-back offer or direct outreach before this customer fully churns.",
+    };
+  }
+
+  if (daysSinceLastPurchase >= 60 || trailing90DayOrders <= 1) {
+    return {
+      label: "Cooling",
+      tone: "warning",
+      churnRiskLabel: "Watch closely",
+      engagementSegment: "At risk",
+      nextAction:
+        "Use a targeted offer or follow-up reminder to bring this customer back into rotation.",
+    };
+  }
+
+  if (trailing90DaySpend >= VIP_SPEND_THRESHOLD || trailing90DayOrders >= 4) {
+    return {
+      label: "Healthy",
+      tone: "success",
+      churnRiskLabel: "Low risk",
+      engagementSegment: "Growth",
+      nextAction:
+        "Protect this account with reliable stock availability and premium service at the lane.",
+    };
+  }
+
+  return {
+    label: "Stable",
+    tone: "success",
+    churnRiskLabel: "Low risk",
+    engagementSegment: "Core",
+    nextAction:
+      "Keep capture data current and surface relevant products during checkout to grow the basket.",
+  };
+}
+
+function buildLoyaltyIntelligence(customer, summary, loyalty) {
+  const recognizedRevenue = summary.lifetimeSpend || 0;
+  const pointsEarned = Math.round(recognizedRevenue * LOYALTY_POINTS_PER_CURRENCY_UNIT);
+  const availableRewardsCount = Math.floor(pointsEarned / LOYALTY_REWARD_STEP_POINTS);
+  const availableRewardValue = Number((availableRewardsCount * LOYALTY_REWARD_STEP_VALUE).toFixed(2));
+  const pointsBalance = pointsEarned % LOYALTY_REWARD_STEP_POINTS;
+  const pointsToNextReward = Math.max(0, LOYALTY_REWARD_STEP_POINTS - pointsBalance);
+  const nextRewardThreshold = pointsEarned + pointsToNextReward;
+  const nextRewardProgressPct = Math.min(
+    100,
+    Number(((pointsBalance / LOYALTY_REWARD_STEP_POINTS) * 100).toFixed(1))
+  );
+  const nextTierSpendGap = Math.max(0, Number((VIP_SPEND_THRESHOLD - summary.lifetimeSpend).toFixed(2)));
+  const nextTierOrderGap = Math.max(0, VIP_ORDER_THRESHOLD - summary.orderCount);
+  const health = determineCustomerHealth(summary);
+  const offerRecommendation =
+    loyalty.loyaltyTier === "VIP"
+      ? "Offer early access to premium stock and service recovery before high-value demand leaks away."
+      : summary.trailing90DayOrders === 0
+      ? "Send a return incentive with a narrow expiration window to reactivate the account."
+      : loyalty.discountEligible
+      ? "Use basket-building offers on top products instead of broad discounts."
+      : "Capture a phone number or email so the loyalty program can activate and future offers can be delivered.";
+
+  return {
+    pointsEarned,
+    pointsBalance,
+    availableRewardsCount,
+    availableRewardValue,
+    pointsToNextReward,
+    nextRewardThreshold,
+    nextRewardProgressPct,
+    nextTierSpendGap,
+    nextTierOrderGap,
+    daysSinceLastPurchase: summary.daysSinceLastPurchase,
+    visitCadenceDays: summary.visitCadenceDays,
+    trailing90DaySpend: summary.trailing90DaySpend,
+    trailing90DayOrders: summary.trailing90DayOrders,
+    trailing365DaySpend: summary.trailing365DaySpend,
+    trailing365DayOrders: summary.trailing365DayOrders,
+    refundCount: summary.refundCount,
+    refundedSpend: summary.refundedSpend,
+    memberHealthLabel: health.label,
+    memberHealthTone: health.tone,
+    churnRiskLabel: health.churnRiskLabel,
+    engagementSegment: health.engagementSegment,
+    loyaltyNextAction: health.nextAction,
+    offerRecommendation,
+  };
+}
+
 function buildTopProducts(sales = []) {
   const totals = new Map();
 
@@ -184,18 +369,24 @@ function buildMonthlySpend(sales = []) {
 }
 
 function buildCustomerSummary(customer, customerSales = []) {
-  const sortedSales = [...customerSales].sort((left, right) => {
+  const sortedSales = [...customerSales]
+    .filter((sale) => !isDeclinedSale(sale))
+    .sort((left, right) => {
     const leftTime = new Date(left?.date || left?.createdAt || 0).getTime();
     const rightTime = new Date(right?.date || right?.createdAt || 0).getTime();
     return rightTime - leftTime;
   });
+  const recognizedSales = sortedSales.filter((sale) => isRecognizedSale(sale) || isRefundedSale(sale));
+  const capturedSales = sortedSales.filter((sale) => isRecognizedSale(sale));
+  const refundedSales = sortedSales.filter((sale) => isRefundedSale(sale));
+  const anchorDate = getSaleDate(sortedSales[0]) || new Date();
 
-  const orderCount = sortedSales.length;
+  const orderCount = capturedSales.length;
   const lifetimeSpend = Number(
-    sortedSales.reduce((sum, sale) => sum + toFiniteNumber(sale?.total), 0).toFixed(2)
+    capturedSales.reduce((sum, sale) => sum + toFiniteNumber(sale?.total), 0).toFixed(2)
   );
   const lifetimeTax = Number(
-    sortedSales.reduce((sum, sale) => sum + toFiniteNumber(sale?.tax), 0).toFixed(2)
+    capturedSales.reduce((sum, sale) => sum + toFiniteNumber(sale?.tax), 0).toFixed(2)
   );
   const totalUnits = sortedSales.reduce(
     (sum, sale) =>
@@ -208,8 +399,14 @@ function buildCustomerSummary(customer, customerSales = []) {
   const averageOrderValue = Number(
     (orderCount ? lifetimeSpend / orderCount : 0).toFixed(2)
   );
-  const firstPurchaseAt = normalizeTimestamp(sortedSales[sortedSales.length - 1]?.date);
-  const lastPurchaseAt = normalizeTimestamp(sortedSales[0]?.date);
+  const firstPurchaseAt = normalizeTimestamp(capturedSales[capturedSales.length - 1]?.date);
+  const lastPurchaseAt = normalizeTimestamp(capturedSales[0]?.date);
+  const trailing90DaySales = getTrailingSales(capturedSales, 90, anchorDate);
+  const trailing365DaySales = getTrailingSales(capturedSales, 365, anchorDate);
+  const daysSinceLastPurchase = lastPurchaseAt ? diffInDays(new Date(lastPurchaseAt), anchorDate) : null;
+  const refundedSpend = Number(
+    refundedSales.reduce((sum, sale) => sum + toFiniteNumber(sale?.total), 0).toFixed(2)
+  );
 
   return {
     orderCount,
@@ -219,6 +416,18 @@ function buildCustomerSummary(customer, customerSales = []) {
     averageOrderValue,
     firstPurchaseAt,
     lastPurchaseAt,
+    daysSinceLastPurchase,
+    visitCadenceDays: calculateAverageVisitCadence(capturedSales),
+    trailing90DaySpend: Number(
+      trailing90DaySales.reduce((sum, sale) => sum + toFiniteNumber(sale?.total), 0).toFixed(2)
+    ),
+    trailing90DayOrders: trailing90DaySales.length,
+    trailing365DaySpend: Number(
+      trailing365DaySales.reduce((sum, sale) => sum + toFiniteNumber(sale?.total), 0).toFixed(2)
+    ),
+    trailing365DayOrders: trailing365DaySales.length,
+    refundCount: refundedSales.length,
+    refundedSpend,
     recentOrders: sortedSales.slice(0, 8).map((sale) => ({
       id: sale.id,
       date: sale.date,
@@ -230,8 +439,8 @@ function buildCustomerSummary(customer, customerSales = []) {
         ? sale.items.reduce((sum, item) => sum + toFiniteNumber(item?.qty), 0)
         : 0,
     })),
-    topProducts: buildTopProducts(sortedSales),
-    monthlySpend: buildMonthlySpend(sortedSales),
+    topProducts: buildTopProducts(recognizedSales),
+    monthlySpend: buildMonthlySpend(capturedSales),
   };
 }
 
@@ -239,7 +448,10 @@ function enrichCustomer(customer, { settings, sales }) {
   const customerSales = sales.filter((sale) => matchesCustomerSale(customer, sale));
   const summary = buildCustomerSummary(customer, customerSales);
   const loyalty = determineLoyaltyProfile(customer, settings, summary);
-  const loyaltyCardNumber = customer?.loyaltyOptIn ? buildLoyaltyCardNumber(customer, settings) : "";
+  const loyaltyIntelligence = buildLoyaltyIntelligence(customer, summary, loyalty);
+  const loyaltyCardNumber = customer?.loyaltyOptIn
+    ? String(customer?.loyaltyCardNumber || "").trim() || buildLoyaltyCardNumber(customer, settings)
+    : "";
   const profileCompletenessPct = Math.round(
     ([
       Boolean(String(customer?.email || "").trim()),
@@ -269,7 +481,9 @@ function enrichCustomer(customer, { settings, sales }) {
     loyaltyEnrolledAt: customer?.loyaltyEnrolledAt || null,
     loyaltyProgramStatus: customer?.loyaltyOptIn
       ? loyalty.discountEligible
-        ? "Card active"
+        ? loyaltyIntelligence.availableRewardValue > 0
+          ? "Rewards available"
+          : "Card active"
         : "Card issued"
       : "Not enrolled",
     customerStatus: status.label,
@@ -282,6 +496,28 @@ function enrichCustomer(customer, { settings, sales }) {
     averageOrderValue: summary.averageOrderValue,
     firstPurchaseAt: summary.firstPurchaseAt,
     lastPurchaseAt: summary.lastPurchaseAt,
+    daysSinceLastPurchase: loyaltyIntelligence.daysSinceLastPurchase,
+    visitCadenceDays: loyaltyIntelligence.visitCadenceDays,
+    trailing90DaySpend: loyaltyIntelligence.trailing90DaySpend,
+    trailing90DayOrders: loyaltyIntelligence.trailing90DayOrders,
+    trailing365DaySpend: loyaltyIntelligence.trailing365DaySpend,
+    trailing365DayOrders: loyaltyIntelligence.trailing365DayOrders,
+    refundCount: loyaltyIntelligence.refundCount,
+    refundedSpend: loyaltyIntelligence.refundedSpend,
+    loyaltyPointsEarned: loyaltyIntelligence.pointsEarned,
+    loyaltyPointsBalance: loyaltyIntelligence.pointsBalance,
+    availableRewardsCount: loyaltyIntelligence.availableRewardsCount,
+    availableRewardValue: loyaltyIntelligence.availableRewardValue,
+    pointsToNextReward: loyaltyIntelligence.pointsToNextReward,
+    nextRewardThreshold: loyaltyIntelligence.nextRewardThreshold,
+    nextRewardProgressPct: loyaltyIntelligence.nextRewardProgressPct,
+    nextTierSpendGap: loyaltyIntelligence.nextTierSpendGap,
+    nextTierOrderGap: loyaltyIntelligence.nextTierOrderGap,
+    memberHealthLabel: loyaltyIntelligence.memberHealthLabel,
+    memberHealthTone: loyaltyIntelligence.memberHealthTone,
+    churnRiskLabel: loyaltyIntelligence.churnRiskLabel,
+    engagementSegment: loyaltyIntelligence.engagementSegment,
+    offerRecommendation: loyaltyIntelligence.offerRecommendation,
     profileCompletenessPct,
     contactCoverage: {
       hasEmail: Boolean(String(customer?.email || "").trim()),
@@ -290,9 +526,9 @@ function enrichCustomer(customer, { settings, sales }) {
     },
     nextBestCustomerAction: customer?.loyaltyOptIn
       ? loyalty.discountEligible
-        ? "Use the loyalty card number or customer name in checkout to apply member pricing."
+        ? loyaltyIntelligence.loyaltyNextAction
         : "Capture a phone number or email to unlock the discount tied to this loyalty card."
-      : "Offer loyalty enrollment so future checkouts can track spend and unlock discounts.",
+      : "Offer loyalty enrollment so future checkouts can track spend, reward balance, and unlock discounts.",
     recentOrders: summary.recentOrders,
     topProducts: summary.topProducts,
     monthlySpend: summary.monthlySpend,
@@ -318,6 +554,10 @@ function matchesCustomerSearch(customer, search) {
   return haystack.includes(search.toLowerCase());
 }
 
+function hasContactRoute(customer = {}) {
+  return Boolean(String(customer?.email || "").trim() || String(customer?.phone || "").trim());
+}
+
 async function getCustomers(query = {}) {
   const filters = validateCustomerListQuery(query);
   const [customers, sales, settings] = await Promise.all([
@@ -333,6 +573,7 @@ async function getCustomers(query = {}) {
 
 async function resolveCustomerCheckoutProfile({ customerId = null, customerName = "" } = {}) {
   const normalizedName = String(customerName || "").trim();
+  const normalizedPhoneLookup = normalizedName.replace(/\D/g, "");
   if (
     customerId === null &&
     (!normalizedName || normalizedName.toLowerCase() === "walk-in customer")
@@ -352,6 +593,20 @@ async function resolveCustomerCheckoutProfile({ customerId = null, customerName 
       (customer) =>
         String(customer?.name || "").trim().toLowerCase() === normalizedName.toLowerCase()
     ) ||
+    customers.find(
+      (customer) =>
+        String(customer?.loyaltyCardNumber || "").trim().toLowerCase() === normalizedName.toLowerCase()
+    ) ||
+    customers.find(
+      (customer) =>
+        String(customer?.email || "").trim().toLowerCase() === normalizedName.toLowerCase()
+    ) ||
+    (normalizedPhoneLookup
+      ? customers.find(
+          (customer) =>
+            String(customer?.phone || "").replace(/\D/g, "") === normalizedPhoneLookup
+        )
+      : null) ||
     null;
 
   if (!matchedCustomer) {
@@ -362,10 +617,17 @@ async function resolveCustomerCheckoutProfile({ customerId = null, customerName 
 }
 
 async function getCustomerById(id) {
-  const [customer, sales, settings] = await Promise.all([
+  const [customer, sales, settings, communicationSummary] = await Promise.all([
     customerRepository.getCustomerById(id),
     salesRepository.getSales(),
     settingsRepository.getAppSettings(),
+    customerCommunicationService.getCustomerCommunicationSummary(id).catch(() => ({
+      logs: [],
+      successCount: 0,
+      failedCount: 0,
+      emailTransport: { configured: false, provider: "smtp", missing: [] },
+      smsTransport: { configured: false, provider: "twilio", missing: [] },
+    })),
   ]);
 
   if (!customer) {
@@ -374,7 +636,11 @@ async function getCustomerById(id) {
     });
   }
 
-  return enrichCustomer(customer, { sales, settings });
+  return {
+    ...enrichCustomer(customer, { sales, settings }),
+    communicationSummary,
+    recentCommunications: communicationSummary.logs,
+  };
 }
 
 async function getCustomerEnrollmentPreview() {
@@ -401,6 +667,8 @@ async function getCustomerEnrollmentPreview() {
 
 async function createCustomer(payload, actor) {
   const customer = validateCustomerPayload(payload);
+  const settings = await settingsRepository.getAppSettings();
+  const nextCustomerId = await customerRepository.getNextCustomerId();
 
   assertCondition(
     customer.name.toLowerCase() !== "walk-in customer",
@@ -412,6 +680,10 @@ async function createCustomer(payload, actor) {
   );
 
   const createdCustomer = await customerRepository.createCustomer({
+    id: nextCustomerId,
+    loyaltyCardNumber: customer.loyaltyOptIn
+      ? buildLoyaltyCardNumber({ id: nextCustomerId }, settings)
+      : "",
     ...customer,
     loyaltyEnrolledAt: customer.loyaltyOptIn ? new Date().toISOString() : null,
     isWalkIn: false,
@@ -430,11 +702,69 @@ async function createCustomer(payload, actor) {
     },
   });
 
-  return getCustomerById(createdCustomer.id);
+  const enrichedCustomer = await getCustomerById(createdCustomer.id);
+  const welcomeDispatches = await customerCommunicationService.sendCustomerWelcomeMessage({
+    customer: enrichedCustomer,
+    actor,
+    settings,
+  });
+
+  return {
+    ...(await getCustomerById(createdCustomer.id)),
+    communicationSummary: {
+      ...(enrichedCustomer.communicationSummary || {}),
+      latestDispatches: welcomeDispatches,
+    },
+  };
+}
+
+async function sendCustomerWelcomeDispatch(id, actor) {
+  const [customer, settings] = await Promise.all([
+    getCustomerById(id),
+    settingsRepository.getAppSettings(),
+  ]);
+
+  assertCondition(
+    !customer.isWalkIn,
+    "Walk-in Customer is managed by the system and cannot receive manual loyalty outreach.",
+    409
+  );
+
+  const latestDispatches = await customerCommunicationService.sendCustomerWelcomeMessage({
+    customer,
+    actor,
+    settings,
+  });
+  const refreshedSummary = await customerCommunicationService.getCustomerCommunicationSummary(id);
+
+  await auditLogService.recordAuditEvent({
+    actor,
+    action: "customer.communication.welcome_sent",
+    entityType: "customer",
+    entityId: String(id),
+    details: {
+      email: customer.email,
+      phone: customer.phone,
+      preferredContactMethod: customer.preferredContactMethod,
+      marketingOptIn: customer.marketingOptIn,
+      loyaltyOptIn: customer.loyaltyOptIn,
+      dispatchCount: latestDispatches.length,
+    },
+  });
+
+  return {
+    ...(await getCustomerById(id)),
+    communicationSummary: {
+      ...refreshedSummary,
+      latestDispatches,
+    },
+    recentCommunications: refreshedSummary.logs,
+  };
 }
 
 async function updateCustomer(id, payload, actor) {
   const existing = await getCustomerById(id);
+  const settings = await settingsRepository.getAppSettings();
 
   assertCondition(
     !existing.isWalkIn,
@@ -463,8 +793,19 @@ async function updateCustomer(id, payload, actor) {
   const updatedCustomer = await customerRepository.updateCustomer(existing.id, {
     ...existing,
     ...customer,
+    loyaltyCardNumber: customer.loyaltyOptIn
+      ? String(existing.loyaltyCardNumber || "").trim() ||
+        buildLoyaltyCardNumber({ id: existing.id }, settings)
+      : "",
     loyaltyEnrolledAt: nextEnrollmentTimestamp,
   });
+
+  const shouldAutoDispatchWelcome =
+    Boolean(updatedCustomer?.loyaltyOptIn) &&
+    (
+      !wasEnrolled ||
+      (!hasContactRoute(existing) && hasContactRoute(updatedCustomer))
+    );
 
   await auditLogService.recordAuditEvent({
     actor,
@@ -480,7 +821,41 @@ async function updateCustomer(id, payload, actor) {
     },
   });
 
-  return getCustomerById(updatedCustomer.id);
+  const refreshedCustomer = await getCustomerById(updatedCustomer.id);
+
+  if (!shouldAutoDispatchWelcome) {
+    return refreshedCustomer;
+  }
+
+  const latestDispatches = await customerCommunicationService.sendCustomerWelcomeMessage({
+    customer: refreshedCustomer,
+    actor,
+    settings,
+  });
+
+  await auditLogService.recordAuditEvent({
+    actor,
+    action: "customer.communication.auto_welcome_sent",
+    entityType: "customer",
+    entityId: String(updatedCustomer.id),
+    details: {
+      email: refreshedCustomer.email,
+      phone: refreshedCustomer.phone,
+      preferredContactMethod: refreshedCustomer.preferredContactMethod,
+      marketingOptIn: refreshedCustomer.marketingOptIn,
+      loyaltyOptIn: refreshedCustomer.loyaltyOptIn,
+      dispatchCount: latestDispatches.length,
+      trigger: !wasEnrolled ? "loyalty_enrollment" : "contact_route_added",
+    },
+  });
+
+  return {
+    ...(await getCustomerById(updatedCustomer.id)),
+    communicationSummary: {
+      ...(refreshedCustomer.communicationSummary || {}),
+      latestDispatches,
+    },
+  };
 }
 
 async function deleteCustomer(id, actor) {
@@ -527,6 +902,7 @@ module.exports = {
   getCustomerById,
   getCustomerEnrollmentPreview,
   createCustomer,
+  sendCustomerWelcomeDispatch,
   updateCustomer,
   deleteCustomer,
 };

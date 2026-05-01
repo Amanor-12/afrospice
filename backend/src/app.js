@@ -3,11 +3,16 @@ require("./config/loadEnv");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const runtime = require("./config/runtime");
 const { connectDB } = require("./config/db");
 const storeRuntime = require("./data/storeRuntime");
+const { startDailySummaryJob } = require("./jobs/dailySummaryJob");
+const requestContextMiddleware = require("./middleware/requestContext");
+const browserMutationGuard = require("./middleware/browserMutationGuard");
+const hostGuard = require("./middleware/hostGuard");
+const monitoringService = require("./services/monitoringService");
+const { getLifecycleState } = require("./utils/processLifecycle");
 
 const authRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
@@ -20,11 +25,14 @@ const purchaseOrderRoutes = require("./routes/purchaseOrderRoutes");
 const cycleCountRoutes = require("./routes/cycleCountRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
 const systemRoutes = require("./routes/systemRoutes");
+const staffOperationsRoutes = require("./routes/staffOperationsRoutes");
 const { notFoundHandler, errorHandler } = require("./middleware/errorMiddleware");
+const { success, mergeResponseMeta } = require("./utils/response");
 
 const app = express();
 const allowedOriginSet = new Set(runtime.allowedOrigins);
-const localDevOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+const localDevOriginPattern =
+  /^https?:\/\/(?:localhost|127(?:\.\d{1,3}){3}|\[::1\])(?::\d+)?$/i;
 const publicHealthPathPattern = /^\/api\/system\/(health|readiness)(?:\/.*)?$/i;
 
 function isSecureRequest(req) {
@@ -50,11 +58,34 @@ function resolveCorsOrigin(origin, callback) {
     return callback(null, true);
   }
 
-  return callback(new Error(`Origin not allowed by CORS: ${origin}`));
+  return callback(null, false);
 }
 
 app.disable("x-powered-by");
 app.set("trust proxy", runtime.trustProxy);
+app.use((req, res, next) => {
+  res.set("X-AfroSpice-Service", "workspace-api");
+  next();
+});
+app.use(requestContextMiddleware);
+app.use(hostGuard);
+app.use((req, res, next) => {
+  const lifecycle = getLifecycleState();
+
+  if (!lifecycle.shuttingDown || publicHealthPathPattern.test(req.path)) {
+    return next();
+  }
+
+  res.set("Connection", "close");
+  const meta = mergeResponseMeta(res);
+
+  return res.status(503).json({
+    success: false,
+    message: "Service is restarting. Retry shortly.",
+    code: "SERVICE_RESTARTING",
+    ...(meta ? { meta } : {}),
+  });
+});
 
 app.use(
   helmet({
@@ -93,11 +124,13 @@ app.use(
     origin: resolveCorsOrigin,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Authorization", "Content-Type"],
+    allowedHeaders: ["Authorization", "Content-Type", "X-Request-Id"],
+    exposedHeaders: ["X-Request-Id", "X-AfroSpice-Service"],
     maxAge: 60 * 60,
     optionsSuccessStatus: 204,
   })
 );
+app.use(browserMutationGuard);
 
 if (runtime.rateLimitEnabled) {
   app.use(
@@ -118,13 +151,17 @@ app.use(
     parameterLimit: 100,
   })
 );
-app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 app.get("/", (req, res) => {
-  return res.status(200).json({
-    success: true,
-    message: "AfroSpice backend is running.",
-  });
+  return success(
+    res,
+    {
+      service: "AfroSpice API",
+      status: "ok",
+      environment: runtime.environment,
+    },
+    "AfroSpice backend is running."
+  );
 });
 
 app.use("/api/system", systemRoutes);
@@ -138,13 +175,16 @@ app.use("/api/customers", customerRoutes);
 app.use("/api/suppliers", supplierRoutes);
 app.use("/api/purchase-orders", purchaseOrderRoutes);
 app.use("/api/cycle-counts", cycleCountRoutes);
+app.use("/api/staff-operations", staffOperationsRoutes);
 
 app.use(notFoundHandler);
+monitoringService.setupExpressErrorHandler(app);
 app.use(errorHandler);
 
 app.initialize = async () => {
   await connectDB();
   await storeRuntime.initialize();
+  await startDailySummaryJob();
 
   return app;
 };

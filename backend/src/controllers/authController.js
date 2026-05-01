@@ -1,4 +1,5 @@
 const authService = require("../services/authService");
+const passkeyService = require("../services/passkeyService");
 const asyncHandler = require("../utils/asyncHandler");
 const { success } = require("../utils/response");
 const { clearAuthCookie, setAuthCookie } = require("../utils/authCookie");
@@ -42,9 +43,77 @@ const me = asyncHandler(async (req, res) => {
   return success(res, payload, "Authenticated user fetched.");
 });
 
+const getPasskeys = asyncHandler(async (req, res) => {
+  setSensitiveResponseHeaders(res);
+  return success(
+    res,
+    {
+      passkeys: await passkeyService.listUserPasskeys(req.user?.id),
+    },
+    "Passkeys fetched."
+  );
+});
+
+const beginPasskeyRegistration = asyncHandler(async (req, res) => {
+  setSensitiveResponseHeaders(res);
+  return success(
+    res,
+    await passkeyService.beginPasskeyRegistration(req.user, req.body || {}, req.headers.origin || ""),
+    "Passkey registration options generated."
+  );
+});
+
+const finishPasskeyRegistration = asyncHandler(async (req, res) => {
+  setSensitiveResponseHeaders(res);
+  return success(
+    res,
+    await passkeyService.finishPasskeyRegistration(req.user, req.body || {}, req.headers.origin || ""),
+    "Passkey registered."
+  );
+});
+
+const beginPasskeyLogin = asyncHandler(async (req, res) => {
+  setSensitiveResponseHeaders(res);
+  return success(
+    res,
+    await passkeyService.beginPasskeyAuthentication(req.body || {}, req.headers.origin || ""),
+    "Passkey sign-in options generated."
+  );
+});
+
+const finishPasskeyLogin = asyncHandler(async (req, res) => {
+  setSensitiveResponseHeaders(res);
+  const payload = await passkeyService.finishPasskeyAuthentication(req.body || {}, req.headers.origin || "");
+  setAuthCookie(res, payload.token);
+
+  return success(
+    res,
+    {
+      user: payload.user,
+      sessionMode: "cookie",
+    },
+    "Passkey sign-in successful."
+  );
+});
+
+const deletePasskey = asyncHandler(async (req, res) => {
+  setSensitiveResponseHeaders(res);
+  return success(
+    res,
+    await passkeyService.removePasskey(req.user, req.params.credentialId),
+    "Passkey removed."
+  );
+});
+
 module.exports = {
   login,
   changePin,
   logout,
   me,
+  getPasskeys,
+  beginPasskeyRegistration,
+  finishPasskeyRegistration,
+  beginPasskeyLogin,
+  finishPasskeyLogin,
+  deletePasskey,
 };

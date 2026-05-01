@@ -1,4 +1,6 @@
 const models = require("../models");
+const authRepository = require("./authRepository");
+const { getRequestContext } = require("../../utils/requestContextStore");
 const { getDefaultShiftForRole } = require("../../validation/userValidators");
 const {
   applySessionToQuery,
@@ -43,6 +45,16 @@ const DEFAULT_TIMETABLE_WINDOWS = {
   Off: { start: "00:00", end: "00:00" },
   Unassigned: { start: "09:00", end: "17:00" },
 };
+
+const REVIEW_SECURITY_EVENT_TYPES = [
+  "login_failed",
+  "pin_changed_self",
+  "pin_reset",
+  "pin_assigned",
+  "session_context_changed",
+  "concurrent_session_started",
+  "access_deactivated",
+];
 
 function isValidTimeValue(value) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || "").trim());
@@ -100,6 +112,70 @@ function normalizeStoredTimetable(raw, shiftAssignment = "Flexible") {
   );
 }
 
+function normalizeTextValue(value) {
+  return String(value || "").trim();
+}
+
+function normalizeIpAddress(value) {
+  const normalized = normalizeTextValue(value).toLowerCase();
+  if (!normalized) return "";
+
+  if (
+    normalized === "127.0.0.1" ||
+    normalized === "::1" ||
+    normalized.startsWith("::ffff:127.0.0.1")
+  ) {
+    return "loopback";
+  }
+
+  return normalized.startsWith("::ffff:") ? normalized.slice(7) : normalized;
+}
+
+function normalizeList(values) {
+  if (!Array.isArray(values)) return [];
+
+  return [...new Set(values.map((value) => normalizeTextValue(value).toLowerCase()).filter(Boolean))];
+}
+
+function normalizeRiskLevel(value) {
+  const normalized = normalizeTextValue(value).toLowerCase();
+  return ["normal", "elevated", "high"].includes(normalized) ? normalized : "normal";
+}
+
+function normalizeSeverity(value) {
+  const normalized = normalizeTextValue(value).toLowerCase();
+  return ["info", "warn", "danger"].includes(normalized) ? normalized : "info";
+}
+
+function buildAccessEventMetadata(entry = {}) {
+  const context = getRequestContext();
+
+  return {
+    sessionId: normalizeTextValue(entry.sessionId || context?.sessionId),
+    sourceIp: normalizeIpAddress(entry.sourceIp || context?.sourceIp),
+    userAgent: normalizeTextValue(entry.userAgent || context?.userAgent),
+    severity: normalizeSeverity(entry.severity),
+    tags: normalizeList(entry.tags),
+  };
+}
+
+function buildReviewSecurityEventQuery(userId, createdAt = null) {
+  const query = {
+    userId: Number(userId),
+    $or: [
+      { severity: { $in: ["warn", "danger"] } },
+      { tags: { $in: ["security"] } },
+      { eventType: { $in: REVIEW_SECURITY_EVENT_TYPES } },
+    ],
+  };
+
+  if (createdAt) {
+    query.createdAt = createdAt;
+  }
+
+  return query;
+}
+
 function normalizeUser(row) {
   if (!row) return null;
 
@@ -141,10 +217,15 @@ function normalizeAccessEvent(row) {
     userId: row.userId === null || row.userId === undefined ? null : Number(row.userId),
     staffId: String(row.staffId || "").trim(),
     fullName: String(row.fullName || "").trim(),
+    sessionId: normalizeTextValue(row.sessionId),
     eventType: String(row.eventType || "").trim(),
     title: String(row.title || "").trim(),
     message: String(row.message || "").trim(),
     actorName: String(row.actorName || "").trim(),
+    sourceIp: normalizeIpAddress(row.sourceIp),
+    userAgent: normalizeTextValue(row.userAgent),
+    severity: normalizeSeverity(row.severity),
+    tags: normalizeList(row.tags),
     createdAt: toIsoTimestamp(row.createdAt),
   };
 }
@@ -163,6 +244,14 @@ function normalizeSession(row) {
     logoutAt: toNullableIsoTimestamp(row.logoutAt),
     loginReason: String(row.loginReason || "").trim(),
     logoutReason: String(row.logoutReason || "").trim(),
+    loginIp: normalizeIpAddress(row.loginIp),
+    lastSeenIp: normalizeIpAddress(row.lastSeenIp),
+    loginUserAgent: normalizeTextValue(row.loginUserAgent),
+    lastSeenUserAgent: normalizeTextValue(row.lastSeenUserAgent),
+    riskLevel: normalizeRiskLevel(row.riskLevel),
+    riskFlags: normalizeList(row.riskFlags),
+    anomalyCount: Math.max(0, Number(row.anomalyCount || 0)),
+    anomalyDetectedAt: toNullableIsoTimestamp(row.anomalyDetectedAt),
   };
 }
 
@@ -182,6 +271,7 @@ function normalizeSavedView(row) {
 
 async function logUserAccessEvent(entry = {}, session = null) {
   const id = await nextSequence(COUNTER_KEYS.userAccessEvent, { session });
+  const metadata = buildAccessEventMetadata(entry);
   await models.UserAccessEvent.create(
     [
       {
@@ -189,10 +279,15 @@ async function logUserAccessEvent(entry = {}, session = null) {
         userId: entry.userId === null || entry.userId === undefined ? null : Number(entry.userId),
         staffId: String(entry.staffId || "").trim(),
         fullName: String(entry.fullName || "").trim(),
+        sessionId: metadata.sessionId,
         eventType: String(entry.eventType || "").trim(),
         title: String(entry.title || "").trim(),
         message: String(entry.message || "").trim(),
         actorName: String(entry.actorName || "").trim(),
+        sourceIp: metadata.sourceIp,
+        userAgent: metadata.userAgent,
+        severity: metadata.severity,
+        tags: metadata.tags,
         createdAt: safeDate(entry.createdAt) || new Date(),
       },
     ],
@@ -248,6 +343,22 @@ async function getUsers() {
   return rows.map(normalizeUser);
 }
 
+async function countUsersByRole(role, options = {}) {
+  const query = {
+    role: compactLookupText(role),
+  };
+
+  if (options.status !== undefined) {
+    query.status = String(options.status || "").trim();
+  }
+
+  if (options.excludeUserId !== undefined && options.excludeUserId !== null) {
+    query.id = { $ne: Number(options.excludeUserId) };
+  }
+
+  return models.User.countDocuments(query);
+}
+
 async function getUserById(id) {
   const row = await loadUserDocument(id);
   return normalizeUser(row);
@@ -296,29 +407,71 @@ async function getUserSessions(userId, limit = 12) {
 }
 
 async function getUserSessionSummary(userId) {
-  const sessions = await getUserSessions(userId, 8);
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const weekAgoDate = new Date(weekAgo);
+  const [sessions, activeSessionCount, elevatedSessionCount, highRiskSessionCount, anomalousSessionCount, failedLoginCount, securityEventCount7d, sessionAnomalySummary, lastSecurityEventRow] =
+    await Promise.all([
+      getUserSessions(userId, 8),
+      models.UserSession.countDocuments({ userId: Number(userId), status: "Active" }),
+      models.UserSession.countDocuments({
+        userId: Number(userId),
+        status: "Active",
+        riskLevel: { $in: ["elevated", "high"] },
+      }),
+      models.UserSession.countDocuments({
+        userId: Number(userId),
+        status: "Active",
+        riskLevel: "high",
+      }),
+      models.UserSession.countDocuments({
+        userId: Number(userId),
+        anomalyCount: { $gt: 0 },
+      }),
+      models.UserAccessEvent.countDocuments({
+        userId: Number(userId),
+        eventType: "login_failed",
+        createdAt: { $gte: weekAgoDate },
+      }),
+      models.UserAccessEvent.countDocuments(
+        buildReviewSecurityEventQuery(userId, { $gte: weekAgoDate })
+      ),
+      models.UserSession.aggregate([
+        { $match: { userId: Number(userId) } },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: "$anomalyCount" },
+          },
+        },
+      ]),
+      models.UserAccessEvent.findOne(buildReviewSecurityEventQuery(userId))
+        .sort({ createdAt: -1, id: -1 })
+        .lean(),
+    ]);
   const activeSessions = sessions.filter((session) => String(session.status || "").trim() === "Active");
   const lastLogin = sessions[0] || null;
   const lastLogout = sessions.find((session) => session.logoutAt) || null;
-  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const failedLoginEvents = await getUserAccessEvents(userId, 50);
-  const failedLoginCount = failedLoginEvents.filter((event) => {
-    if (String(event.eventType || "").trim() !== "login_failed") return false;
-    const eventDate = safeDate(event.createdAt);
-    return eventDate ? eventDate.getTime() >= weekAgo : false;
-  }).length;
+  const sessionAnomalyCount = Number(sessionAnomalySummary?.[0]?.total || 0);
+  const lastSecurityEvent = normalizeAccessEvent(lastSecurityEventRow);
 
   return {
-    activeSessionCount: activeSessions.length,
+    activeSessionCount: Number(activeSessionCount || activeSessions.length),
     lastLoginAt: lastLogin?.loginAt || null,
     lastSeenAt: activeSessions[0]?.lastSeenAt || lastLogin?.lastSeenAt || null,
     lastLogoutAt: lastLogout?.logoutAt || null,
     failedLoginCount7d: Number(failedLoginCount || 0),
+    elevatedSessionCount: Number(elevatedSessionCount || 0),
+    highRiskSessionCount: Number(highRiskSessionCount || 0),
+    anomalousSessionCount: Number(anomalousSessionCount || 0),
+    sessionAnomalyCount,
+    securityEventCount7d: Number(securityEventCount7d || 0),
+    lastSecurityEventAt: lastSecurityEvent?.createdAt || null,
     sessions,
   };
 }
 
 async function getUserOversight(userId) {
+  await authRepository.reconcileExpiredSessions({ userId });
   const [summary, events, sessions] = await Promise.all([
     getUserSessionSummary(userId),
     getUserAccessEvents(userId, 20),
@@ -520,6 +673,23 @@ async function updateUserAccessStatus(id, status, actorName = "") {
   if (!existing) return null;
   const normalizedStatus = String(status || "").trim();
   const updatedAt = new Date();
+  const isPendingApproval = normalizedStatus === "Pending Approval";
+  const isActive = normalizedStatus === "Active";
+  const eventType = isActive
+    ? "access_activated"
+    : isPendingApproval
+      ? "access_pending_approval"
+      : "access_deactivated";
+  const title = isActive
+    ? "Access activated"
+    : isPendingApproval
+      ? "Access returned to pending approval"
+      : "Access deactivated";
+  const message = isActive
+    ? "The account was set back to active sign-in status."
+    : isPendingApproval
+      ? "The account now requires owner approval before sign-in is restored."
+      : "The account was turned off and can no longer sign in.";
 
   await models.User.updateOne(
     { id: Number(id) },
@@ -527,6 +697,8 @@ async function updateUserAccessStatus(id, status, actorName = "") {
       $set: {
         status: normalizedStatus,
         updatedAt,
+        approvedAt: isPendingApproval ? null : existing.approvedAt || null,
+        approvedBy: isPendingApproval ? "" : String(existing.approvedBy || "").trim(),
       },
     }
   );
@@ -535,12 +707,9 @@ async function updateUserAccessStatus(id, status, actorName = "") {
     userId: existing.id,
     staffId: existing.staffId,
     fullName: existing.fullName,
-    eventType: normalizedStatus === "Active" ? "access_activated" : "access_deactivated",
-    title: normalizedStatus === "Active" ? "Access activated" : "Access deactivated",
-    message:
-      normalizedStatus === "Active"
-        ? "The account was set back to active sign-in status."
-        : "The account was turned off and can no longer sign in.",
+    eventType,
+    title,
+    message,
     actorName: String(actorName || "Owner").trim(),
     createdAt: updatedAt,
   });
@@ -702,6 +871,7 @@ async function deleteUserSavedView(id, ownerUserId) {
 module.exports = {
   assignUserPin,
   approveUserAccess,
+  countUsersByRole,
   createUser,
   deleteUser,
   deleteUserSavedView,

@@ -1,0 +1,100 @@
+services:
+  - type: web
+    name: afrospice-backend
+    runtime: node
+    rootDir: backend
+    plan: starter
+    region: ohio
+    autoDeployTrigger: commit
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/system/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      - key: ENFORCE_HTTPS
+        value: "true"
+      - key: AUTH_COOKIE_NAME
+        value: __Host-afrospice_session
+      - key: AUTH_COOKIE_SECURE
+        value: "true"
+      - key: AUTH_COOKIE_SAMESITE
+        value: strict
+      - key: JWT_ISSUER
+        value: afrospice-api
+      - key: JWT_AUDIENCE
+        value: afrospice-workspace
+      - key: JWT_EXPIRES
+        value: 12h
+      - key: SESSION_IDLE_TIMEOUT_MINUTES
+        value: "720"
+      - key: SESSION_ABSOLUTE_TIMEOUT_MINUTES
+        value: "10080"
+      - key: AUTH_LOGIN_RATE_LIMIT_MAX
+        value: "10"
+      - key: AUTH_CHANGE_PIN_RATE_LIMIT_MAX
+        value: "8"
+      - key: SERVER_REQUEST_TIMEOUT_MS
+        value: "30000"
+      - key: SERVER_HEADERS_TIMEOUT_MS
+        value: "35000"
+      - key: SERVER_KEEP_ALIVE_TIMEOUT_MS
+        value: "5000"
+      - key: SERVER_MAX_REQUESTS_PER_SOCKET
+        value: "1000"
+      - key: SERVER_SHUTDOWN_GRACE_PERIOD_MS
+        value: "15000"
+      - key: OBSERVABILITY_SERVICE_NAME
+        value: afrospice-api
+      - key: OBSERVABILITY_ENVIRONMENT
+        value: production
+      - key: CLIENT_ERROR_REPORTING_ENABLED
+        value: "true"
+      - key: CLIENT_ERROR_REPORTING_RATE_LIMIT_MAX
+        value: "120"
+      - key: CLIENT_ERROR_REPORTING_SAMPLE_RATE
+        value: "1"
+      - key: SENTRY_ENABLED
+        value: "false"
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        value: "0"
+      - key: OPENAI_MODEL
+        value: gpt-5-mini
+      - key: OPENAI_BASE_URL
+        value: https://api.openai.com/v1
+      - key: EXTERNAL_ASSISTANT_ENABLED
+        value: "false"
+      - key: MAIL_PROVIDER
+        value: resend
+      - key: BOOTSTRAP_SAMPLE_DATA
+        value: "false"
+      - key: PYTHON_ML_DISABLE
+        value: "true"
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: OBSERVABILITY_RELEASE
+        sync: false
+      - key: OBSERVABILITY_WEBHOOK_URL
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: RESEND_FROM_NAME
+        sync: false
+      - key: RESEND_REPLY_TO
+        sync: false

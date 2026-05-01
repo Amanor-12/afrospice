@@ -12,8 +12,133 @@ const {
 
 const COUNTER_KEY = "supplier_id";
 
+const CATEGORY_OPERATING_DEFAULTS = Object.freeze({
+  "food staples": {
+    shipmentCadence: "Weekly dry-goods lane",
+    orderingCutoffTime: "3:00 PM / 24h notice",
+    minimumOrderValue: 300,
+    minimumOrderUnits: 20,
+    logisticsMode: "Case freight",
+    dispatchRegion: "Greater Toronto Area",
+    receivingWindow: "06:00-11:00",
+    receivingDock: "Dock A",
+    complianceTier: "Ambient standard",
+  },
+  "cooking essentials": {
+    shipmentCadence: "Weekly pantry lane",
+    orderingCutoffTime: "2:00 PM / 24h notice",
+    minimumOrderValue: 250,
+    minimumOrderUnits: 15,
+    logisticsMode: "Case freight",
+    dispatchRegion: "Greater Toronto Area",
+    receivingWindow: "06:00-11:00",
+    receivingDock: "Dock A",
+    complianceTier: "Ambient standard",
+  },
+  groceries: {
+    shipmentCadence: "Twice-weekly grocery lane",
+    orderingCutoffTime: "2:00 PM same day",
+    minimumOrderValue: 220,
+    minimumOrderUnits: 12,
+    logisticsMode: "Van route",
+    dispatchRegion: "Greater Toronto Area",
+    receivingWindow: "06:00-10:00",
+    receivingDock: "Dock A",
+    complianceTier: "Shelf-stable standard",
+  },
+  drinks: {
+    shipmentCadence: "Twice-weekly beverage lane",
+    orderingCutoffTime: "1:00 PM same day",
+    minimumOrderValue: 400,
+    minimumOrderUnits: 25,
+    logisticsMode: "Pallet and case freight",
+    dispatchRegion: "Ontario core route",
+    receivingWindow: "06:00-10:00",
+    receivingDock: "Dock B",
+    complianceTier: "Breakage watch",
+  },
+  dairy: {
+    shipmentCadence: "Three-times-weekly cold lane",
+    orderingCutoffTime: "11:00 AM / next-day chilled run",
+    minimumOrderValue: 150,
+    minimumOrderUnits: 8,
+    logisticsMode: "Cold-chain route",
+    dispatchRegion: "Greater Toronto Area chilled route",
+    receivingWindow: "05:30-08:30",
+    receivingDock: "Dock C",
+    complianceTier: "Cold chain",
+  },
+  bakery: {
+    shipmentCadence: "Daily fresh-bake lane",
+    orderingCutoffTime: "7:00 PM previous day",
+    minimumOrderValue: 80,
+    minimumOrderUnits: 6,
+    logisticsMode: "Fresh route",
+    dispatchRegion: "Local bakery route",
+    receivingWindow: "05:00-07:30",
+    receivingDock: "Front receiving",
+    complianceTier: "Freshness critical",
+  },
+  snacks: {
+    shipmentCadence: "Weekly snack lane",
+    orderingCutoffTime: "1:00 PM / 48h notice",
+    minimumOrderValue: 180,
+    minimumOrderUnits: 10,
+    logisticsMode: "Case freight",
+    dispatchRegion: "Ontario packaged route",
+    receivingWindow: "06:00-11:00",
+    receivingDock: "Dock A",
+    complianceTier: "Promotional swing",
+  },
+  "meat & protein": {
+    shipmentCadence: "Twice-weekly protein lane",
+    orderingCutoffTime: "10:00 AM / next-day protein run",
+    minimumOrderValue: 300,
+    minimumOrderUnits: 12,
+    logisticsMode: "Temperature-controlled route",
+    dispatchRegion: "Ontario cold route",
+    receivingWindow: "05:00-07:00",
+    receivingDock: "Dock C",
+    complianceTier: "Temperature controlled",
+  },
+});
+
+function withDefaultString(value, fallback = "") {
+  const explicit = String(value || "").trim();
+  return explicit || String(fallback || "").trim();
+}
+
+function withDefaultNumber(value, fallback = null) {
+  if (value !== null && value !== undefined && String(value).trim() !== "") {
+    return Number(value);
+  }
+
+  return fallback === null || fallback === undefined ? null : Number(fallback);
+}
+
+function buildSupplierDefaults(row) {
+  const categoryDefaults =
+    CATEGORY_OPERATING_DEFAULTS[compactLookupText(row?.preferredCategory).toLowerCase()] || {};
+
+  return {
+    shipmentCadence: categoryDefaults.shipmentCadence || "",
+    orderingCutoffTime: categoryDefaults.orderingCutoffTime || "",
+    minimumOrderValue: categoryDefaults.minimumOrderValue ?? null,
+    minimumOrderUnits: categoryDefaults.minimumOrderUnits ?? null,
+    logisticsMode: categoryDefaults.logisticsMode || "",
+    dispatchRegion: categoryDefaults.dispatchRegion || "",
+    receivingWindow: categoryDefaults.receivingWindow || "",
+    receivingDock: categoryDefaults.receivingDock || "",
+    complianceTier: categoryDefaults.complianceTier || "",
+    escalationContact:
+      withDefaultString(row?.contactName) || withDefaultString(row?.email) || withDefaultString(row?.phone),
+    portalReference: withDefaultString(row?.accountCode) ? `Vendor portal / ${withDefaultString(row?.accountCode)}` : "",
+  };
+}
+
 function normalizeSupplier(row) {
   if (!row) return null;
+  const defaults = buildSupplierDefaults(row);
 
   return {
     id: Number(row.id),
@@ -21,6 +146,28 @@ function normalizeSupplier(row) {
     contactName: String(row.contactName || "").trim(),
     email: String(row.email || "").trim(),
     phone: String(row.phone || "").trim(),
+    accountCode: String(row.accountCode || "").trim(),
+    preferredCategory: String(row.preferredCategory || "").trim(),
+    paymentTerms: String(row.paymentTerms || "").trim(),
+    reviewCadence: String(row.reviewCadence || "").trim(),
+    shipmentCadence: withDefaultString(row.shipmentCadence, defaults.shipmentCadence),
+    orderingCutoffTime: withDefaultString(row.orderingCutoffTime, defaults.orderingCutoffTime),
+    minimumOrderValue: withDefaultNumber(row.minimumOrderValue, defaults.minimumOrderValue),
+    minimumOrderUnits: withDefaultNumber(row.minimumOrderUnits, defaults.minimumOrderUnits),
+    logisticsMode: withDefaultString(row.logisticsMode, defaults.logisticsMode),
+    dispatchRegion: withDefaultString(row.dispatchRegion, defaults.dispatchRegion),
+    receivingWindow: withDefaultString(row.receivingWindow, defaults.receivingWindow),
+    receivingDock: withDefaultString(row.receivingDock, defaults.receivingDock),
+    complianceTier: withDefaultString(row.complianceTier, defaults.complianceTier),
+    escalationContact: withDefaultString(row.escalationContact, defaults.escalationContact),
+    portalReference: withDefaultString(row.portalReference, defaults.portalReference),
+    trackingUrl: String(row.trackingUrl || "").trim(),
+    leadTimeDays: row.leadTimeDays === null || row.leadTimeDays === undefined ? null : Number(row.leadTimeDays),
+    serviceLevelTarget:
+      row.serviceLevelTarget === null || row.serviceLevelTarget === undefined
+        ? null
+        : Number(row.serviceLevelTarget),
+    isPreferred: Boolean(row.isPreferred),
     notes: String(row.notes || "").trim(),
     isActive: row.isActive === undefined ? true : Boolean(row.isActive),
     createdAt: toIsoTimestamp(row.createdAt),
@@ -78,6 +225,34 @@ async function createSupplier(supplier) {
     contactName: String(supplier.contactName || "").trim(),
     email: String(supplier.email || "").trim(),
     phone: String(supplier.phone || "").trim(),
+    accountCode: String(supplier.accountCode || "").trim(),
+    preferredCategory: String(supplier.preferredCategory || "").trim(),
+    paymentTerms: String(supplier.paymentTerms || "").trim(),
+    reviewCadence: String(supplier.reviewCadence || "").trim(),
+    shipmentCadence: String(supplier.shipmentCadence || "").trim(),
+    orderingCutoffTime: String(supplier.orderingCutoffTime || "").trim(),
+    minimumOrderValue:
+      supplier.minimumOrderValue === null || supplier.minimumOrderValue === undefined
+        ? null
+        : Number(supplier.minimumOrderValue),
+    minimumOrderUnits:
+      supplier.minimumOrderUnits === null || supplier.minimumOrderUnits === undefined
+        ? null
+        : Number(supplier.minimumOrderUnits),
+    logisticsMode: String(supplier.logisticsMode || "").trim(),
+    dispatchRegion: String(supplier.dispatchRegion || "").trim(),
+    receivingWindow: String(supplier.receivingWindow || "").trim(),
+    receivingDock: String(supplier.receivingDock || "").trim(),
+    complianceTier: String(supplier.complianceTier || "").trim(),
+    escalationContact: String(supplier.escalationContact || "").trim(),
+    portalReference: String(supplier.portalReference || "").trim(),
+    trackingUrl: String(supplier.trackingUrl || "").trim(),
+    leadTimeDays: supplier.leadTimeDays === null || supplier.leadTimeDays === undefined ? null : Number(supplier.leadTimeDays),
+    serviceLevelTarget:
+      supplier.serviceLevelTarget === null || supplier.serviceLevelTarget === undefined
+        ? null
+        : Number(supplier.serviceLevelTarget),
+    isPreferred: Boolean(supplier.isPreferred),
     notes: String(supplier.notes || "").trim(),
     isActive: supplier.isActive === undefined ? true : Boolean(supplier.isActive),
     createdAt,
@@ -110,6 +285,38 @@ async function updateSupplier(id, supplier) {
           contactName: String(supplier.contactName || "").trim(),
           email: String(supplier.email || "").trim(),
           phone: String(supplier.phone || "").trim(),
+          accountCode: String(supplier.accountCode || "").trim(),
+          preferredCategory: String(supplier.preferredCategory || "").trim(),
+          paymentTerms: String(supplier.paymentTerms || "").trim(),
+          reviewCadence: String(supplier.reviewCadence || "").trim(),
+          shipmentCadence: String(supplier.shipmentCadence || "").trim(),
+          orderingCutoffTime: String(supplier.orderingCutoffTime || "").trim(),
+          minimumOrderValue:
+            supplier.minimumOrderValue === null || supplier.minimumOrderValue === undefined
+              ? null
+              : Number(supplier.minimumOrderValue),
+          minimumOrderUnits:
+            supplier.minimumOrderUnits === null || supplier.minimumOrderUnits === undefined
+              ? null
+              : Number(supplier.minimumOrderUnits),
+          logisticsMode: String(supplier.logisticsMode || "").trim(),
+          dispatchRegion: String(supplier.dispatchRegion || "").trim(),
+          receivingWindow: String(supplier.receivingWindow || "").trim(),
+          receivingDock: String(supplier.receivingDock || "").trim(),
+          complianceTier: String(supplier.complianceTier || "").trim(),
+          escalationContact: String(supplier.escalationContact || "").trim(),
+          portalReference: String(supplier.portalReference || "").trim(),
+          trackingUrl: String(supplier.trackingUrl || "").trim(),
+          leadTimeDays:
+            supplier.leadTimeDays === null || supplier.leadTimeDays === undefined
+              ? null
+              : Number(supplier.leadTimeDays),
+          serviceLevelTarget:
+            supplier.serviceLevelTarget === null || supplier.serviceLevelTarget === undefined
+              ? null
+              : Number(supplier.serviceLevelTarget),
+          isPreferred:
+            supplier.isPreferred === undefined ? Boolean(existing.isPreferred) : Boolean(supplier.isPreferred),
           notes: String(supplier.notes || "").trim(),
           isActive: supplier.isActive === undefined ? Boolean(existing.isActive) : Boolean(supplier.isActive),
           updatedAt,

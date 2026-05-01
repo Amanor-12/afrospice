@@ -387,7 +387,7 @@ function validateUserStatusPayload(payload = {}) {
   const body = ensureObject(payload);
   const nextStatus = normalizeStatus(body.status);
 
-  if (!["Active", "Inactive"].includes(nextStatus)) {
+  if (!["Pending Approval", "Active", "Inactive"].includes(nextStatus)) {
     throwValidationError("A valid access status is required.");
   }
 

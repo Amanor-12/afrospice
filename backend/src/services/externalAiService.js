@@ -285,7 +285,7 @@ function collectFactTokensFromText(text = "") {
   const patterns = [
     /\b(?:SALE|PO|CC)-\d+\b/gi,
     /\bSKU-[A-Z0-9-]+\b/gi,
-    /\bUSD\s*\d[\d,]*(?:\.\d+)?\b/gi,
+    /\b(?:USD|CAD)\s*\d[\d,]*(?:\.\d+)?\b/gi,
     /\b\d[\d,]*(?:\.\d+)?%\b/g,
     /\b\d(?:\.\d+)?\s+days?\b/gi,
     /\b\d{4}-\d{2}-\d{2}\b/g,

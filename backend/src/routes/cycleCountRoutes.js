@@ -13,9 +13,9 @@ const allowRoles = require("../middleware/roles");
 
 router.use(authMiddleware);
 
-router.get("/", allowRoles("Owner", "Manager", "Inventory Clerk"), listCycleCounts);
-router.get("/:id", allowRoles("Owner", "Manager", "Inventory Clerk"), getCycleCountById);
-router.post("/quick-draft", allowRoles("Owner", "Manager", "Inventory Clerk"), createQuickCycleCount);
-router.post("/:id/complete", allowRoles("Owner", "Manager", "Inventory Clerk"), completeCycleCount);
+router.get("/", allowRoles("Owner"), listCycleCounts);
+router.get("/:id", allowRoles("Owner"), getCycleCountById);
+router.post("/quick-draft", allowRoles("Owner"), createQuickCycleCount);
+router.post("/:id/complete", allowRoles("Owner"), completeCycleCount);
 
 module.exports = router;

@@ -14,6 +14,7 @@ const {
   parseNumericFromId,
   safeDate,
   toIsoTimestamp,
+  toNullableIsoTimestamp,
   withOptionalTransaction,
 } = require("./mongoRepositoryUtils");
 
@@ -78,6 +79,60 @@ function normalizeSaleItem(row, fallbackTimestamp = null) {
   };
 }
 
+function normalizeSaleRefund(row) {
+  return {
+    reason: String(row?.reason || "").trim(),
+    note: String(row?.note || "").trim(),
+    refundedAt: toNullableIsoTimestamp(row?.refundedAt),
+    refundedByUserId:
+      row?.refundedByUserId === null || row?.refundedByUserId === undefined
+        ? null
+        : Number(row.refundedByUserId),
+    refundedByName: String(row?.refundedByName || "").trim(),
+    approvalPinVerified: Boolean(row?.approvalPinVerified),
+  };
+}
+
+function normalizeSaleRefundRequest(row) {
+  return {
+    status: String(row?.status || "None").trim() || "None",
+    reason: String(row?.reason || "").trim(),
+    note: String(row?.note || "").trim(),
+    incidentReport: String(row?.incidentReport || "").trim(),
+    customerStatement: String(row?.customerStatement || "").trim(),
+    requestedAt: toNullableIsoTimestamp(row?.requestedAt),
+    requestedByUserId:
+      row?.requestedByUserId === null || row?.requestedByUserId === undefined
+        ? null
+        : Number(row.requestedByUserId),
+    requestedByName: String(row?.requestedByName || "").trim(),
+    reviewedAt: toNullableIsoTimestamp(row?.reviewedAt),
+    reviewedByUserId:
+      row?.reviewedByUserId === null || row?.reviewedByUserId === undefined
+        ? null
+        : Number(row.reviewedByUserId),
+    reviewedByName: String(row?.reviewedByName || "").trim(),
+    decisionNote: String(row?.decisionNote || "").trim(),
+    approvalPinVerified: Boolean(row?.approvalPinVerified),
+  };
+}
+
+function normalizeSaleStatusEvent(row) {
+  return {
+    fromStatus: String(row?.fromStatus || "").trim(),
+    toStatus: String(row?.toStatus || "").trim(),
+    reason: String(row?.reason || "").trim(),
+    note: String(row?.note || "").trim(),
+    actorUserId:
+      row?.actorUserId === null || row?.actorUserId === undefined
+        ? null
+        : Number(row.actorUserId),
+    actorName: String(row?.actorName || "").trim(),
+    approvalPinVerified: Boolean(row?.approvalPinVerified),
+    createdAt: toIsoTimestamp(row?.createdAt),
+  };
+}
+
 function normalizeSale(row) {
   if (!row) return null;
 
@@ -108,6 +163,11 @@ function normalizeSale(row) {
     items: Array.isArray(row.items)
       ? row.items.map((item) => normalizeSaleItem(item, row.createdAt || row.date))
       : [],
+    refund: normalizeSaleRefund(row.refund),
+    refundRequest: normalizeSaleRefundRequest(row.refundRequest),
+    statusHistory: Array.isArray(row.statusHistory)
+      ? row.statusHistory.map(normalizeSaleStatusEvent)
+      : [],
   };
 }
 
@@ -128,6 +188,22 @@ function normalizeSettings(row) {
     requirePinForRefunds: persisted.requirePinForRefunds ?? defaultSettings.requirePinForRefunds,
     showStockWarnings: persisted.showStockWarnings ?? defaultSettings.showStockWarnings,
     salesEmailReports: persisted.salesEmailReports ?? defaultSettings.salesEmailReports,
+    dailySummaryRecipientEmail:
+      persisted.dailySummaryRecipientEmail ?? defaultSettings.dailySummaryRecipientEmail,
+    dailySummaryDeliveryHour: Number(
+      persisted.dailySummaryDeliveryHour ?? defaultSettings.dailySummaryDeliveryHour
+    ),
+    dailySummaryDeliveryMinute: Number(
+      persisted.dailySummaryDeliveryMinute ?? defaultSettings.dailySummaryDeliveryMinute
+    ),
+    dailySummaryLastDigestDate:
+      persisted.dailySummaryLastDigestDate ?? defaultSettings.dailySummaryLastDigestDate,
+    dailySummaryLastSentAt:
+      persisted.dailySummaryLastSentAt ?? defaultSettings.dailySummaryLastSentAt,
+    dailySummaryLastStatus:
+      persisted.dailySummaryLastStatus ?? defaultSettings.dailySummaryLastStatus,
+    dailySummaryLastError:
+      persisted.dailySummaryLastError ?? defaultSettings.dailySummaryLastError,
     compactTables: persisted.compactTables ?? defaultSettings.compactTables,
     dashboardAnimations: persisted.dashboardAnimations ?? defaultSettings.dashboardAnimations,
     quickCheckout: persisted.quickCheckout ?? defaultSettings.quickCheckout,
@@ -442,6 +518,42 @@ async function createSale(sale) {
           createdAt,
           updatedAt,
           items: normalizedItems,
+          refund: {
+            reason: "",
+            note: "",
+            refundedAt: null,
+            refundedByUserId: null,
+            refundedByName: "",
+            approvalPinVerified: false,
+          },
+          refundRequest: {
+            status: "None",
+            reason: "",
+            note: "",
+            incidentReport: "",
+            customerStatement: "",
+            requestedAt: null,
+            requestedByUserId: null,
+            requestedByName: "",
+            reviewedAt: null,
+            reviewedByUserId: null,
+            reviewedByName: "",
+            decisionNote: "",
+            approvalPinVerified: false,
+          },
+          statusHistory: [
+            {
+              fromStatus: "Created",
+              toStatus: normalizedStatus,
+              reason: "",
+              note: "Sale recorded.",
+              actorUserId:
+                cashierUserId === null || cashierUserId === undefined ? null : Number(cashierUserId),
+              actorName: cashierName,
+              approvalPinVerified: false,
+              createdAt: updatedAt,
+            },
+          ],
         },
       ],
       { session }
@@ -495,6 +607,13 @@ async function updateSaleStatus(id, nextStatus, options = {}) {
     const normalizedNextStatus = String(nextStatus || currentStatus).trim();
     const nextUpdatedAt = safeDate(options.updatedAt) || new Date();
     const actorName = String(options.actorName || existing.cashier || "Front Desk").trim();
+    const actorUserId =
+      options.actorUserId === null || options.actorUserId === undefined
+        ? null
+        : Number(options.actorUserId);
+    const reason = String(options.reason || "").trim();
+    const note = String(options.note || "").trim();
+    const approvalPinVerified = Boolean(options.approvalPinVerified);
 
     if (currentStatus === normalizedNextStatus) {
       return existing;
@@ -532,7 +651,9 @@ async function updateSaleStatus(id, nextStatus, options = {}) {
             quantityAfter,
             referenceType: "sale",
             referenceId: String(existing.id || "").trim(),
-            note: `Order completed for ${String(item.name || "product").trim()}`,
+            note:
+              note ||
+              `Order completed for ${String(item.name || "product").trim()}`,
             actorName,
             createdAt: nextUpdatedAt,
           },
@@ -576,8 +697,10 @@ async function updateSaleStatus(id, nextStatus, options = {}) {
             referenceId: String(existing.id || "").trim(),
             note:
               normalizedNextStatus === "Refunded"
-                ? `Order refunded for ${String(item.name || "product").trim()}`
-                : `Order reversed for ${String(item.name || "product").trim()}`,
+                ? note ||
+                  reason ||
+                  `Order refunded for ${String(item.name || "product").trim()}`
+                : note || `Order reversed for ${String(item.name || "product").trim()}`,
             actorName,
             createdAt: nextUpdatedAt,
           },
@@ -589,12 +712,116 @@ async function updateSaleStatus(id, nextStatus, options = {}) {
       }
     }
 
+    const saleUpdate = {
+      $set: {
+        status: normalizedNextStatus,
+        updatedAt: nextUpdatedAt,
+      },
+      $push: {
+        statusHistory: {
+          fromStatus: currentStatus,
+          toStatus: normalizedNextStatus,
+          reason,
+          note,
+          actorUserId,
+          actorName,
+          approvalPinVerified,
+          createdAt: nextUpdatedAt,
+        },
+      },
+    };
+
+    if (normalizedNextStatus === "Refunded") {
+      saleUpdate.$set.refund = {
+        reason,
+        note,
+        refundedAt: nextUpdatedAt,
+        refundedByUserId: actorUserId,
+        refundedByName: actorName,
+        approvalPinVerified,
+      };
+    }
+
+    if (options.refundRequestPatch) {
+      const currentRefundRequest = normalizeSaleRefundRequest(existingRow.refundRequest);
+      const nextRefundRequest = {
+        ...currentRefundRequest,
+        ...options.refundRequestPatch,
+      };
+
+      saleUpdate.$set.refundRequest = {
+        status: String(nextRefundRequest.status || "None").trim() || "None",
+        reason: String(nextRefundRequest.reason || "").trim(),
+        note: String(nextRefundRequest.note || "").trim(),
+        incidentReport: String(nextRefundRequest.incidentReport || "").trim(),
+        customerStatement: String(nextRefundRequest.customerStatement || "").trim(),
+        requestedAt: safeDate(nextRefundRequest.requestedAt),
+        requestedByUserId:
+          nextRefundRequest.requestedByUserId === null || nextRefundRequest.requestedByUserId === undefined
+            ? null
+            : Number(nextRefundRequest.requestedByUserId),
+        requestedByName: String(nextRefundRequest.requestedByName || "").trim(),
+        reviewedAt: safeDate(nextRefundRequest.reviewedAt),
+        reviewedByUserId:
+          nextRefundRequest.reviewedByUserId === null || nextRefundRequest.reviewedByUserId === undefined
+            ? null
+            : Number(nextRefundRequest.reviewedByUserId),
+        reviewedByName: String(nextRefundRequest.reviewedByName || "").trim(),
+        decisionNote: String(nextRefundRequest.decisionNote || "").trim(),
+        approvalPinVerified: Boolean(nextRefundRequest.approvalPinVerified),
+      };
+    }
+
+    await models.Sale.updateOne(
+      { id: String(existing.id || "").trim() },
+      saleUpdate,
+      { session }
+    );
+
+    const updated = await loadSaleDocument(existing.id, session);
+    return normalizeSale(updated);
+  });
+}
+
+async function updateRefundRequest(id, patch = {}) {
+  return withOptionalTransaction(async ({ session }) => {
+    const existingRow = await loadSaleDocument(id, session);
+    if (!existingRow) return null;
+
+    const existing = normalizeSale(existingRow);
+    const currentRefundRequest = normalizeSaleRefundRequest(existingRow.refundRequest);
+    const nextUpdatedAt = safeDate(patch.updatedAt) || new Date();
+    const nextRefundRequest = {
+      ...currentRefundRequest,
+      ...patch,
+    };
+
     await models.Sale.updateOne(
       { id: String(existing.id || "").trim() },
       {
         $set: {
-          status: normalizedNextStatus,
           updatedAt: nextUpdatedAt,
+          refundRequest: {
+            status: String(nextRefundRequest.status || "None").trim() || "None",
+            reason: String(nextRefundRequest.reason || "").trim(),
+            note: String(nextRefundRequest.note || "").trim(),
+            incidentReport: String(nextRefundRequest.incidentReport || "").trim(),
+            customerStatement: String(nextRefundRequest.customerStatement || "").trim(),
+            requestedAt: safeDate(nextRefundRequest.requestedAt),
+            requestedByUserId:
+              nextRefundRequest.requestedByUserId === null || nextRefundRequest.requestedByUserId === undefined
+                ? null
+                : Number(nextRefundRequest.requestedByUserId),
+            requestedByName: String(nextRefundRequest.requestedByName || "").trim(),
+            reviewedAt: safeDate(nextRefundRequest.reviewedAt),
+            reviewedByUserId:
+              nextRefundRequest.reviewedByUserId === null || nextRefundRequest.reviewedByUserId === undefined
+                ? null
+                : Number(nextRefundRequest.reviewedByUserId),
+            reviewedByName: String(nextRefundRequest.reviewedByName || "").trim(),
+            decisionNote: String(nextRefundRequest.decisionNote || "").trim(),
+            approvalPinVerified: Boolean(nextRefundRequest.approvalPinVerified),
+          },
         },
       },
       { session }
@@ -612,5 +839,6 @@ module.exports = {
   getProductById,
   getSaleById,
   getSales,
+  updateRefundRequest,
   updateSaleStatus,
 };

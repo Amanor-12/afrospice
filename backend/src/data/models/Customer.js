@@ -8,6 +8,7 @@ const customerSchema = new Schema(
     email: { type: String, default: "", trim: true },
     phone: { type: String, default: "", trim: true },
     notes: { type: String, default: "", trim: true },
+    loyaltyCardNumber: { type: String, default: "", trim: true },
     loyaltyOptIn: { type: Boolean, required: true, default: false },
     marketingOptIn: { type: Boolean, required: true, default: false },
     preferredContactMethod: { type: String, default: "None", trim: true },
@@ -18,6 +19,19 @@ const customerSchema = new Schema(
   },
   {
     versionKey: false,
+  }
+);
+
+customerSchema.index(
+  { loyaltyCardNumber: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      loyaltyCardNumber: {
+        $type: "string",
+        $gt: "",
+      },
+    },
   }
 );
 

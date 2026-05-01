@@ -3,11 +3,20 @@ const runtime = require("../config/runtime");
 const externalAiService = require("./externalAiService");
 const machineLearningService = require("./machineLearningService");
 
-function formatMoney(value) {
-  return `USD ${Number(value || 0).toLocaleString(undefined, {
+function normalizeCurrency(currency) {
+  const code = String(currency || "CAD").trim().toUpperCase();
+  return code === "USD" ? "CAD" : code || "CAD";
+}
+
+function formatMoney(value, currency = "CAD") {
+  const code = normalizeCurrency(currency);
+  const locale = code === "CAD" ? "en-CA" : "en-US";
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: code,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })}`;
+  }).format(Number(value || 0));
 }
 
 function formatPercent(value) {
@@ -101,12 +110,19 @@ function isGeneralBusinessIntent(query = "") {
     "how much did i",
     "how are things",
     "what needs attention",
+    "what needs my attention",
+    "what needs our attention",
     "what should i do",
+    "what should i do first",
+    "what should i watch",
     "what matters most",
     "biggest risk",
     "key risk",
+    "biggest issue",
     "cash risk",
     "where is cash leaking",
+    "where is the pressure",
+    "where is the biggest pressure",
     "revenue at risk",
     "money stuck",
     "priority",
@@ -119,6 +135,7 @@ function isGeneralBusinessIntent(query = "") {
     "what's going on",
     "where should i focus",
     "where do i start",
+    "what do i need to know",
     "what should i reorder",
     "what should i restock",
     "what should i buy",
@@ -1358,7 +1375,14 @@ function capitalizePrompt(value) {
 function buildFollowUps(questionBack = "", suppliedFollowUps = []) {
   if (Array.isArray(suppliedFollowUps) && suppliedFollowUps.length) {
     return suppliedFollowUps
-      .map((item) => capitalizePrompt(item).replace(/[.?\s]+$/, ""))
+      .map((item) =>
+        capitalizePrompt(
+          String(item || "")
+            .trim()
+            .replace(/^(?:or|and)\s+/i, "")
+            .replace(/^(?:the\s+)?next step broken down by\s+/i, "")
+        ).replace(/[.?\s]+$/, "")
+      )
       .filter(Boolean)
       .slice(0, 4);
   }
@@ -1381,6 +1405,8 @@ function buildFollowUps(questionBack = "", suppliedFollowUps = []) {
     .map((item) => item.trim())
     .filter(Boolean)
     .map((item) => item.replace(/^the\s+/i, ""))
+    .map((item) => item.replace(/^(?:or|and)\s+/i, ""))
+    .map((item) => item.replace(/^(?:next step broken down by|broken down by)\s+/i, ""))
     .map((item) => capitalizePrompt(item).replace(/[.?\s]+$/, ""))
     .filter(Boolean)
     .slice(0, 4);
@@ -1607,6 +1633,7 @@ function buildAssistantPayload({
   followUps = [],
 }) {
   const externalEnabled = Boolean(runtime.externalAssistantEnabled);
+  const normalizedFollowUps = buildFollowUps(questionBack, followUps);
 
   return {
     engine: {
@@ -1627,7 +1654,8 @@ function buildAssistantPayload({
     drilldowns,
     sources,
     questionBack,
-    followUps: buildFollowUps(questionBack, followUps),
+    followUps: normalizedFollowUps,
+    suggestedQuestions: normalizedFollowUps,
     disclosure: externalEnabled
       ? `Answers are grounded in live workspace data. OpenAI (${runtime.openAiModel}) is available for hybrid answer routing when the question calls for it.`
       : "Answers are grounded in live workspace data. External model mode is not configured.",
@@ -2694,13 +2722,20 @@ function answerDecisionQuestion(question, data, history = []) {
 
   if (
     includesAny(query, [
+      "what needs my attention",
+      "what needs our attention",
       "what should i do first",
+      "what should i watch",
       "where should i focus",
+      "where is the pressure",
+      "where is the biggest pressure",
       "what needs attention",
       "what matters most",
+      "biggest issue",
       "top priority",
       "priority today",
       "what should i focus on",
+      "what do i need to know",
       "what do i do now",
     ])
   ) {
@@ -2715,10 +2750,14 @@ function answerDecisionQuestion(question, data, history = []) {
     }
 
     if (Number(data.overview.pendingOrders || 0) > 0 || Number(data.overview.declinedOrders || 0) > 0) {
+      const unresolvedOrderCount =
+        Number(data.overview.pendingOrders || 0) + Number(data.overview.declinedOrders || 0);
       actionLines.push(
-        `${Number(data.overview.pendingOrders || 0) + Number(data.overview.declinedOrders || 0)} orders are not cleanly resolved, leaving ${formatMoney(
+        `Operational attention is required on ${unresolvedOrderCount} unresolved ${
+          unresolvedOrderCount === 1 ? "order" : "orders"
+        }, leaving ${formatMoney(
           Number(data.overview.pendingRevenue || 0) + Number(data.overview.declinedRevenue || 0)
-        )} exposed.`
+        )} in cash exposure.`
       );
     }
 
@@ -4445,18 +4484,38 @@ function answerGeneralQuestion(data) {
 async function getOwnerAssistantBootstrap() {
   const data = await getBaseDataset();
   const summary = answerGeneralQuestion(data);
+  const supplierSignal =
+    (Array.isArray(data?.machineForecast?.supplierSignals)
+      ? data.machineForecast.supplierSignals[0]
+      : null) ||
+    (Array.isArray(data?.inventoryIntel?.supplierWatch) ? data.inventoryIntel.supplierWatch[0] : null);
+  const modelWarnings = Array.isArray(data?.machineForecast?.dataFoundation?.qualityWarnings)
+    ? data.machineForecast.dataFoundation.qualityWarnings
+    : [];
+  const bootstrapFollowUps = [
+    Number(data?.overview?.pendingRevenue || 0) > 0 || Number(data?.overview?.pendingOrders || 0) > 0
+      ? "Which orders need attention right now?"
+      : "What changed in revenue this week?",
+    Number(data?.inventorySignals?.lowStockCount || 0) > 0
+      ? "Which products are at stockout risk?"
+      : "Which products are building excess inventory?",
+    supplierSignal?.supplier
+      ? `What is the risk with ${supplierSignal.supplier}?`
+      : "Which supplier needs attention now?",
+    modelWarnings.length || Number(data?.machineForecast?.modelSummary?.confidenceScore || 0) < 55
+      ? "How reliable is the model right now?"
+      : "What does the demand forecast say for next week?",
+    "Any unusual patterns I should know about?",
+  ].filter(Boolean);
+  const normalizedFollowUps = [...new Set(bootstrapFollowUps)].slice(0, 5);
 
   return {
     ...withNavigationActions(summary, "general", ""),
     intelligence: buildAiSignalBundle(data),
     greeting:
       "Ask anything about the business in plain language. I use live workspace data for revenue, stock, supplier, staffing, forecast, and anomaly questions, and I can keep the conversation going with follow-up context.",
-    followUps: [
-      "What does the demand forecast say for next week?",
-      "Which products are at stockout risk?",
-      "How reliable is the model?",
-      "Any unusual patterns I should know about?",
-    ],
+    followUps: normalizedFollowUps,
+    suggestedQuestions: normalizedFollowUps,
   };
 }
 
@@ -4496,10 +4555,6 @@ function getGroundedOwnerAssistantReply(question, history = [], data) {
     return withNavigationActions(aiSignalAnswer, inferAssistantScope(question, data, history), question);
   }
 
-  if (shouldClarifyQuestion(question, data, history)) {
-    return withNavigationActions(answerClarificationQuestion(), "general", question);
-  }
-
   const timeScopedAnswer = answerTimeScopedQuestion(question, data, history);
   if (timeScopedAnswer) {
     return withNavigationActions(
@@ -4516,6 +4571,10 @@ function getGroundedOwnerAssistantReply(question, history = [], data) {
       inferAssistantScope(question, data, history),
       question
     );
+  }
+
+  if (shouldClarifyQuestion(question, data, history)) {
+    return withNavigationActions(answerClarificationQuestion(), "general", question);
   }
 
   const scope = inferAssistantScope(question, data, history);

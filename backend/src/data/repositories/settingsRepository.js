@@ -5,10 +5,13 @@ const { safeDate, toIsoTimestamp } = require("./mongoRepositoryUtils");
 function normalizeSettings(row) {
   const { _id, ...persisted } = row || {};
   const updatedAt = persisted.updatedAt ? toIsoTimestamp(persisted.updatedAt) : new Date().toISOString();
+  const currency = String(persisted.currency ?? defaultSettings.currency).trim().toUpperCase();
+  const timeZone = String(persisted.timeZone ?? defaultSettings.timeZone).trim();
 
   return {
     ...defaultSettings,
     ...persisted,
+    currency: currency === "USD" ? defaultSettings.currency : currency || defaultSettings.currency,
     taxRate: Number(persisted.taxRate ?? defaultSettings.taxRate),
     lowStockThreshold: Number(persisted.lowStockThreshold ?? defaultSettings.lowStockThreshold),
     notifications: persisted.notifications ?? defaultSettings.notifications,
@@ -17,12 +20,28 @@ function normalizeSettings(row) {
     requirePinForRefunds: persisted.requirePinForRefunds ?? defaultSettings.requirePinForRefunds,
     showStockWarnings: persisted.showStockWarnings ?? defaultSettings.showStockWarnings,
     salesEmailReports: persisted.salesEmailReports ?? defaultSettings.salesEmailReports,
+    dailySummaryRecipientEmail:
+      persisted.dailySummaryRecipientEmail ?? defaultSettings.dailySummaryRecipientEmail,
+    dailySummaryDeliveryHour: Number(
+      persisted.dailySummaryDeliveryHour ?? defaultSettings.dailySummaryDeliveryHour
+    ),
+    dailySummaryDeliveryMinute: Number(
+      persisted.dailySummaryDeliveryMinute ?? defaultSettings.dailySummaryDeliveryMinute
+    ),
+    dailySummaryLastDigestDate:
+      persisted.dailySummaryLastDigestDate ?? defaultSettings.dailySummaryLastDigestDate,
+    dailySummaryLastSentAt:
+      persisted.dailySummaryLastSentAt ?? defaultSettings.dailySummaryLastSentAt,
+    dailySummaryLastStatus:
+      persisted.dailySummaryLastStatus ?? defaultSettings.dailySummaryLastStatus,
+    dailySummaryLastError:
+      persisted.dailySummaryLastError ?? defaultSettings.dailySummaryLastError,
     compactTables: persisted.compactTables ?? defaultSettings.compactTables,
     dashboardAnimations: persisted.dashboardAnimations ?? defaultSettings.dashboardAnimations,
     quickCheckout: persisted.quickCheckout ?? defaultSettings.quickCheckout,
     soundEffects: persisted.soundEffects ?? defaultSettings.soundEffects,
     domain: persisted.domain ?? defaultSettings.domain,
-    timeZone: persisted.timeZone ?? defaultSettings.timeZone,
+    timeZone: timeZone === "UTC" ? defaultSettings.timeZone : timeZone || defaultSettings.timeZone,
     defaultReportsView: persisted.defaultReportsView ?? defaultSettings.defaultReportsView,
     autoLockMinutes: Number(
       persisted.autoLockMinutes ?? defaultSettings.autoLockMinutes
@@ -85,6 +104,27 @@ async function updateAppSettings(patch = {}) {
         requirePinForRefunds: Boolean(nextSettings.requirePinForRefunds),
         showStockWarnings: Boolean(nextSettings.showStockWarnings),
         salesEmailReports: Boolean(nextSettings.salesEmailReports),
+        dailySummaryRecipientEmail: String(
+          nextSettings.dailySummaryRecipientEmail || defaultSettings.dailySummaryRecipientEmail
+        ).trim(),
+        dailySummaryDeliveryHour: Number(
+          nextSettings.dailySummaryDeliveryHour ?? defaultSettings.dailySummaryDeliveryHour
+        ),
+        dailySummaryDeliveryMinute: Number(
+          nextSettings.dailySummaryDeliveryMinute ?? defaultSettings.dailySummaryDeliveryMinute
+        ),
+        dailySummaryLastDigestDate: String(
+          nextSettings.dailySummaryLastDigestDate || defaultSettings.dailySummaryLastDigestDate
+        ).trim(),
+        dailySummaryLastSentAt: String(
+          nextSettings.dailySummaryLastSentAt || defaultSettings.dailySummaryLastSentAt
+        ).trim(),
+        dailySummaryLastStatus: String(
+          nextSettings.dailySummaryLastStatus || defaultSettings.dailySummaryLastStatus
+        ).trim(),
+        dailySummaryLastError: String(
+          nextSettings.dailySummaryLastError || defaultSettings.dailySummaryLastError
+        ).trim(),
         compactTables: Boolean(nextSettings.compactTables),
         dashboardAnimations: Boolean(nextSettings.dashboardAnimations),
         quickCheckout: Boolean(nextSettings.quickCheckout),

@@ -13,5 +13,11 @@ module.exports = {
   UserAccessEvent: require("./UserAccessEvent"),
   UserSession: require("./UserSession"),
   UserSavedView: require("./UserSavedView"),
+  StaffOrderWorkState: require("./StaffOrderWorkState"),
+  StaffTask: require("./StaffTask"),
   AuditLog: require("./AuditLog"),
+  EmailLog: require("./EmailLog"),
+  CustomerCommunicationLog: require("./CustomerCommunicationLog"),
+  NotificationReceipt: require("./NotificationReceipt"),
+  UserPasskey: require("./UserPasskey"),
 };

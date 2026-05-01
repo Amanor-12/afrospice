@@ -18,6 +18,22 @@ const createSale = asyncHandler(async (req, res) => {
   );
 });
 
+const submitRefundRequest = asyncHandler(async (req, res) => {
+  return success(
+    res,
+    await salesService.submitRefundRequest(req.params.id, req.body || {}, req.user),
+    "Refund request submitted successfully."
+  );
+});
+
+const decideRefundRequest = asyncHandler(async (req, res) => {
+  return success(
+    res,
+    await salesService.decideRefundRequest(req.params.id, req.body || {}, req.user),
+    "Refund request reviewed successfully."
+  );
+});
+
 const updateSaleStatus = asyncHandler(async (req, res) => {
   return success(
     res,
@@ -30,5 +46,7 @@ module.exports = {
   getSales,
   getSaleById,
   createSale,
+  submitRefundRequest,
+  decideRefundRequest,
   updateSaleStatus,
 };

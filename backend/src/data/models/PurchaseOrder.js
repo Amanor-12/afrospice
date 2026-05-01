@@ -19,13 +19,31 @@ const purchaseOrderItemSchema = new Schema(
   }
 );
 
+const purchaseOrderContactSnapshotSchema = new Schema(
+  {
+    name: { type: String, default: "", trim: true },
+    email: { type: String, default: "", trim: true },
+    phone: { type: String, default: "", trim: true },
+  },
+  {
+    _id: false,
+  }
+);
+
 const purchaseOrderSchema = new Schema(
   {
     id: { type: String, required: true, unique: true, trim: true, index: true },
     supplierId: { type: Number, default: null, index: true },
     supplier: { type: String, required: true, default: "General Supplier", trim: true },
     status: { type: String, required: true, default: "Draft", trim: true, index: true },
+    priority: { type: String, required: true, default: "Standard", trim: true },
     note: { type: String, default: "", trim: true },
+    internalReference: { type: String, default: "", trim: true },
+    supplierReference: { type: String, default: "", trim: true },
+    shipVia: { type: String, default: "", trim: true },
+    receivingLocation: { type: String, default: "", trim: true },
+    paymentTermsSnapshot: { type: String, default: "", trim: true },
+    contactSnapshot: { type: purchaseOrderContactSnapshotSchema, default: () => ({}) },
     createdBy: { type: String, default: "", trim: true },
     createdAt: requiredDateField({ index: true }),
     updatedAt: requiredDateField(),

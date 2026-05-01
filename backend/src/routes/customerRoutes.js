@@ -5,7 +5,9 @@ const {
   getCustomers,
   getCustomerEnrollmentPreview,
   getCustomerById,
+  getCustomerCommunications,
   createCustomer,
+  sendCustomerWelcomeMessage,
   updateCustomer,
   deleteCustomer,
 } = require("../controllers/customerController");
@@ -15,11 +17,14 @@ const allowRoles = require("../middleware/roles");
 
 router.use(authMiddleware);
 
-router.get("/", allowRoles("Owner", "Manager", "Cashier"), getCustomers);
-router.get("/preview/new", allowRoles("Owner", "Manager", "Cashier"), getCustomerEnrollmentPreview);
-router.get("/:id", allowRoles("Owner", "Manager", "Cashier"), getCustomerById);
-router.post("/", allowRoles("Owner", "Manager", "Cashier"), createCustomer);
-router.put("/:id", allowRoles("Owner", "Manager"), updateCustomer);
+router.get("/", allowRoles("Owner"), getCustomers);
+router.get("/preview/new", allowRoles("Owner"), getCustomerEnrollmentPreview);
+router.get("/:id/communications", allowRoles("Owner"), getCustomerCommunications);
+router.get("/:id", allowRoles("Owner"), getCustomerById);
+router.post("/", allowRoles("Owner"), createCustomer);
+router.post("/:id/communications/welcome", allowRoles("Owner"), sendCustomerWelcomeMessage);
+router.post("/:id/send-welcome", allowRoles("Owner"), sendCustomerWelcomeMessage);
+router.put("/:id", allowRoles("Owner"), updateCustomer);
 router.delete("/:id", allowRoles("Owner"), deleteCustomer);
 
 module.exports = router;

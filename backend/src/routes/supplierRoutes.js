@@ -14,10 +14,10 @@ const allowRoles = require("../middleware/roles");
 
 router.use(authMiddleware);
 
-router.get("/", allowRoles("Owner", "Manager", "Inventory Clerk"), getSuppliers);
-router.get("/:id", allowRoles("Owner", "Manager", "Inventory Clerk"), getSupplierById);
-router.post("/", allowRoles("Owner", "Manager", "Inventory Clerk"), createSupplier);
-router.put("/:id", allowRoles("Owner", "Manager", "Inventory Clerk"), updateSupplier);
+router.get("/", allowRoles("Owner"), getSuppliers);
+router.get("/:id", allowRoles("Owner"), getSupplierById);
+router.post("/", allowRoles("Owner"), createSupplier);
+router.put("/:id", allowRoles("Owner"), updateSupplier);
 router.delete("/:id", allowRoles("Owner"), deleteSupplier);
 
 module.exports = router;

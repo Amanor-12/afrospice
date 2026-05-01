@@ -26,6 +26,9 @@ function validateSettingsPatch(payload) {
     "requirePinForRefunds",
     "showStockWarnings",
     "salesEmailReports",
+    "dailySummaryRecipientEmail",
+    "dailySummaryDeliveryHour",
+    "dailySummaryDeliveryMinute",
     "compactTables",
     "dashboardAnimations",
     "quickCheckout",
@@ -103,6 +106,32 @@ function validateSettingsPatch(payload) {
 
   if (body.supportEmail !== undefined) {
     patch.supportEmail = readOptionalEmail(body.supportEmail, "Support email");
+  }
+
+  if (body.dailySummaryRecipientEmail !== undefined) {
+    patch.dailySummaryRecipientEmail = readOptionalEmail(
+      body.dailySummaryRecipientEmail,
+      "Daily summary recipient email"
+    );
+  }
+
+  if (body.dailySummaryDeliveryHour !== undefined) {
+    const hour = readNonNegativeInteger(body.dailySummaryDeliveryHour, "Daily summary delivery hour");
+    if (hour > 23) {
+      throwValidationError("Daily summary delivery hour must be between 0 and 23.");
+    }
+    patch.dailySummaryDeliveryHour = hour;
+  }
+
+  if (body.dailySummaryDeliveryMinute !== undefined) {
+    const minute = readNonNegativeInteger(
+      body.dailySummaryDeliveryMinute,
+      "Daily summary delivery minute"
+    );
+    if (minute > 59) {
+      throwValidationError("Daily summary delivery minute must be between 0 and 59.");
+    }
+    patch.dailySummaryDeliveryMinute = minute;
   }
 
   if (body.supportPhone !== undefined) {

@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const AppError = require("../errors/AppError");
 const authRepository = require("../data/repositories/authRepository");
 const { signToken } = require("../utils/jwt");
+const { getRequestContext, updateRequestContext } = require("../utils/requestContextStore");
 const {
   validateLoginPayload,
   validateChangePinPayload,
@@ -32,9 +33,9 @@ function getAccessBlockMessage(user) {
   return "";
 }
 
-async function assertLoginNotLocked(staffId) {
+async function assertLoginNotLocked(identifier) {
   const failures = await authRepository.countRecentLoginFailuresForStaffId(
-    staffId,
+    identifier,
     LOGIN_FAILURE_WINDOW_MINUTES
   );
 
@@ -50,14 +51,28 @@ async function assertLoginNotLocked(staffId) {
 }
 
 async function login(payload) {
-  const { staffId, pin } = validateLoginPayload(payload);
-  await assertLoginNotLocked(staffId);
+  const { identifier, pin } = validateLoginPayload(payload);
+  const requestContext = getRequestContext();
+  const user = identifier
+    ? await authRepository.getUserByIdentifier(identifier)
+    : await authRepository.getPrimaryOwnerUser();
+  const loginKey = String(identifier || user?.staffId || "").trim();
 
-  const user = await authRepository.getUserByStaffId(staffId);
+  if (!loginKey) {
+    throw new AppError(
+      409,
+      "Primary owner sign-in is not configured for this workspace.",
+      {
+        code: "PRIMARY_OWNER_NOT_CONFIGURED",
+      }
+    );
+  }
+
+  await assertLoginNotLocked(loginKey);
 
   if (!user) {
-    await authRepository.recordUserLoginFailure(staffId, "Invalid Staff ID or PIN.");
-    throw new AppError(401, "Invalid Staff ID or PIN.", {
+    await authRepository.recordUserLoginFailure(loginKey, "Invalid PIN.");
+    throw new AppError(401, "Invalid PIN.", {
       code: "INVALID_CREDENTIALS",
     });
   }
@@ -65,7 +80,7 @@ async function login(payload) {
   const accessBlockMessage = getAccessBlockMessage(user);
 
   if (accessBlockMessage) {
-    await authRepository.recordUserLoginFailure(staffId, accessBlockMessage);
+    await authRepository.recordUserLoginFailure(loginKey, accessBlockMessage);
     throw new AppError(403, accessBlockMessage, {
       code: "ACCOUNT_NOT_READY",
     });
@@ -74,14 +89,16 @@ async function login(payload) {
   const isValidPin = await bcrypt.compare(String(pin), String(user.pin));
 
   if (!isValidPin) {
-    await authRepository.recordUserLoginFailure(staffId, "Invalid Staff ID or PIN.");
-    throw new AppError(401, "Invalid Staff ID or PIN.", {
+    await authRepository.recordUserLoginFailure(loginKey, "Invalid PIN.");
+    throw new AppError(401, "Invalid PIN.", {
       code: "INVALID_CREDENTIALS",
     });
   }
 
   const session = await authRepository.createUserSession(user, {
     loginReason: "Workspace sign-in",
+    sourceIp: requestContext?.sourceIp,
+    userAgent: requestContext?.userAgent,
   });
 
   const token = signToken({
@@ -90,6 +107,14 @@ async function login(payload) {
     role: user.role,
     fullName: user.fullName,
     sessionId: session?.id || "",
+  });
+
+  updateRequestContext({
+    actorUserId: user.id ?? null,
+    actorStaffId: String(user.staffId || "").trim(),
+    actorName: String(user.fullName || user.staffId || "").trim(),
+    actorRole: String(user.role || "").trim(),
+    sessionId: String(session?.id || "").trim(),
   });
 
   return {

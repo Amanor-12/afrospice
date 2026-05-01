@@ -9,7 +9,7 @@ Minimum production settings:
 - `NODE_ENV=production`
 - `MONGO_URI` pointing to the production MongoDB cluster
 - `FRONTEND_ORIGIN` set to the real web app origin
-- `PUBLIC_BASE_URL` set to the real API origin over `https://`
+- `PUBLIC_BASE_URL` set to the real browser-facing web app origin over `https://`
 - `TRUST_PROXY=1` when TLS is terminated at a reverse proxy or load balancer
 - `ENFORCE_HTTPS=true`
 - `JWT_SECRET` with at least 32 characters
@@ -39,6 +39,7 @@ Expected result:
 - Do not enable `DISABLE_AUTH` outside local development
 - Do not deploy with localhost origins
 - Treat the `/api/system/readiness` endpoint as the release gate for orchestrators and smoke checks
+- Use the production container and proxy artifacts from [`../DEPLOYMENT.md`](C:/Users/regan/Downloads/afrospice/DEPLOYMENT.md)
 
 ## Post-deploy checks
 

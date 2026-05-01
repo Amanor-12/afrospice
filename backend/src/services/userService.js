@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const AppError = require("../errors/AppError");
 const userRepository = require("../data/repositories/userRepository");
+const auditLogService = require("./auditLogService");
 const {
   normalizeRole,
   getDefaultShiftForRole,
@@ -20,6 +21,80 @@ function sanitizeUser(user) {
 
 function buildActorName(actor, fallback = "Roster Admin") {
   return String(actor?.fullName || actor?.staffId || fallback).trim();
+}
+
+function isOwnerActor(actor) {
+  return String(actor?.role || "").trim() === "Owner";
+}
+
+async function recordDeniedWorkspaceAction({
+  actor,
+  action,
+  entityType,
+  entityId,
+  reason,
+  details = {},
+}) {
+  await auditLogService.recordAuditEvent({
+    actor,
+    action: `${action}.denied`,
+    entityType,
+    entityId,
+    details: {
+      reason: String(reason || "Operation denied.").trim(),
+      ...details,
+    },
+  });
+}
+
+async function assertOwnerWorkspaceControl(actor, action, entityType, entityId, reason) {
+  if (isOwnerActor(actor)) {
+    return;
+  }
+
+  const message = String(reason || "Owner access is required for this operation.").trim();
+  await recordDeniedWorkspaceAction({
+    actor,
+    action,
+    entityType,
+    entityId,
+    reason: message,
+  });
+
+  throw new AppError(403, message, {
+    code: "OWNER_ROLE_REQUIRED",
+  });
+}
+
+async function assertOwnerQuorum(targetUser, options = {}) {
+  const currentRole = String(targetUser?.role || "").trim();
+  const currentStatus = String(targetUser?.status || "").trim();
+  const nextRole = String(options.nextRole || currentRole).trim() || currentRole;
+  const nextStatus = String(options.nextStatus || currentStatus).trim() || currentStatus;
+  const deleting = Boolean(options.deleting);
+
+  const removesActiveOwnerCoverage =
+    currentRole === "Owner" &&
+    currentStatus === "Active" &&
+    (deleting || nextRole !== "Owner" || nextStatus !== "Active");
+
+  if (!removesActiveOwnerCoverage) {
+    return;
+  }
+
+  const activeOwnerCount = await userRepository.countUsersByRole("Owner", {
+    status: "Active",
+  });
+
+  if (activeOwnerCount <= 1) {
+    throw new AppError(
+      409,
+      "The workspace must retain at least one active owner account.",
+      {
+        code: "LAST_ACTIVE_OWNER_REQUIRED",
+      }
+    );
+  }
 }
 
 function csvEscape(value) {
@@ -94,6 +169,13 @@ async function getUserOversight(id) {
 }
 
 async function createUser(payload, actor) {
+  await assertOwnerWorkspaceControl(
+    actor,
+    "users.create",
+    "user",
+    "pending:new",
+    "Only an owner can create staff records."
+  );
   const role = normalizeRole(payload?.role);
 
   if (!role) {
@@ -147,6 +229,13 @@ async function createUser(payload, actor) {
 }
 
 async function updateUser(id, payload, actor) {
+  await assertOwnerWorkspaceControl(
+    actor,
+    "users.update",
+    "user",
+    String(id),
+    "Only an owner can update staff records."
+  );
   const existing = await getRequiredUser(id);
   const role = normalizeRole(payload?.role ?? existing?.role);
 
@@ -167,6 +256,10 @@ async function updateUser(id, payload, actor) {
       code: "USER_STAFF_ID_CONFLICT",
     });
   }
+
+  await assertOwnerQuorum(existing, {
+    nextRole: validated.role,
+  });
 
   const updatedUser = await userRepository.updateUser(
     existing.id,
@@ -195,6 +288,13 @@ async function updateUser(id, payload, actor) {
 }
 
 async function assignUserPin(id, payload, actor) {
+  await assertOwnerWorkspaceControl(
+    actor,
+    "users.pin.assign",
+    "user",
+    String(id),
+    "Only an owner can issue or reset staff PINs."
+  );
   const existing = await getRequiredUser(id);
   const validated = validatePinAssignmentPayload(payload);
   const hashedPin = await bcrypt.hash(validated.pin, 10);
@@ -211,6 +311,13 @@ async function assignUserPin(id, payload, actor) {
 }
 
 async function approveUser(id, actor) {
+  await assertOwnerWorkspaceControl(
+    actor,
+    "users.access.approve",
+    "user",
+    String(id),
+    "Only an owner can approve staff access."
+  );
   const existing = await getRequiredUser(id);
 
   if (String(existing.pinStatus) !== "Assigned" || !String(existing.pin || "").trim()) {
@@ -228,6 +335,13 @@ async function approveUser(id, actor) {
 }
 
 async function updateUserStatus(id, payload, actor) {
+  await assertOwnerWorkspaceControl(
+    actor,
+    "users.status.update",
+    "user",
+    String(id),
+    "Only an owner can change staff access status."
+  );
   const existing = await getRequiredUser(id);
   const { status } = validateUserStatusPayload(payload);
 
@@ -236,6 +350,10 @@ async function updateUserStatus(id, payload, actor) {
       code: "SELF_STATUS_CHANGE_NOT_ALLOWED",
     });
   }
+
+  await assertOwnerQuorum(existing, {
+    nextStatus: status,
+  });
 
   if (status === "Active") {
     if (String(existing.pinStatus) !== "Assigned" || !String(existing.pin || "").trim()) {
@@ -252,6 +370,16 @@ async function updateUserStatus(id, payload, actor) {
     return sanitizeUser(activated);
   }
 
+  if (status === "Pending Approval") {
+    const pendingUser = await userRepository.updateUserAccessStatus(
+      existing.id,
+      status,
+      buildActorName(actor, "Owner")
+    );
+
+    return sanitizeUser(pendingUser);
+  }
+
   const updatedUser = await userRepository.updateUserAccessStatus(
     existing.id,
     status,
@@ -262,6 +390,13 @@ async function updateUserStatus(id, payload, actor) {
 }
 
 async function deleteUser(id, actor) {
+  await assertOwnerWorkspaceControl(
+    actor,
+    "users.delete",
+    "user",
+    String(id),
+    "Only an owner can delete staff accounts."
+  );
   const target = await getRequiredUser(id);
 
   if (String(actor?.id) === String(target.id)) {
@@ -270,11 +405,22 @@ async function deleteUser(id, actor) {
     });
   }
 
+  await assertOwnerQuorum(target, {
+    deleting: true,
+  });
+
   const deleted = await userRepository.deleteUser(id);
   return sanitizeUser(deleted);
 }
 
 async function updateUserWorkforceProfile(id, payload, actor) {
+  await assertOwnerWorkspaceControl(
+    actor,
+    "users.workforce.update",
+    "user",
+    String(id),
+    "Only an owner can change workforce profile controls."
+  );
   const existing = await getRequiredUser(id);
   const validated = validateWorkforceProfilePayload(payload, existing);
   const updatedUser = await userRepository.updateUserWorkforceProfile(
@@ -293,18 +439,26 @@ async function exportUserAuditCsv() {
     "Staff ID",
     "Full Name",
     "Event Type",
+    "Severity",
     "Title",
     "Message",
     "Actor",
+    "Session ID",
+    "Source IP",
+    "User Agent",
   ];
   const rows = events.map((event) => [
     event.createdAt,
     event.staffId,
     event.fullName,
     event.eventType,
+    event.severity || "info",
     event.title,
     event.message,
     event.actorName,
+    event.sessionId || "",
+    event.sourceIp || "",
+    event.userAgent || "",
   ]);
 
   return {
@@ -322,12 +476,18 @@ async function exportSingleUserAuditCsv(id) {
     "Staff ID",
     "Full Name",
     "State",
+    "Severity",
     "Title",
     "Message",
     "Actor",
+    "Session ID",
+    "Source IP",
+    "User Agent",
     "Login At",
     "Last Seen At",
     "Logout At",
+    "Risk Level",
+    "Anomaly Count",
   ];
   const eventRows = (oversight.events || []).map((event) => [
     "Access Event",
@@ -335,9 +495,15 @@ async function exportSingleUserAuditCsv(id) {
     event.staffId,
     event.fullName,
     event.eventType,
+    event.severity || "info",
     event.title,
     event.message,
     event.actorName,
+    event.sessionId || "",
+    event.sourceIp || "",
+    event.userAgent || "",
+    "",
+    "",
     "",
     "",
     "",
@@ -348,12 +514,18 @@ async function exportSingleUserAuditCsv(id) {
     session.staffId,
     session.fullName,
     session.status,
+    session.riskLevel || "normal",
     session.logoutAt ? "Closed session" : "Active session",
     session.logoutReason || session.loginReason || "Tracked staff session lifecycle.",
     "",
+    session.id,
+    session.lastSeenIp || session.loginIp || "",
+    session.lastSeenUserAgent || session.loginUserAgent || "",
     session.loginAt,
     session.lastSeenAt,
     session.logoutAt || "",
+    session.riskLevel || "normal",
+    Number(session.anomalyCount || 0),
   ]);
 
   return {
@@ -373,12 +545,26 @@ async function getSavedUserViews(actor, query) {
 }
 
 async function saveUserView(actor, payload) {
+  await assertOwnerWorkspaceControl(
+    actor,
+    "users.view.save",
+    "user_saved_view",
+    "pending:new",
+    "Only an owner can save managed workforce views."
+  );
   const ownerUserId = Number(actor?.id || 0);
   const { pageKey, name, config } = validateSavedUserViewPayload(payload);
   return userRepository.saveUserSavedView(ownerUserId, pageKey, name, config);
 }
 
 async function deleteSavedUserView(actor, viewId) {
+  await assertOwnerWorkspaceControl(
+    actor,
+    "users.view.delete",
+    "user_saved_view",
+    String(viewId),
+    "Only an owner can delete managed workforce views."
+  );
   const ownerUserId = Number(actor?.id || 0);
   const deleted = await userRepository.deleteUserSavedView(viewId, ownerUserId);
 

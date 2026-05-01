@@ -128,7 +128,7 @@ def build_data_foundation(
     anchor_date,
 ):
     paid_sales = [sale for sale in sales if str(sale.get("status") or "").strip().lower() in PAID_SALE_STATUSES]
-    sale_items = [item for sale in sales for item in sale.get("items") or []]
+    sale_items = [item for sale in paid_sales for item in sale.get("items") or []]
     named_customer_sales = [
         sale
         for sale in paid_sales
@@ -258,6 +258,7 @@ def build_model_summary(forecast, anomaly_output, stockout_risks, promotion_cand
         "dataRichnessScore": to_number(data_foundation.get("richnessScore")),
         "topStockoutRisk": stockout_risks[0] if stockout_risks else None,
         "topPromotionCandidate": promotion_candidates[0] if promotion_candidates else None,
+        "topSupplierRisk": supplier_signals[0] if supplier_signals else None,
         "topSupplierSignal": supplier_signals[0] if supplier_signals else None,
         "topCapitalPriority": top_capital_priority,
     }

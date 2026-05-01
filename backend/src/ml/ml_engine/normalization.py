@@ -17,6 +17,19 @@ def normalize_status(value) -> str:
         return ""
     return " ".join(part.capitalize() for part in text.replace("_", " ").split())
 
+def normalize_sale_status(value) -> str:
+    """Match the Node analytics status normalization used by the live reporting layer."""
+    text = str(value or "").strip().lower()
+    if text in {"paid", "completed", "success"}:
+        return "Paid"
+    if text in {"pending", "processing", "awaiting"}:
+        return "Pending"
+    if text in {"declined", "failed", "cancelled", "canceled"}:
+        return "Declined"
+    if text in {"refunded", "refund"}:
+        return "Refunded"
+    return "Pending"
+
 
 def build_sales(records):
     sales = []
@@ -28,15 +41,18 @@ def build_sales(records):
 
         normalized_items = []
         for item in sale.get("items") or []:
+            qty = max(0.0, to_number(item.get("qty")))
+            price = max(0.0, to_number(item.get("price")))
+            unit_cost = max(0.0, to_number(item.get("unitCost")))
             normalized_items.append(
                 {
                     "id": item.get("id"),
                     "name": item.get("name"),
                     "sku": item.get("sku"),
-                    "qty": max(0.0, to_number(item.get("qty"))),
-                    "price": max(0.0, to_number(item.get("price"))),
-                    "unitCost": max(0.0, to_number(item.get("unitCost"))),
-                    "lineTotal": max(0.0, to_number(item.get("lineTotal"))),
+                    "qty": qty,
+                    "price": price,
+                    "unitCost": unit_cost,
+                    "lineTotal": max(0.0, to_number(item.get("lineTotal"), qty * price)),
                     "category": item.get("category"),
                     "supplier": item.get("supplier"),
                 }
@@ -45,7 +61,7 @@ def build_sales(records):
         sales.append(
             {
                 "id": sale.get("id"),
-                "status": normalize_status(sale.get("status")),
+                "status": normalize_sale_status(sale.get("status")),
                 "total": max(0.0, to_number(sale.get("total"))),
                 "paymentMethod": sale.get("paymentMethod"),
                 "channel": sale.get("channel"),

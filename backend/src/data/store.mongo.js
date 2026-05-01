@@ -353,6 +353,12 @@ function estimateUnitCost(price) {
 }
 
 async function ensureBootstrapSuppliers(now) {
+  const seedSuppliers = Array.isArray(seedData.suppliers) ? seedData.suppliers : [];
+  const seedSupplierProfileMap = new Map(
+    seedSuppliers
+      .filter((supplier) => compactLookupText(supplier?.name, ""))
+      .map((supplier) => [lookupKey(supplier.name), supplier])
+  );
   const byName = new Map(
     (await models.Supplier.find({}).lean()).map((supplier) => [
       lookupKey(supplier.name),
@@ -364,20 +370,97 @@ async function ensureBootstrapSuppliers(now) {
   );
   const seedSupplierNames = [
     ...new Set(
-      (Array.isArray(seedData.products) ? seedData.products : [])
-        .map((product) => compactLookupText(product?.supplier, "General Supplier"))
+      [...seedSuppliers.map((supplier) => compactLookupText(supplier?.name, "")), ...(Array.isArray(seedData.products) ? seedData.products : [])
+        .map((product) => compactLookupText(product?.supplier, "General Supplier"))]
         .filter(Boolean)
     ),
   ];
 
   for (const supplierName of seedSupplierNames) {
     const key = lookupKey(supplierName);
-    if (!key || byName.has(key)) continue;
+    if (!key) continue;
+    const seedProfile = seedSupplierProfileMap.get(key) || null;
+
+    if (byName.has(key)) {
+      const existing = byName.get(key);
+      const updatePayload = {};
+
+      if (seedProfile) {
+        if (!existing.contactName && seedProfile.contactName) updatePayload.contactName = seedProfile.contactName;
+        if (!existing.email && seedProfile.email) updatePayload.email = seedProfile.email;
+        if (!existing.phone && seedProfile.phone) updatePayload.phone = seedProfile.phone;
+        if (!existing.accountCode && seedProfile.accountCode) updatePayload.accountCode = seedProfile.accountCode;
+        if (!existing.preferredCategory && seedProfile.preferredCategory) updatePayload.preferredCategory = seedProfile.preferredCategory;
+        if (!existing.paymentTerms && seedProfile.paymentTerms) updatePayload.paymentTerms = seedProfile.paymentTerms;
+        if (!existing.reviewCadence && seedProfile.reviewCadence) updatePayload.reviewCadence = seedProfile.reviewCadence;
+        if (!existing.shipmentCadence && seedProfile.shipmentCadence) updatePayload.shipmentCadence = seedProfile.shipmentCadence;
+        if (!existing.orderingCutoffTime && seedProfile.orderingCutoffTime) updatePayload.orderingCutoffTime = seedProfile.orderingCutoffTime;
+        if ((existing.minimumOrderValue === null || existing.minimumOrderValue === undefined) && seedProfile.minimumOrderValue !== undefined) {
+          updatePayload.minimumOrderValue = Number(seedProfile.minimumOrderValue);
+        }
+        if ((existing.minimumOrderUnits === null || existing.minimumOrderUnits === undefined) && seedProfile.minimumOrderUnits !== undefined) {
+          updatePayload.minimumOrderUnits = Number(seedProfile.minimumOrderUnits);
+        }
+        if (!existing.logisticsMode && seedProfile.logisticsMode) updatePayload.logisticsMode = seedProfile.logisticsMode;
+        if (!existing.dispatchRegion && seedProfile.dispatchRegion) updatePayload.dispatchRegion = seedProfile.dispatchRegion;
+        if (!existing.receivingWindow && seedProfile.receivingWindow) updatePayload.receivingWindow = seedProfile.receivingWindow;
+        if (!existing.receivingDock && seedProfile.receivingDock) updatePayload.receivingDock = seedProfile.receivingDock;
+        if (!existing.complianceTier && seedProfile.complianceTier) updatePayload.complianceTier = seedProfile.complianceTier;
+        if (!existing.escalationContact && seedProfile.escalationContact) updatePayload.escalationContact = seedProfile.escalationContact;
+        if (!existing.portalReference && seedProfile.portalReference) updatePayload.portalReference = seedProfile.portalReference;
+        if (!existing.trackingUrl && seedProfile.trackingUrl) updatePayload.trackingUrl = seedProfile.trackingUrl;
+        if ((existing.leadTimeDays === null || existing.leadTimeDays === undefined) && seedProfile.leadTimeDays) updatePayload.leadTimeDays = seedProfile.leadTimeDays;
+        if ((existing.serviceLevelTarget === null || existing.serviceLevelTarget === undefined) && seedProfile.serviceLevelTarget) updatePayload.serviceLevelTarget = seedProfile.serviceLevelTarget;
+        if (!existing.isPreferred && seedProfile.isPreferred) updatePayload.isPreferred = Boolean(seedProfile.isPreferred);
+        if (!existing.notes && seedProfile.notes) updatePayload.notes = seedProfile.notes;
+        if (existing.isActive === undefined && seedProfile.isActive !== undefined) updatePayload.isActive = Boolean(seedProfile.isActive);
+      }
+
+      if (Object.keys(updatePayload).length > 0) {
+        await models.Supplier.updateOne(
+          { id: existing.id },
+          {
+            $set: {
+              ...updatePayload,
+              updatedAt: now,
+            },
+          }
+        );
+      }
+
+      continue;
+    }
 
     const id = await nextSequence(COUNTER_KEYS.supplier);
     await models.Supplier.create({
       id,
       name: supplierName,
+      contactName: seedProfile?.contactName || "",
+      email: seedProfile?.email || "",
+      phone: seedProfile?.phone || "",
+      accountCode: seedProfile?.accountCode || "",
+      preferredCategory: seedProfile?.preferredCategory || "",
+      paymentTerms: seedProfile?.paymentTerms || "",
+      reviewCadence: seedProfile?.reviewCadence || "",
+      shipmentCadence: seedProfile?.shipmentCadence || "",
+      orderingCutoffTime: seedProfile?.orderingCutoffTime || "",
+      minimumOrderValue:
+        seedProfile?.minimumOrderValue === undefined ? null : Number(seedProfile.minimumOrderValue),
+      minimumOrderUnits:
+        seedProfile?.minimumOrderUnits === undefined ? null : Number(seedProfile.minimumOrderUnits),
+      logisticsMode: seedProfile?.logisticsMode || "",
+      dispatchRegion: seedProfile?.dispatchRegion || "",
+      receivingWindow: seedProfile?.receivingWindow || "",
+      receivingDock: seedProfile?.receivingDock || "",
+      complianceTier: seedProfile?.complianceTier || "",
+      escalationContact: seedProfile?.escalationContact || "",
+      portalReference: seedProfile?.portalReference || "",
+      trackingUrl: seedProfile?.trackingUrl || "",
+      leadTimeDays: seedProfile?.leadTimeDays ?? null,
+      serviceLevelTarget: seedProfile?.serviceLevelTarget ?? null,
+      isPreferred: Boolean(seedProfile?.isPreferred),
+      notes: seedProfile?.notes || "",
+      isActive: seedProfile?.isActive === undefined ? true : Boolean(seedProfile.isActive),
       createdAt: now,
       updatedAt: now,
     });
@@ -389,40 +472,115 @@ async function ensureBootstrapSuppliers(now) {
 }
 
 async function ensureBootstrapCustomers(now) {
+  const seedCustomers = Array.isArray(seedData.customers) ? seedData.customers : [];
+  const seedCustomerProfileMap = new Map(
+    seedCustomers
+      .filter((customer) => compactLookupText(customer?.name, ""))
+      .map((customer) => [lookupKey(customer.name), customer])
+  );
+  const existingCustomers = await models.Customer.find({}).lean();
   const byName = new Map(
-    (await models.Customer.find({}).lean()).map((customer) => [
+    existingCustomers.map((customer) => [
       lookupKey(customer.name),
       {
         id: Number(customer.id),
         name: String(customer.name || "").trim(),
+        email: String(customer.email || "").trim(),
+        phone: String(customer.phone || "").trim(),
+        notes: String(customer.notes || "").trim(),
+        loyaltyCardNumber: String(customer.loyaltyCardNumber || "").trim(),
+        loyaltyOptIn: Boolean(customer.loyaltyOptIn),
+        marketingOptIn: Boolean(customer.marketingOptIn),
+        preferredContactMethod: String(customer.preferredContactMethod || "").trim(),
+        loyaltyEnrolledAt: customer.loyaltyEnrolledAt || null,
+        isWalkIn: Boolean(customer.isWalkIn),
       },
     ])
   );
+  const seenCustomerIds = new Set(existingCustomers.map((customer) => Number(customer.id)));
 
   const seedCustomerNames = [
     ...new Set(
-      (Array.isArray(seedData.sales) ? seedData.sales : [])
-        .map((sale) => compactLookupText(sale?.customer, "Walk-in Customer"))
+      [
+        ...seedCustomers.map((customer) => compactLookupText(customer?.name, "")),
+        ...(Array.isArray(seedData.sales) ? seedData.sales : []).map((sale) =>
+          compactLookupText(sale?.customer, "Walk-in Customer")
+        ),
+      ]
         .filter(Boolean)
     ),
   ];
 
   for (const customerName of seedCustomerNames) {
     const key = lookupKey(customerName);
-    if (!key || byName.has(key)) continue;
+    if (!key) continue;
 
-    const id = await nextSequence(COUNTER_KEYS.customer);
+    const seedProfile = seedCustomerProfileMap.get(key) || null;
+
+    if (byName.has(key)) {
+      const existing = byName.get(key);
+      const updatePayload = {};
+
+      if (!existing.email && seedProfile?.email) updatePayload.email = seedProfile.email;
+      if (!existing.phone && seedProfile?.phone) updatePayload.phone = seedProfile.phone;
+      if (!existing.notes && seedProfile?.notes) updatePayload.notes = seedProfile.notes;
+      if (!existing.loyaltyCardNumber && seedProfile?.loyaltyCardNumber) {
+        updatePayload.loyaltyCardNumber = seedProfile.loyaltyCardNumber;
+      }
+      if (!existing.loyaltyOptIn && seedProfile?.loyaltyOptIn) {
+        updatePayload.loyaltyOptIn = Boolean(seedProfile.loyaltyOptIn);
+      }
+      if (!existing.marketingOptIn && seedProfile?.marketingOptIn) {
+        updatePayload.marketingOptIn = Boolean(seedProfile.marketingOptIn);
+      }
+      if ((!existing.preferredContactMethod || existing.preferredContactMethod === "None") && seedProfile?.preferredContactMethod) {
+        updatePayload.preferredContactMethod = seedProfile.preferredContactMethod;
+      }
+      if (!existing.loyaltyEnrolledAt && seedProfile?.loyaltyEnrolledAt) {
+        updatePayload.loyaltyEnrolledAt = seedProfile.loyaltyEnrolledAt;
+      }
+      if (!existing.isWalkIn && seedProfile?.isWalkIn !== undefined) {
+        updatePayload.isWalkIn = Boolean(seedProfile.isWalkIn);
+      }
+
+      if (Object.keys(updatePayload).length > 0) {
+        await models.Customer.updateOne(
+          { id: existing.id },
+          {
+            $set: {
+              ...updatePayload,
+              updatedAt: now,
+            },
+          }
+        );
+      }
+
+      continue;
+    }
+
+    const candidateId = Number(seedProfile?.id);
+    const id =
+      Number.isFinite(candidateId) && candidateId > 0 && !seenCustomerIds.has(candidateId)
+        ? candidateId
+        : await nextSequence(COUNTER_KEYS.customer);
+
     await models.Customer.create({
       id,
       name: customerName,
-      email: "",
-      phone: "",
-      notes: "",
-      isWalkIn: key === "walk-in customer",
+      email: seedProfile?.email || "",
+      phone: seedProfile?.phone || "",
+      notes: seedProfile?.notes || "",
+      loyaltyCardNumber: seedProfile?.loyaltyCardNumber || "",
+      loyaltyOptIn: Boolean(seedProfile?.loyaltyOptIn),
+      marketingOptIn: Boolean(seedProfile?.marketingOptIn),
+      preferredContactMethod: compactLookupText(seedProfile?.preferredContactMethod, "None"),
+      loyaltyEnrolledAt: seedProfile?.loyaltyEnrolledAt || null,
+      isWalkIn: seedProfile?.isWalkIn === undefined ? key === "walk-in customer" : Boolean(seedProfile.isWalkIn),
       createdAt: now,
       updatedAt: now,
     });
 
+    seenCustomerIds.add(id);
     byName.set(key, { id, name: customerName });
   }
 
@@ -466,10 +624,20 @@ async function ensureBootstrapProducts(now, supplierByName = new Map()) {
       id,
       name: nextName,
       sku: nextSku,
-      barcode: "",
+      barcode: compactLookupText(product?.barcode, ""),
+      imageUrl: compactLookupText(product?.imageUrl, ""),
       price: Number(product?.price || 0),
-      unitCost: estimateUnitCost(product?.price || 0),
+      unitCost:
+        Number.isFinite(Number(product?.unitCost)) && Number(product.unitCost) >= 0
+          ? Number(product.unitCost)
+          : estimateUnitCost(product?.price || 0),
       stock: Number(product?.stock || 0),
+      unitLabel: compactLookupText(product?.unitLabel, ""),
+      casePack: Math.max(0, Number(product?.casePack || 0)),
+      reorderPoint: Math.max(0, Number(product?.reorderPoint || 0)),
+      parLevel: Math.max(0, Number(product?.parLevel || 0)),
+      shelfLocation: compactLookupText(product?.shelfLocation, ""),
+      receivingNotes: compactLookupText(product?.receivingNotes, ""),
       category: compactLookupText(product?.category, "General"),
       supplierId: supplierRecord ? Number(supplierRecord.id) : null,
       supplier: supplierRecord ? supplierRecord.name : supplierName,
@@ -528,7 +696,7 @@ async function ensureBootstrapUsers(now) {
       staffNotes: "Seeded baseline staff profile.",
       incidentFlag: "Clear",
       incidentNote: "",
-      forcePinChange: runtime.isDevelopment,
+      forcePinChange: false,
       isPinned: false,
       timetable: buildDefaultTimetable(shiftAssignment),
       createdAt: now,
@@ -614,6 +782,8 @@ async function ensureBootstrapSales(now, customerByName = new Map()) {
 
     await models.Sale.create({
       id: saleId,
+      preDiscountSubtotal: subtotal,
+      discount: 0,
       subtotal,
       tax,
       total,
@@ -640,6 +810,11 @@ async function ensureBootstrapInventoryMovements(now) {
 
   const sales = await models.Sale.find({}).lean();
   for (const sale of sales) {
+    const normalizedStatus = lookupKey(sale?.status);
+    if (!["paid", "completed", "complete", "fulfilled"].includes(normalizedStatus)) {
+      continue;
+    }
+
     for (const item of Array.isArray(sale.items) ? sale.items : []) {
       const movementId = await nextSequence(COUNTER_KEYS.inventoryMovement);
       await models.InventoryMovement.create({
@@ -715,6 +890,18 @@ function normalizeSettingsPayload(payload = {}) {
     return Math.max(0, Math.round(numeric));
   };
 
+  const sanitizeHour = (value) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return defaultSettings.dailySummaryDeliveryHour;
+    return Math.max(0, Math.min(23, Math.round(numeric)));
+  };
+
+  const sanitizeMinute = (value) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return defaultSettings.dailySummaryDeliveryMinute;
+    return Math.max(0, Math.min(59, Math.round(numeric)));
+  };
+
   return {
     storeName:
       String(payload.storeName ?? defaultSettings.storeName).trim() || defaultSettings.storeName,
@@ -734,6 +921,25 @@ function normalizeSettingsPayload(payload = {}) {
     ),
     showStockWarnings: Boolean(payload.showStockWarnings ?? defaultSettings.showStockWarnings),
     salesEmailReports: Boolean(payload.salesEmailReports ?? defaultSettings.salesEmailReports),
+    dailySummaryRecipientEmail:
+      String(
+        payload.dailySummaryRecipientEmail ?? defaultSettings.dailySummaryRecipientEmail
+      ).trim() || defaultSettings.dailySummaryRecipientEmail,
+    dailySummaryDeliveryHour: sanitizeHour(payload.dailySummaryDeliveryHour),
+    dailySummaryDeliveryMinute: sanitizeMinute(payload.dailySummaryDeliveryMinute),
+    dailySummaryLastDigestDate:
+      String(
+        payload.dailySummaryLastDigestDate ?? defaultSettings.dailySummaryLastDigestDate
+      ).trim() || defaultSettings.dailySummaryLastDigestDate,
+    dailySummaryLastSentAt:
+      String(payload.dailySummaryLastSentAt ?? defaultSettings.dailySummaryLastSentAt).trim() ||
+      defaultSettings.dailySummaryLastSentAt,
+    dailySummaryLastStatus:
+      String(payload.dailySummaryLastStatus ?? defaultSettings.dailySummaryLastStatus).trim() ||
+      defaultSettings.dailySummaryLastStatus,
+    dailySummaryLastError:
+      String(payload.dailySummaryLastError ?? defaultSettings.dailySummaryLastError).trim() ||
+      defaultSettings.dailySummaryLastError,
     compactTables: Boolean(payload.compactTables ?? defaultSettings.compactTables),
     dashboardAnimations: Boolean(payload.dashboardAnimations ?? defaultSettings.dashboardAnimations),
     quickCheckout: Boolean(payload.quickCheckout ?? defaultSettings.quickCheckout),
@@ -2312,13 +2518,33 @@ async function updateUserAccessStatus(id, status, actorName = "") {
     const existing = getUserById(id);
     if (!existing) return null;
     const normalizedStatus = String(status || "").trim();
+    const isPendingApproval = normalizedStatus === "Pending Approval";
+    const isActive = normalizedStatus === "Active";
+    const eventType = isActive
+      ? "access_activated"
+      : isPendingApproval
+        ? "access_pending_approval"
+        : "access_deactivated";
+    const title = isActive
+      ? "Access activated"
+      : isPendingApproval
+        ? "Access returned to pending approval"
+        : "Access deactivated";
+    const message = isActive
+      ? "The account was set back to active sign-in status."
+      : isPendingApproval
+        ? "The account now requires owner approval before sign-in is restored."
+        : "The account was turned off and can no longer sign in.";
+    const updatedAt = currentIsoTimestamp();
 
     await models.User.updateOne(
       { id: Number(id) },
       {
         $set: {
           status: normalizedStatus,
-          updatedAt: currentIsoTimestamp(),
+          updatedAt,
+          approvedAt: isPendingApproval ? null : existing.approvedAt || null,
+          approvedBy: isPendingApproval ? "" : String(existing.approvedBy || "").trim(),
         },
       }
     );
@@ -2327,14 +2553,11 @@ async function updateUserAccessStatus(id, status, actorName = "") {
       userId: existing.id,
       staffId: existing.staffId,
       fullName: existing.fullName,
-      eventType: normalizedStatus === "Active" ? "access_activated" : "access_deactivated",
-      title: normalizedStatus === "Active" ? "Access activated" : "Access deactivated",
-      message:
-        normalizedStatus === "Active"
-          ? "The account was set back to active sign-in status."
-          : "The account was turned off and can no longer sign in.",
+      eventType,
+      title,
+      message,
       actorName: String(actorName || "Owner").trim(),
-      createdAt: currentIsoTimestamp(),
+      createdAt: updatedAt,
     });
 
     return () => getUserById(id);

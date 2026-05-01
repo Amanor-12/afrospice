@@ -72,7 +72,7 @@ function buildSerializableSnapshot(context) {
       context.latestObservedAt instanceof Date
         ? context.latestObservedAt.toISOString()
         : String(context.latestObservedAt || ""),
-    currency: String(context.currency || "USD").toUpperCase(),
+    currency: String(context.currency || "CAD").toUpperCase(),
     settings: {
       lowStockThreshold: toNumber(context.settings?.lowStockThreshold, 10),
     },

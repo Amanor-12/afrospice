@@ -16,33 +16,33 @@ const FORECAST_HORIZON = {
 };
 
 const CATEGORY_COLORS = [
+  "#1d4ed8",
   "#2563eb",
-  "#0f766e",
-  "#7c3aed",
-  "#ea580c",
-  "#db2777",
-  "#0891b2",
-  "#16a34a",
-  "#9333ea",
+  "#3b82f6",
+  "#60a5fa",
+  "#93c5fd",
+  "#0ea5e9",
+  "#38bdf8",
+  "#1e40af",
 ];
 
 const PRODUCT_COLORS = [
+  "#1d4ed8",
   "#2563eb",
-  "#16a34a",
-  "#0f766e",
-  "#7c3aed",
-  "#ea580c",
-  "#db2777",
-  "#f59e0b",
-  "#0891b2",
+  "#3b82f6",
+  "#60a5fa",
+  "#93c5fd",
+  "#38bdf8",
+  "#0ea5e9",
+  "#1e40af",
 ];
 
 const DAYPARTS = [
   { label: "Morning", startHour: 6, endHour: 11, fill: "#2563eb" },
-  { label: "Midday", startHour: 11, endHour: 15, fill: "#0f766e" },
-  { label: "Afternoon", startHour: 15, endHour: 19, fill: "#7c3aed" },
-  { label: "Evening", startHour: 19, endHour: 24, fill: "#ea580c" },
-  { label: "Late Night", startHour: 0, endHour: 6, fill: "#334155" },
+  { label: "Midday", startHour: 11, endHour: 15, fill: "#3b82f6" },
+  { label: "Afternoon", startHour: 15, endHour: 19, fill: "#60a5fa" },
+  { label: "Evening", startHour: 19, endHour: 24, fill: "#1d4ed8" },
+  { label: "Late Night", startHour: 0, endHour: 6, fill: "#93c5fd" },
 ];
 
 function toNumber(value, fallback = 0) {
@@ -240,11 +240,20 @@ function isNamedCustomer(customerName) {
   return !["walk-in", "walk-in customer", "walk in", "guest", "anonymous"].includes(value);
 }
 
-function formatMoney(value, currency = "USD") {
-  return `${String(currency || "USD").toUpperCase()} ${toNumber(value).toLocaleString("en-US", {
+function normalizeCurrency(currency) {
+  const code = String(currency || "CAD").trim().toUpperCase();
+  return code === "USD" ? "CAD" : code || "CAD";
+}
+
+function formatMoney(value, currency = "CAD") {
+  const code = normalizeCurrency(currency);
+  const locale = code === "CAD" ? "en-CA" : "en-US";
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: code,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })}`;
+  }).format(toNumber(value));
 }
 
 function formatPercent(value, digits = 1) {
@@ -333,8 +342,29 @@ function normalizeSale(sale, productMap) {
 function normalizePurchaseOrder(order) {
   const createdAt = safeDate(order.createdAt) || new Date();
   const updatedAt = safeDate(order.updatedAt || order.createdAt) || createdAt;
+  const items = Array.isArray(order.items) ? order.items : [];
+  const unitsOrdered = items.reduce(
+    (sum, item) => sum + Math.max(0, toNumber(item?.qtyOrdered ?? item?.qty)),
+    0
+  );
+  const unitsReceived = items.reduce((sum, item) => sum + Math.max(0, toNumber(item?.qtyReceived)), 0);
+  const openUnits = Math.max(0, unitsOrdered - unitsReceived);
+  const totalEstimatedCost =
+    toNumber(order.totalEstimatedCost) > 0
+      ? toNumber(order.totalEstimatedCost)
+      : items.reduce(
+          (sum, item) =>
+            sum +
+            Math.max(0, toNumber(item?.qtyOrdered ?? item?.qty)) * Math.max(0, toNumber(item?.unitCost)),
+          0
+        );
   return {
     ...order,
+    items,
+    unitsOrdered: unitsOrdered || toNumber(order.unitsOrdered),
+    unitsReceived: unitsReceived || toNumber(order.unitsReceived),
+    openUnits: openUnits || toNumber(order.openUnits),
+    totalEstimatedCost,
     createdAt: createdAt.toISOString(),
     updatedAt: updatedAt.toISOString(),
     createdAtObj: createdAt,
@@ -438,7 +468,7 @@ function buildAnalyticsContext(snapshot = {}) {
     suppliers,
     cycleCounts,
     latestObservedAt,
-    currency: String(settings?.currency || "USD").toUpperCase(),
+    currency: normalizeCurrency(settings?.currency),
   };
 }
 
@@ -1704,7 +1734,7 @@ function buildCustomerTrend(range, sales, referenceDate) {
   });
 }
 
-function buildCustomerExecutive(summary, topCustomer, topCustomerShare, repeatCustomers, currency = "USD") {
+function buildCustomerExecutive(summary, topCustomer, topCustomerShare, repeatCustomers, currency = "CAD") {
   if (!summary.totalCustomers) {
     return {
       statusTone: "warning",
@@ -2068,12 +2098,30 @@ function getSuppliersDataset(range = "monthly", context = getAnalyticsContext())
   const inventoryIntel = getInventoryIntelligence(context);
   const supplierEntries = {};
   const now = context.latestObservedAt;
+  const normalizeSupplierKey = (value) => String(value || "").trim().toLowerCase();
+  const supplierProfiles = new Map(
+    (Array.isArray(context.suppliers) ? context.suppliers : [])
+      .filter((supplier) => String(supplier?.name || "").trim())
+      .map((supplier) => [normalizeSupplierKey(supplier.name), supplier])
+  );
 
   function ensureSupplier(name) {
     const supplier = String(name || "General Supplier").trim() || "General Supplier";
     if (!supplierEntries[supplier]) {
+      const profile = supplierProfiles.get(normalizeSupplierKey(supplier)) || {};
       supplierEntries[supplier] = {
         supplier,
+        contactName: String(profile.contactName || "").trim(),
+        email: String(profile.email || "").trim(),
+        phone: String(profile.phone || "").trim(),
+        accountCode: String(profile.accountCode || "").trim(),
+        preferredCategory: String(profile.preferredCategory || "").trim(),
+        paymentTerms: String(profile.paymentTerms || "").trim(),
+        reviewCadence: String(profile.reviewCadence || "").trim(),
+        configuredLeadTimeDays: toNumber(profile.leadTimeDays),
+        serviceLevelTarget: toNumber(profile.serviceLevelTarget),
+        isPreferred: Boolean(profile.isPreferred),
+        isActive: profile.isActive === undefined ? true : Boolean(profile.isActive),
         skuCount: 0,
         unitsOnHand: 0,
         inventoryValue: 0,
@@ -2095,6 +2143,10 @@ function getSuppliersDataset(range = "monthly", context = getAnalyticsContext())
     }
     return supplierEntries[supplier];
   }
+
+  (Array.isArray(context.suppliers) ? context.suppliers : []).forEach((supplier) => {
+    ensureSupplier(supplier?.name);
+  });
 
   context.products.forEach((product) => {
     const entry = ensureSupplier(product.supplier);
@@ -2159,26 +2211,31 @@ function getSuppliersDataset(range = "monthly", context = getAnalyticsContext())
   const suppliers = Object.values(supplierEntries)
     .map((entry) => {
       const fillRate = entry.unitsOrdered > 0 ? (entry.unitsReceived / entry.unitsOrdered) * 100 : 0;
-      const avgLeadTimeDays =
+      const trackedLeadTimeDays =
         entry.leadTimes.length > 0
           ? entry.leadTimes.reduce((sum, value) => sum + value, 0) / entry.leadTimes.length
           : 0;
+      const effectiveLeadTimeDays = trackedLeadTimeDays > 0 ? trackedLeadTimeDays : entry.configuredLeadTimeDays;
+      const targetFillRate = entry.serviceLevelTarget > 0 ? entry.serviceLevelTarget : 92;
       const serviceScore = clamp(
         100 -
           entry.criticalLines * 16 -
           entry.lateOrders * 14 -
-          Math.max(0, 85 - fillRate) * 0.6 -
-          Math.max(0, avgLeadTimeDays - 5) * 3,
+          Math.max(0, targetFillRate - fillRate) * 0.6 -
+          Math.max(0, effectiveLeadTimeDays - 5) * 3,
         22,
         100
       );
-      let pressureTone = "success";
-      let status = "Stable";
+      let pressureTone = entry.isActive ? "success" : "neutral";
+      let status = entry.isActive ? "Stable" : "Inactive";
 
-      if (entry.criticalLines > 0 && entry.openPoCount === 0) {
+      if (entry.isActive && entry.criticalLines > 0 && entry.openPoCount === 0) {
         pressureTone = "danger";
         status = "Uncovered";
-      } else if (entry.lateOrders > 0 || fillRate > 0 && fillRate < 82 || entry.lowStockLines > 0) {
+      } else if (
+        entry.isActive &&
+        (entry.lateOrders > 0 || (fillRate > 0 && fillRate < targetFillRate) || entry.lowStockLines > 0)
+      ) {
         pressureTone = "warning";
         status = "Watch";
       }
@@ -2186,7 +2243,8 @@ function getSuppliersDataset(range = "monthly", context = getAnalyticsContext())
       return {
         ...entry,
         fillRate: round(fillRate, 1),
-        avgLeadTimeDays: round(avgLeadTimeDays, 1),
+        avgLeadTimeDays: round(trackedLeadTimeDays, 1),
+        effectiveLeadTimeDays: round(effectiveLeadTimeDays, 1),
         serviceScore: round(serviceScore, 0),
         pressureTone,
         status,
@@ -2195,8 +2253,8 @@ function getSuppliersDataset(range = "monthly", context = getAnalyticsContext())
           entry.criticalLines * 22 +
             entry.lowStockLines * 8 +
             entry.lateOrders * 16 +
-            Math.max(0, 90 - fillRate) * 0.6 +
-            Math.max(0, avgLeadTimeDays - 5) * 2 +
+            Math.max(0, targetFillRate - fillRate) * 0.6 +
+            Math.max(0, effectiveLeadTimeDays - 5) * 2 +
             (entry.openPoCount === 0 && entry.lowStockLines > 0 ? 16 : 0),
           1
         ),
@@ -2208,7 +2266,12 @@ function getSuppliersDataset(range = "monthly", context = getAnalyticsContext())
             ? `${entry.criticalLines} critical lines have no inbound cover right now.`
             : null,
           entry.lateOrders > 0 ? `${entry.lateOrders} commitments are already past expected receipt.` : null,
-          fillRate > 0 && fillRate < 82 ? `Fill rate is only ${fillRate.toFixed(1)}% across tracked ordered units.` : null,
+          fillRate > 0 && fillRate < targetFillRate
+            ? `Fill rate is only ${fillRate.toFixed(1)}% against a ${targetFillRate.toFixed(0)}% service target.`
+            : null,
+          !trackedLeadTimeDays && entry.configuredLeadTimeDays > 0
+            ? `Configured lead time is ${entry.configuredLeadTimeDays.toFixed(0)} days while live receipt history is still thin.`
+            : null,
         ].filter(Boolean),
       };
     })
@@ -2221,15 +2284,19 @@ function getSuppliersDataset(range = "monthly", context = getAnalyticsContext())
         100
       : 0;
   const averageLeadTime =
-    suppliers.filter((supplier) => supplier.avgLeadTimeDays > 0).length > 0
+    suppliers.filter((supplier) => supplier.effectiveLeadTimeDays > 0).length > 0
       ? suppliers
-          .filter((supplier) => supplier.avgLeadTimeDays > 0)
-          .reduce((sum, supplier) => sum + supplier.avgLeadTimeDays, 0) /
-        suppliers.filter((supplier) => supplier.avgLeadTimeDays > 0).length
+          .filter((supplier) => supplier.effectiveLeadTimeDays > 0)
+          .reduce((sum, supplier) => sum + supplier.effectiveLeadTimeDays, 0) /
+        suppliers.filter((supplier) => supplier.effectiveLeadTimeDays > 0).length
       : 0;
   const openCommitmentValue = suppliers.reduce((sum, supplier) => sum + supplier.openPoValue, 0);
   const atRiskSuppliers = suppliers.filter((supplier) => supplier.pressureTone !== "success");
   const leadSupplier = suppliers[0] || null;
+  const receivedPurchaseOrders = context.purchaseOrders.filter((order) => order.receivedAtObj).length;
+  const totalTrackedUnitsOrdered = suppliers.reduce((sum, supplier) => sum + supplier.unitsOrdered, 0);
+  const totalTrackedUnitsReceived = suppliers.reduce((sum, supplier) => sum + supplier.unitsReceived, 0);
+  const configuredLeadTimeCoverage = suppliers.filter((supplier) => supplier.configuredLeadTimeDays > 0).length;
   const openPoCount = suppliers.reduce((sum, supplier) => sum + supplier.openPoCount, 0);
   const lateCommitments = suppliers.reduce((sum, supplier) => sum + supplier.lateOrders, 0);
   const uncoveredCriticalLines = suppliers.reduce(
@@ -2345,9 +2412,12 @@ function getSuppliersDataset(range = "monthly", context = getAnalyticsContext())
       {
         title: "Open Commitments",
         value: formatMoney(openCommitmentValue, context.currency),
+        actionLabel: openCommitmentValue > 0 ? "Review POs" : "Stable",
         message:
           openCommitmentValue > 0
-            ? "Purchase-order value is still sitting outside received stock."
+            ? leadSupplier
+              ? `${leadSupplier.supplier} is carrying ${formatMoney(leadSupplier.openPoValue, context.currency)} across ${leadSupplier.openPoCount} open purchase orders.`
+              : "Purchase-order value is still sitting outside received stock."
             : "No supplier commitment is waiting to be received right now.",
         tone: openCommitmentValue > 0 ? "warning" : "success",
         focus: "suppliers-open-orders",
@@ -2355,29 +2425,36 @@ function getSuppliersDataset(range = "monthly", context = getAnalyticsContext())
       {
         title: "Tracked Fill Rate",
         value: formatPercent(weightedFillRate),
+        actionLabel: weightedFillRate > 0 ? "Audit Receipts" : "Await History",
         message:
           weightedFillRate > 0
-            ? "This is the cleanest read on how fully suppliers are landing what was ordered."
-            : "Fill-rate history appears once received purchase orders build up.",
-        tone: weightedFillRate > 0 && weightedFillRate < 82 ? "warning" : "success",
+            ? `${totalTrackedUnitsReceived} units have been received against ${totalTrackedUnitsOrdered} ordered units across completed purchase orders.`
+            : "No received purchase orders are on file yet, so fill rate is waiting on live receipt history.",
+        tone: weightedFillRate > 0 && weightedFillRate < 82 ? "warning" : weightedFillRate > 0 ? "success" : "neutral",
         focus: "suppliers-service",
       },
       {
         title: "Average Lead Time",
         value: `${averageLeadTime.toFixed(1)} days`,
+        actionLabel: averageLeadTime > 0 ? "Review Timing" : configuredLeadTimeCoverage > 0 ? "Check Profiles" : "Await History",
         message:
           averageLeadTime > 0
-            ? "Shorter lead times give the business more room before low-stock pressure turns urgent."
-            : "Lead-time history appears once more orders are received.",
-        tone: averageLeadTime > 8 ? "warning" : "success",
+            ? `Calculated from ${receivedPurchaseOrders} received purchase orders, using supplier timing already recorded in the system.`
+            : configuredLeadTimeCoverage > 0
+              ? `${configuredLeadTimeCoverage} supplier profiles already carry configured lead times while receipt history is still building.`
+              : "Lead-time history appears once more purchase orders are received or supplier profiles are completed.",
+        tone: averageLeadTime > 8 ? "warning" : averageLeadTime > 0 ? "success" : configuredLeadTimeCoverage > 0 ? "neutral" : "neutral",
         focus: "suppliers-service",
       },
       {
         title: "Supplier Pressure",
         value: `${atRiskSuppliers.length}`,
+        actionLabel: atRiskSuppliers.length > 0 ? "Open Directory" : "Stable",
         message:
           atRiskSuppliers.length > 0
-            ? "Suppliers are already on watch because of stock, fill, or receiving pressure."
+            ? leadSupplier
+              ? `${leadSupplier.supplier} leads the pressure queue with ${leadSupplier.exposedSkuCount} exposed SKUs and ${leadSupplier.lateOrders} late commitments.`
+              : "Suppliers are already on watch because of stock, fill, or receiving pressure."
             : "No supplier is under meaningful pressure right now.",
         tone: atRiskSuppliers.length > 0 ? "warning" : "success",
         focus: "suppliers-directory",
@@ -2387,6 +2464,14 @@ function getSuppliersDataset(range = "monthly", context = getAnalyticsContext())
       supplier: supplier.supplier,
       tone: supplier.pressureTone,
       headline: supplier.pressureReasons[0] || "No immediate supplier break is visible.",
+      actionLabel:
+        supplier.criticalLines > 0 && supplier.openPoCount === 0
+          ? "Escalate"
+          : supplier.lateOrders > 0
+            ? "Follow Up"
+            : supplier.openPoCount > 0
+              ? "Review PO"
+              : "Open Record",
       action:
         supplier.criticalLines > 0 && supplier.openPoCount === 0
           ? `Raise an immediate replenishment call with ${supplier.supplier}.`
