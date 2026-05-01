@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
   FaArrowTrendUp as FiTrendingUp,
   FaDollarSign as FiDollarSign,
@@ -14,11 +13,9 @@ import {
 
 import API from "../../api/api";
 import AssistantActionBanner from "../AssistantActionBanner";
-import TimeRangeSwitch from "./shared/TimeRangeSwitch";
+import { LIVE_PAGE_POLL_INTERVAL_MS } from "./pageRuntime";
 import SoftPagination from "./shared/SoftPagination";
-import { ANALYTICAL_BLUE_ACCENT, ANALYTICAL_BLUE_FAINT } from "./shared/chartTheme";
 import {
-  firstArrayFrom,
   firstNumberFrom,
   formatDate,
   formatMoney,
@@ -27,6 +24,8 @@ import {
   toObject,
 } from "./shared/dataHelpers";
 import { getIdentityInitials, getIdentityTone } from "./shared/identityAvatar";
+import WorkspaceBannerStack from "./shared/WorkspaceBannerStack";
+import WorkspaceDataStatus from "./shared/WorkspaceDataStatus";
 
 const DIRECTORY_PAGE_SIZE = 8;
 
@@ -70,7 +69,7 @@ function customerRecordSearch(customer = {}, query = "") {
 function Customers({ settings }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [range, setRange] = useState("monthly");
+  const range = "monthly";
   const [analyticsData, setAnalyticsData] = useState({});
   const [customers, setCustomers] = useState([]);
   const [query, setQuery] = useState("");
@@ -79,10 +78,13 @@ function Customers({ settings }) {
   const [error, setError] = useState("");
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [directoryPage, setDirectoryPage] = useState(1);
+  const [lastUpdated, setLastUpdated] = useState("");
+  const [nowTick, setNowTick] = useState(Date.now());
 
   const currency = settings?.currency || "USD";
   const assistantActionLabel = location.state?.assistantActionLabel || "";
   const assistantActionNote = location.state?.assistantActionNote || "";
+  const assistantFocus = String(location.state?.assistantFocus || "").trim();
 
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +100,7 @@ function Customers({ settings }) {
 
         setAnalyticsData(getResponseData(analyticsResponse) || {});
         setCustomers(sortCustomers(toArray(getResponseData(customersResponse))));
+        setLastUpdated(new Date().toISOString());
         setError("");
       } catch (requestError) {
         if (!cancelled) {
@@ -117,11 +120,39 @@ function Customers({ settings }) {
   }, [range, refreshNonce]);
 
   useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setNowTick(Date.now());
+      setRefreshNonce((value) => value + 1);
+    }, LIVE_PAGE_POLL_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
     setDirectoryPage(1);
-  }, [query, quickFilter, customers.length, range]);
+  }, [query, quickFilter, customers.length]);
+
+  useEffect(() => {
+    if (!assistantFocus) return;
+
+    if (assistantFocus === "customers-directory") {
+      setQuickFilter("all");
+    } else if (assistantFocus === "customers-retention") {
+      setQuickFilter("cooling");
+    }
+
+    const targetId = ["customers-directory", "customers-retention"].includes(assistantFocus)
+      ? "customers-directory"
+      : "";
+
+    if (!targetId) return;
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [assistantFocus, location.key]);
 
   const summary = useMemo(() => toObject(analyticsData?.summary), [analyticsData]);
-  const trend = useMemo(() => firstArrayFrom(analyticsData, ["trend"]), [analyticsData]);
   const executiveSummary = useMemo(() => toObject(analyticsData?.executiveSummary), [analyticsData]);
 
   const namedCustomers = useMemo(() => customers.filter((customer) => !customer?.isWalkIn), [customers]);
@@ -159,15 +190,6 @@ function Customers({ settings }) {
   const directoryRows = filteredCustomers.slice(
     (activeDirectoryPage - 1) * DIRECTORY_PAGE_SIZE,
     activeDirectoryPage * DIRECTORY_PAGE_SIZE
-  );
-
-  const trendSeries = useMemo(
-    () =>
-      trend.map((entry, index) => ({
-        label: String(entry?.label || entry?.date || entry?.period || `P-${index + 1}`),
-        revenue: firstNumberFrom(entry, ["revenue", "value"]),
-      })),
-    [trend]
   );
 
   const summaryCards = [
@@ -232,19 +254,38 @@ function Customers({ settings }) {
     },
   ];
 
-  const openOrdersForCustomer = (customerName) => {
-    const nextCustomer = String(customerName || "").trim();
-    if (!nextCustomer) return;
-
-    navigate("/orders", {
-      state: {
-        assistantActionLabel: `Orders for ${nextCustomer}`,
-        assistantActionNote: `The order ledger is filtered to recent tickets for ${nextCustomer}.`,
-        prefillOrderQuery: nextCustomer,
-        ordersFocus: "orders-ledger",
-      },
-    });
-  };
+  const focusCards = [
+    {
+      label: "Capture queue",
+      value: `${captureQueue.length} profiles`,
+      note: captureQueue[0]?.name
+        ? `${captureQueue[0].name} is the next best profile to complete for repeat checkout recognition.`
+        : "Every named customer already has enough contact data for follow-up.",
+      action: "Open capture",
+      onClick: () => setQuickFilter("capture"),
+      icon: FiUsers,
+    },
+    {
+      label: "VIP watch",
+      value: `${vipCustomers.length} VIP`,
+      note: vipCustomers[0]?.name
+        ? `${vipCustomers[0].name} is already on the premium loyalty path.`
+        : "No customer has crossed the current VIP threshold yet.",
+      action: "View VIP",
+      onClick: () => setQuickFilter("vip"),
+      icon: FiStar,
+    },
+    {
+      label: "Cooling accounts",
+      value: `${coolingCustomers.length} need follow-up`,
+      note: coolingCustomers[0]?.name
+        ? `${coolingCustomers[0].name} should get a service recovery or outreach review next.`
+        : "No customer relationships are currently trending down.",
+      action: "Review watch",
+      onClick: () => setQuickFilter("cooling"),
+      icon: FiTrendingUp,
+    },
+  ];
 
   const startPosForCustomer = (customer) => {
     const nextCustomer = String(customer?.name || customer || "").trim();
@@ -264,7 +305,7 @@ function Customers({ settings }) {
   return (
     <div className="page-container customers-ref-page customer-roster-page">
       <AssistantActionBanner label={assistantActionLabel} note={assistantActionNote} />
-      {error ? <div className="info-banner inventory-error-banner">{error}</div> : null}
+      <WorkspaceBannerStack error={error} />
 
       <section className="reference-page-heading customers-reference-heading">
         <div className="reference-page-heading-copy">
@@ -277,10 +318,18 @@ function Customers({ settings }) {
         </div>
 
         <div className="reference-page-heading-actions">
-          <TimeRangeSwitch value={range} onChange={setRange} ariaLabel="Customer reporting range" />
+          <WorkspaceDataStatus
+            loading={loading}
+            live={!loading && Boolean(lastUpdated)}
+            liveIndicatorLabel="Live customer feed"
+            timestamp={lastUpdated}
+            nowTick={nowTick}
+            useRelativeTime
+            showPausedBadge
+          />
           <button type="button" className="btn btn-primary" onClick={() => navigate("/customers/new")}>
             <FiPlus />
-            Add Customer
+            Create Customer Record
           </button>
         </div>
       </section>
@@ -316,8 +365,24 @@ function Customers({ settings }) {
         ))}
       </section>
 
+      <section className="customers-focus-strip" aria-label="Customer priorities">
+        {focusCards.map((card) => (
+          <article key={card.label} className="customers-focus-card">
+            <div className="customers-focus-card-head">
+              <div className="customers-focus-card-icon">{card.icon ? <card.icon /> : null}</div>
+              <span>{card.label}</span>
+            </div>
+            <strong>{card.value}</strong>
+            <p>{card.note}</p>
+            <button type="button" className="btn btn-secondary btn-compact" onClick={card.onClick}>
+              {card.action}
+            </button>
+          </article>
+        ))}
+      </section>
+
       <section className="soft-main-grid soft-main-grid--customers">
-        <article className="soft-panel soft-table-card customers-directory-card">
+        <article id="customers-directory" className="soft-panel soft-table-card customers-directory-card">
           <header className="soft-panel-header">
             <div>
               <span className="reference-page-kicker">Customer directory</span>
@@ -329,9 +394,6 @@ function Customers({ settings }) {
                   Clear filter
                 </button>
               ) : null}
-              <button type="button" className="btn btn-secondary btn-compact" onClick={() => setRefreshNonce((value) => value + 1)}>
-                Refresh
-              </button>
             </div>
           </header>
 
@@ -476,148 +538,6 @@ function Customers({ settings }) {
           <SoftPagination currentPage={activeDirectoryPage} totalPages={directoryTotalPages} onChange={setDirectoryPage} />
         </article>
 
-        <div className="soft-side-stack">
-          <article className="soft-panel customers-loyalty-panel">
-            <header className="soft-panel-header">
-              <div>
-                <span className="reference-page-kicker">Loyalty Program</span>
-                <h3>How named pricing works</h3>
-              </div>
-            </header>
-            <div className="soft-key-value-list">
-              <div>
-                <span>Member discount</span>
-                <strong>{settings?.enableDiscounts ? `${settings?.defaultCustomerDiscountPct || 5}% on named customer checkouts` : "Discounts disabled in settings"}</strong>
-              </div>
-              <div>
-                <span>VIP discount</span>
-                <strong>{settings?.vipCustomerDiscountPct || 10}% after 6 orders or CAD 350 lifetime spend</strong>
-              </div>
-              <div>
-                <span>Why capture contact details</span>
-                <strong>Phone or email turns a one-off sale into a reusable customer record the next time they shop.</strong>
-              </div>
-            </div>
-          </article>
-
-          <article className="soft-panel customers-loyalty-panel">
-            <header className="soft-panel-header">
-              <div>
-                <span className="reference-page-kicker">Capture Queue</span>
-                <h3>First-time shoppers needing follow-up</h3>
-              </div>
-            </header>
-            {captureQueue.length ? (
-              <div className="soft-list">
-                {captureQueue.slice(0, 5).map((customer) => (
-                  <article key={customer.id} className="soft-list-row">
-                    <div>
-                      <strong>{customer.name}</strong>
-                      <small>{customer.customerNumber} | {customer.orderCount || 0} orders</small>
-                    </div>
-                      <button type="button" className="btn btn-secondary btn-compact" onClick={() => navigate(`/customers/${customer.id}`)}>
-                        Open profile
-                      </button>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="customer-record-empty">
-                <strong>Capture queue is clear.</strong>
-                <p>All named customers already have the contact details needed for repeat checkout and loyalty pricing.</p>
-              </div>
-            )}
-          </article>
-        </div>
-      </section>
-
-      <section className="soft-section-grid soft-section-grid--two customers-reference-lower">
-        <article className="soft-panel">
-          <header className="soft-panel-header">
-            <div>
-              <span className="reference-page-kicker">Customer momentum</span>
-              <h2>Named demand over time</h2>
-            </div>
-          </header>
-
-          <div className="soft-chart-shell soft-chart-shell--short">
-            {loading ? (
-              <p className="subtle">Loading customer trend...</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={trendSeries}>
-                  <defs>
-                    <linearGradient id="customersTrendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={ANALYTICAL_BLUE_ACCENT} stopOpacity="0.2" />
-                      <stop offset="100%" stopColor={ANALYTICAL_BLUE_FAINT} stopOpacity="0.02" />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tickLine={false} axisLine={false} />
-                  <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => formatMoney(currency, value)} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--surface)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "14px",
-                    }}
-                    formatter={(value) => [formatMoney(currency, value), "Revenue"]}
-                  />
-                  <Area type="monotone" dataKey="revenue" stroke={ANALYTICAL_BLUE_ACCENT} fill="url(#customersTrendFill)" strokeWidth={2.6} />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </article>
-
-        <article className="soft-panel">
-          <header className="soft-panel-header">
-            <div>
-              <span className="reference-page-kicker">Customer Watch</span>
-              <h3>Who needs staff attention next</h3>
-            </div>
-          </header>
-          <div id="customers-insight-board" className="soft-dual-list customers-insight-list">
-            <div className="soft-list">
-              <h4>Cooling accounts</h4>
-              {coolingCustomers.length ? (
-                coolingCustomers.slice(0, 4).map((customer) => (
-                  <article key={customer.id} className="soft-list-row">
-                    <div>
-                      <strong>{customer.name}</strong>
-                      <small>{customer.discountReason || "Demand and relationship quality are slipping."}</small>
-                    </div>
-                    <button type="button" className="btn btn-secondary btn-compact" onClick={() => navigate(`/customers/${customer.id}`)}>
-                      View
-                    </button>
-                  </article>
-                ))
-              ) : (
-                <p className="subtle">No cooling customer profiles are visible right now.</p>
-              )}
-            </div>
-            <div className="soft-list">
-              <h4>High-value accounts</h4>
-              {discountEligibleCustomers.length ? (
-                discountEligibleCustomers.slice(0, 4).map((customer) => (
-                  <article key={customer.id} className="soft-list-row">
-                    <div>
-                      <strong>{customer.name}</strong>
-                      <small>
-                        {formatMoney(currency, customer?.lifetimeSpend || 0)} lifetime spend | {customer?.orderCount || 0} orders
-                      </small>
-                    </div>
-                    <button type="button" className="btn btn-secondary btn-compact" onClick={() => openOrdersForCustomer(customer?.name)}>
-                      Orders
-                    </button>
-                  </article>
-                ))
-              ) : (
-                <p className="subtle">No discount-ready accounts are visible right now.</p>
-              )}
-            </div>
-          </div>
-        </article>
       </section>
     </div>
   );

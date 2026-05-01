@@ -4,11 +4,39 @@ import API from "../api/api";
 import defaultSettings from "../config/defaultSettings";
 
 const allowedSettingsKeys = new Set(Object.keys(defaultSettings));
+const SUPPORTED_CURRENCIES = new Set(["CAD"]);
+
+function normalizeCurrency(value) {
+  const code = String(value || defaultSettings.currency).trim().toUpperCase();
+  return SUPPORTED_CURRENCIES.has(code) ? code : defaultSettings.currency;
+}
+
+function normalizeTimeZone(value) {
+  const zone = String(value || defaultSettings.timeZone).trim();
+  return zone === "UTC" ? defaultSettings.timeZone : zone || defaultSettings.timeZone;
+}
 
 function mergeSettings(payload) {
-  return {
+  const nextSettings = {
     ...defaultSettings,
     ...(payload || {}),
+  };
+
+  return {
+    ...nextSettings,
+    currency: normalizeCurrency(nextSettings.currency),
+    timeZone: normalizeTimeZone(nextSettings.timeZone),
+    taxRate: Number(nextSettings.taxRate ?? defaultSettings.taxRate),
+    lowStockThreshold: Number(
+      nextSettings.lowStockThreshold ?? defaultSettings.lowStockThreshold
+    ),
+    autoLockMinutes: Number(nextSettings.autoLockMinutes ?? defaultSettings.autoLockMinutes),
+    dailySummaryDeliveryHour: Number(
+      nextSettings.dailySummaryDeliveryHour ?? defaultSettings.dailySummaryDeliveryHour
+    ),
+    dailySummaryDeliveryMinute: Number(
+      nextSettings.dailySummaryDeliveryMinute ?? defaultSettings.dailySummaryDeliveryMinute
+    ),
   };
 }
 

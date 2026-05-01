@@ -15,6 +15,7 @@ function InventoryDirectoryPanel({
   totalPages,
   tableLoading,
   onPageChange,
+  onCreateProduct,
   onQueryChange,
   onCategoryChange,
   onInventoryLaneChange,
@@ -27,28 +28,33 @@ function InventoryDirectoryPanel({
   const pageEnd = filteredProductCount ? Math.min(currentPage * pageSize, filteredProductCount) : 0;
 
   return (
-    <section className="soft-panel inventory-directory-panel">
-      <div className="panel-header soft-panel-header wrap-header">
+    <section className="soft-panel inventory-directory-surface">
+      <div className="panel-header soft-panel-header wrap-header inventory-directory-header">
         <div>
-          <h3>Inventory Directory</h3>
+          <h3>Live stock directory</h3>
           <p className="panel-subtitle">
-            Search, segment, and act on the full inventory with cleaner visibility.
+            Search the live catalog, filter by lane, and move straight into edits or replenishment.
           </p>
         </div>
-        <span className="inventory-hero-flag">
-          Showing {filteredProductCount} of {stats.totalProducts}
-        </span>
+        <div className="inventory-directory-header-actions">
+          <span className="inventory-directory-badge">
+            {filteredProductCount} live of {stats.totalProducts}
+          </span>
+          <button type="button" className="btn btn-primary btn-compact" onClick={onCreateProduct}>
+            Create Product
+          </button>
+        </div>
       </div>
 
-      <div className="inventory-directory-toolbar">
+      <div className="inventory-directory-filterbar">
         <input
-          className="input"
+          className="input inventory-directory-search"
           placeholder="Search name, SKU, barcode, supplier, or category"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
         />
         <select
-          className="input toolbar-select"
+          className="input toolbar-select inventory-directory-select"
           value={category}
           onChange={(event) => onCategoryChange(event.target.value)}
         >
@@ -60,12 +66,12 @@ function InventoryDirectoryPanel({
         </select>
       </div>
 
-      <div className="inventory-lane-bar">
+      <div className="inventory-directory-lanes">
         {laneOptions.map((lane) => (
           <button
             key={lane.key}
             type="button"
-            className={`inventory-lane-chip${inventoryLane === lane.key ? " active" : ""}`}
+            className={`inventory-directory-lane${inventoryLane === lane.key ? " is-active" : ""}`}
             onClick={() => onInventoryLaneChange(lane.key)}
           >
             <span>{lane.label}</span>
@@ -74,9 +80,12 @@ function InventoryDirectoryPanel({
         ))}
       </div>
 
-      <div className="inventory-table-wrap table-wrap">
+      <div className="inventory-directory-table-wrap">
         {tableLoading ? (
-          <div className="empty-state-card center">Refreshing inventory workspace...</div>
+          <div className="inventory-directory-feedback" role="status" aria-live="polite">
+            <strong>Loading live inventory</strong>
+            <p>Refreshing the current stock list, suppliers, and lane status.</p>
+          </div>
         ) : filteredProducts.length ? (
           <table className="table">
             <thead>
@@ -121,13 +130,13 @@ function InventoryDirectoryPanel({
                       <span className={`status-pill ${statusTone}`}>{product.status}</span>
                     </td>
                     <td>
-                      <div className="table-actions">
+                      <div className="inventory-directory-actions">
                         <button
                           type="button"
                           className="btn btn-secondary small"
                           onClick={() => onPopulateForm(product)}
                         >
-                          Edit
+                          Edit Record
                         </button>
                         <button
                           type="button"
@@ -151,25 +160,31 @@ function InventoryDirectoryPanel({
             </tbody>
           </table>
         ) : (
-          <div className="empty-state-card center">
-            No products match the current search and lane filters.
+          <div className="inventory-directory-feedback">
+            <strong>No products match this filter</strong>
+            <p>Clear the search or switch lanes to reopen the live stock list.</p>
+            <div className="inventory-directory-feedback-actions">
+              <button type="button" className="btn btn-secondary btn-compact" onClick={onCreateProduct}>
+                Create New SKU
+              </button>
+            </div>
           </div>
         )}
       </div>
 
       {!tableLoading && filteredProductCount ? (
-        <div className="inventory-directory-pagination">
-          <div className="inventory-directory-pagination-copy">
+        <div className="inventory-directory-footer">
+          <div className="inventory-directory-footer-copy">
             <span>
-              Showing {pageStart}-{pageEnd} of {filteredProductCount}
+              Showing {pageStart}-{pageEnd} of {filteredProductCount} live catalog lines
             </span>
-            <small>Use the page controls to move through the rest of the inventory list.</small>
+            <small>Use the pager to move through the rest of the live stock list.</small>
           </div>
           <SoftPagination
             currentPage={currentPage}
             totalPages={totalPages}
             onChange={onPageChange}
-            className="inventory-soft-pagination"
+            className="inventory-directory-pager"
             label="Inventory page navigation"
           />
         </div>

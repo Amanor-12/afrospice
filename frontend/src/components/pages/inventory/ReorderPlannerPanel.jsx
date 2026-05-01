@@ -47,7 +47,12 @@ function ReorderPlannerPanel({
           >
             {actionBusy === "create-po" ? "Creating..." : "Create Orders"}
           </button>
-          <button type="button" className="btn btn-primary small" onClick={onExportDraft}>
+          <button
+            type="button"
+            className="btn btn-primary small"
+            onClick={onExportDraft}
+            disabled={!selectedDraftItemsLength}
+          >
             Export Draft
           </button>
         </div>

@@ -18,6 +18,7 @@ import {
   formatRelativeTime,
   generateTemporaryPin,
   getDefaultShiftForRole,
+  getPinTone,
   getRiskLevel,
   getRiskScore,
   getStatusTone,
@@ -107,6 +108,52 @@ function buildPermissionGroups(role = "") {
     { label: "Settings access", note: "No workspace configuration access.", enabled: false },
     { label: "Checkout access", note: "Primary live selling surface for this role.", enabled: true },
   ];
+}
+
+function buildRoleFocus(role = "") {
+  const normalizedRole = String(role || "").toLowerCase();
+
+  if (normalizedRole === "owner") {
+    return {
+      label: "Workspace owner posture",
+      note: "This record governs approvals, security changes, refund authority, and final workspace decisions.",
+    };
+  }
+
+  if (normalizedRole === "manager") {
+    return {
+      label: "Floor management posture",
+      note: "This record coordinates operations, coaching, and day-to-day incident escalation across the floor.",
+    };
+  }
+
+  if (normalizedRole === "inventory clerk") {
+    return {
+      label: "Inventory lane posture",
+      note: "This record should stay focused on stock accuracy, receiving, and replenishment discipline.",
+    };
+  }
+
+  return {
+    label: "Checkout lane posture",
+    note: "This record should stay focused on live checkout, customer care, and clean transaction handling.",
+  };
+}
+
+function normalizeDetailTab(target = "", isCreateMode = false) {
+  const value = String(target || "").trim();
+  const fallback = isCreateMode ? "users-profile-board" : "users-security-board";
+  const aliases = {
+    "users-profile-board": "users-profile-board",
+    "users-permissions-board": "users-access-board",
+    "users-access-board": "users-access-board",
+    "users-schedule-board": "users-access-board",
+    "users-activity-board": "users-audit-board",
+    "users-audit-board": "users-audit-board",
+    "users-security-board": "users-security-board",
+  };
+
+  return aliases[value] || fallback;
 }
 
 function UserManagementDesk({ currentUser }) {
@@ -268,8 +315,9 @@ function UserManagementDesk({ currentUser }) {
   }, [loadStaffOptions]);
 
   useEffect(() => {
-    setActiveDetailTab("users-profile-board");
-  }, [isCreateMode, selectedUserId]);
+    const requestedDetailTab = String(location.state?.detailTab || "").trim();
+    setActiveDetailTab(normalizeDetailTab(requestedDetailTab, isCreateMode));
+  }, [isCreateMode, location.key, location.state, selectedUserId]);
 
   const selectedDepartmentOptions = ROLE_DEPARTMENTS[formData.role] || [];
   const summary = oversight?.summary || user?.oversight || {};
@@ -627,11 +675,10 @@ function UserManagementDesk({ currentUser }) {
   };
 
   const detailTabs = [
+    ...(!isCreateMode ? [{ label: "Security", target: "users-security-board" }] : []),
+    { label: "Access", target: "users-access-board" },
     { label: "Profile", target: "users-profile-board" },
-    { label: "Permissions", target: "users-permissions-board" },
-    { label: "Schedule", target: "users-schedule-board" },
-    ...(!isCreateMode ? [{ label: "Activity Log", target: "users-activity-board" }] : []),
-    ...(!isCreateMode ? [{ label: "Security Settings", target: "users-security-board" }] : []),
+    ...(!isCreateMode ? [{ label: "Audit", target: "users-audit-board" }] : []),
   ];
 
   const profileName = String(formData.fullName || user?.fullName || "Staff member");
@@ -649,6 +696,44 @@ function UserManagementDesk({ currentUser }) {
       .slice(0, 2)
       .toUpperCase() || "ST";
   const permissionCards = buildPermissionGroups(formData.role || user?.role);
+  const profileTone = "blue";
+  const accountStatusTone = getStatusTone(accountStatus);
+  const pinTone = getPinTone(user?.pinStatus || "Not Set");
+  const roleFocus = buildRoleFocus(profileRole);
+  const accessState = isCreateMode
+    ? {
+        label: "Draft record",
+        tone: "neutral",
+        note: "Set the profile, access role, and temporary PIN before publishing this staff record.",
+      }
+    : accountStatus === "Pending Approval"
+      ? {
+          label: "Approval pending",
+          tone: "warning",
+          note: "Owner approval and a valid temporary PIN are still required before this record can sign in.",
+        }
+      : accountStatus === "Inactive"
+        ? {
+            label: "Access paused",
+            tone: "danger",
+            note: "This record is suspended from live workspace activity until the owner reactivates it.",
+          }
+        : {
+            label: "Live access active",
+            tone: "success",
+            note: "This record can sign in and operate inside the live workspace right now.",
+          };
+  const auditState = Number(summary.failedLoginCount7d || 0) > 0
+    ? {
+        label: `${summary.failedLoginCount7d} failed sign-ins`,
+        tone: "warning",
+        note: "Recent authentication pressure needs review before access widens further.",
+      }
+    : {
+        label: lastSeenLabel,
+        tone: "neutral",
+        note: "Recent activity and audit pressure are currently stable for this record.",
+      };
 
   if (loading) {
     return <div className="app-boot-shell">Loading staff management...</div>;
@@ -660,22 +745,23 @@ function UserManagementDesk({ currentUser }) {
         <div className="users-management-detail-copy">
           {!isCreateMode ? (
             <div className="users-management-breadcrumbs">
-              <button type="button" onClick={() => navigate("/users")}>User Management</button>
+              <button type="button" className="route-pill-button users-management-breadcrumb-button" onClick={() => navigate("/users")}>
+                Staff Records
+              </button>
               <span>/</span>
               <strong>{profileName}</strong>
             </div>
           ) : null}
           <div className="users-management-detail-identity">
-            <div className="users-management-detail-avatar">{profileInitials}</div>
+            <div className="users-management-detail-avatar" data-tone={profileTone}>{profileInitials}</div>
             <div className="users-management-detail-meta">
-              <span className="reference-page-kicker">User Management</span>
+              <span className="reference-page-kicker">Staff Records</span>
               <h1>{isCreateMode ? "Create Staff Record" : profileName}</h1>
               <p>{profileEmail}</p>
               <div className="users-management-detail-pills">
                 <span className="status-pill neutral">{profileRole}</span>
                 <span className="status-pill neutral">{profileDepartment}</span>
                 {!isCreateMode ? <span className={`status-pill ${getStatusTone(accountStatus)}`}>{accountStatus}</span> : null}
-                {!isCreateMode ? <span className={`status-pill ${riskLevel.tone}`}>{riskLevel.label}</span> : null}
               </div>
               <div className="users-management-detail-facts">
                 <span>{user?.staffId || "Assigned on save"}</span>
@@ -711,13 +797,55 @@ function UserManagementDesk({ currentUser }) {
       {error ? <div className="info-banner inventory-error-banner">{error}</div> : null}
       {banner ? <div className="info-banner">{banner}</div> : null}
 
-      <section className="users-management-tabs users-management-tabs--detail">
+      <section className="users-record-status-bar">
+        <article className={`users-record-status-card users-record-status-card--${isCreateMode ? "neutral" : accountStatusTone}`}>
+          <div className="users-record-status-head">
+            <span className="reference-page-kicker">Security</span>
+            <span className={`status-pill small ${isCreateMode ? "neutral" : accountStatusTone}`}>
+              {isCreateMode ? "Draft" : accountStatus}
+            </span>
+          </div>
+          <strong>{accessState.label}</strong>
+          <p>{accessState.note}</p>
+        </article>
+        <article className={`users-record-status-card users-record-status-card--${pinTone}`}>
+          <div className="users-record-status-head">
+            <span className="reference-page-kicker">Access</span>
+            <span className={`status-pill small ${pinTone}`}>{user?.pinStatus || "Not Set"}</span>
+          </div>
+          <strong>{roleFocus.label}</strong>
+          <p>{roleFocus.note}</p>
+        </article>
+        <article className="users-record-status-card users-record-status-card--neutral">
+          <div className="users-record-status-head">
+            <span className="reference-page-kicker">Profile</span>
+            <span className="status-pill small neutral">{profileDepartment}</span>
+          </div>
+          <strong>{profileRole}</strong>
+          <p>{isCreateMode ? "Record details are still being drafted." : `${profileName} is assigned to ${profileDepartment}.`}</p>
+        </article>
+        <article className={`users-record-status-card users-record-status-card--${auditState.tone}`}>
+          <div className="users-record-status-head">
+            <span className="reference-page-kicker">Audit</span>
+            <span className={`status-pill small ${auditState.tone}`}>{auditState.label}</span>
+          </div>
+          <strong>{riskLevel.label} oversight</strong>
+          <p>{auditState.note}</p>
+        </article>
+      </section>
+
+      <section className="users-management-tabs users-management-tabs--detail users-detail-tabs">
         {detailTabs.map((tab) => (
           <button
             key={tab.target}
             type="button"
-            className={activeDetailTab === tab.target ? "users-management-tab is-active" : "users-management-tab"}
+            className={
+              activeDetailTab === tab.target
+                ? "users-management-tab users-detail-tab is-active active"
+                : "users-management-tab users-detail-tab"
+            }
             onClick={() => setActiveDetailTab(tab.target)}
+            aria-pressed={activeDetailTab === tab.target}
           >
             {tab.label}
           </button>
@@ -818,7 +946,7 @@ function UserManagementDesk({ currentUser }) {
                 <article className="users-signal-card">
                   <span>PIN Posture</span>
                   <strong>{user?.pinStatus || "Not Set"}</strong>
-                  <p>Temporary PIN management stays inside Security Settings.</p>
+                  <p>Temporary PIN management stays inside the Security workspace.</p>
                 </article>
                 <article className="users-signal-card">
                   <span>Last Active</span>
@@ -829,10 +957,10 @@ function UserManagementDesk({ currentUser }) {
               {!isCreateMode ? (
                 <div className="users-management-actions">
                   <button type="button" className="btn btn-secondary" onClick={() => setActiveDetailTab("users-security-board")}>
-                    Open Security Settings
+                    Open Security
                   </button>
-                  <button type="button" className="btn btn-secondary" onClick={() => setActiveDetailTab("users-schedule-board")}>
-                    Open Schedule
+                  <button type="button" className="btn btn-secondary" onClick={() => setActiveDetailTab("users-access-board")}>
+                    Open Access Board
                   </button>
                 </div>
               ) : null}
@@ -860,8 +988,8 @@ function UserManagementDesk({ currentUser }) {
                     )) : <div className="users-timeline-empty">No access events have been recorded yet.</div>}
                   </div>
                   <div className="users-management-actions">
-                    <button type="button" className="btn btn-secondary" onClick={() => setActiveDetailTab("users-activity-board")}>
-                      Open Activity Log
+                    <button type="button" className="btn btn-secondary" onClick={() => setActiveDetailTab("users-audit-board")}>
+                      Open Audit
                     </button>
                   </div>
                 </section>
@@ -889,21 +1017,22 @@ function UserManagementDesk({ currentUser }) {
               ))}
             </div>
             <div className="users-management-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => setActiveDetailTab("users-schedule-board")}>
-                Manage Schedule
+              <button type="button" className="btn btn-secondary" onClick={() => setActiveDetailTab("users-access-board")}>
+                Open Access Board
               </button>
             </div>
           </section>
         </>
       ) : null}
 
-      {activeDetailTab === "users-permissions-board" ? (
-        <section id="users-permissions-board" className="panel clean-panel ops-section users-management-panel users-permissions-board">
+      {activeDetailTab === "users-access-board" ? (
+        <>
+        <section id="users-access-board" className="panel clean-panel ops-section users-management-panel users-permissions-board">
           <div className="ops-section__header">
             <div>
-              <p className="eyebrow">Permissions</p>
+              <p className="eyebrow">Access</p>
               <h3>Role-based access and operating coverage</h3>
-              <p className="panel-subtitle">This section reflects how the selected role is expected to behave across the workspace.</p>
+              <p className="panel-subtitle">Keep permissions, risk posture, and shift readiness on one cleaner control board.</p>
             </div>
           </div>
           <div className="users-access-signal-strip">
@@ -937,15 +1066,13 @@ function UserManagementDesk({ currentUser }) {
             ))}
           </div>
         </section>
-      ) : null}
 
-      {activeDetailTab === "users-schedule-board" ? (
         <section id="users-schedule-board" className="panel clean-panel ops-section users-management-panel users-schedule-studio">
           <div className="ops-section__header wrap-header">
             <div>
-              <p className="eyebrow">Schedule</p>
+              <p className="eyebrow">Access</p>
               <h3>Weekly work schedule</h3>
-              <p className="panel-subtitle">Set the staff week clearly, keep shifts readable, and publish one clean schedule.</p>
+              <p className="panel-subtitle">Staff access is not just permissions. Keep the live roster and schedule clear before this record goes on floor.</p>
             </div>
             <div className="users-management-hero-actions compact users-schedule-tools">
               <select className="input users-copy-select" value={copySourceId} onChange={(event) => setCopySourceId(event.target.value)}>
@@ -1097,14 +1224,15 @@ function UserManagementDesk({ currentUser }) {
             </div>
           </section>
         </section>
+        </>
       ) : null}
 
-      {!isCreateMode && activeDetailTab === "users-activity-board" ? (
+      {!isCreateMode && activeDetailTab === "users-audit-board" ? (
           <div id="users-activity-board" className="users-management-detail-activity-grid">
             <section id="users-session-board" className="panel clean-panel ops-section users-management-panel">
               <div className="users-timeline-head">
                 <div>
-                  <span>Schedule Activity</span>
+                  <span>Audit Sessions</span>
                   <strong>{filteredSessions.length} tracked sessions</strong>
                 </div>
                 <select className="input users-timeline-filter" value={sessionFilter} onChange={(event) => setSessionFilter(event.target.value)}>
@@ -1131,7 +1259,7 @@ function UserManagementDesk({ currentUser }) {
             <section id="users-events-board" className="panel clean-panel ops-section users-management-panel">
               <div className="users-timeline-head">
                 <div>
-                  <span>Activity Log</span>
+                  <span>Audit Trail</span>
                   <strong>{filteredEvents.length} events</strong>
                 </div>
                 <select className="input users-timeline-filter" value={eventFilter} onChange={(event) => setEventFilter(event.target.value)}>
@@ -1161,7 +1289,7 @@ function UserManagementDesk({ currentUser }) {
           <section id="users-security-board" className="panel clean-panel ops-section users-management-panel">
             <div className="ops-section__header">
               <div>
-                <p className="eyebrow">Security Settings</p>
+                <p className="eyebrow">Security</p>
                 <h3>PIN, approval, and account control</h3>
                 <p className="panel-subtitle">Manage access posture, activation state, and temporary credential flow.</p>
               </div>
@@ -1194,6 +1322,7 @@ function UserManagementDesk({ currentUser }) {
             {generatedPin ? <div className="users-management-placeholder users-pin-preview"><span>Temporary PIN</span><strong>{generatedPin}</strong><small>This is shown once. The staff member must replace it on first login.</small></div> : null}
             <div className="users-management-actions">
               <button type="button" className="btn btn-secondary" onClick={handleApproveAccess} disabled={!isOwner || user?.status !== "Pending Approval" || user?.pinStatus !== "Assigned" || actionLoading === "approve"}>Approve Access</button>
+              <button type="button" className="btn btn-secondary" onClick={() => handleToggleStatus("Pending Approval")} disabled={!isOwner || user?.status === "Pending Approval" || String(user?.id) === String(currentUser?.id) || actionLoading === "pending approval"}>Set Pending</button>
               <button type="button" className="btn btn-secondary" onClick={() => handleToggleStatus("Active")} disabled={!isOwner || user?.status === "Active" || actionLoading === "active"}>Activate</button>
               <button type="button" className="btn btn-secondary" onClick={() => handleToggleStatus("Inactive")} disabled={!isOwner || user?.status === "Inactive" || String(user?.id) === String(currentUser?.id) || actionLoading === "inactive"}>Deactivate</button>
             </div>
@@ -1202,7 +1331,7 @@ function UserManagementDesk({ currentUser }) {
           <section className="panel clean-panel ops-section users-management-panel users-management-danger-zone">
             <div className="ops-section__header">
               <div>
-                <p className="eyebrow">Security Settings</p>
+                <p className="eyebrow">Security</p>
                 <h3>Delete user</h3>
                 <p className="panel-subtitle">Once deleted, this user account cannot be recovered.</p>
               </div>

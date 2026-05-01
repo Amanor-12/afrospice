@@ -2,11 +2,19 @@ export const emptyForm = {
   name: "",
   sku: "",
   barcode: "",
+  imageUrl: "",
   category: "",
   supplier: "",
+  taxClass: "",
   price: "",
   unitCost: "",
   stock: "",
+  unitLabel: "unit",
+  casePack: "",
+  reorderPoint: "",
+  parLevel: "",
+  shelfLocation: "",
+  receivingNotes: "",
 };
 
 const normalizeCollection = (data) => {

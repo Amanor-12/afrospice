@@ -1,6 +1,5 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   FaBriefcase as FiBriefcase,
   FaChartLine as FiActivity,
@@ -13,25 +12,30 @@ import {
 } from "react-icons/fa6";
 
 import API from "../../api/api";
+import AssistantActionBanner from "../AssistantActionBanner";
+import { LIVE_PAGE_POLL_INTERVAL_MS } from "./pageRuntime";
 import SoftPagination from "./shared/SoftPagination";
-import { ANALYTICAL_BLUE_ACCENT } from "./shared/chartTheme";
-import { getIdentityInitials, getIdentityTone } from "./shared/identityAvatar";
+import { getIdentityInitials } from "./shared/identityAvatar";
 import { formatDate, getResponseData, toArray, toNumber } from "./shared/dataHelpers";
+import WorkspaceBannerStack from "./shared/WorkspaceBannerStack";
+import WorkspaceDataStatus from "./shared/WorkspaceDataStatus";
 
 const DIRECTORY_PAGE_SIZE = 8;
 
 function getStatusTone(status = "") {
   const normalized = String(status || "").toLowerCase();
-  if (normalized.includes("active")) return "success";
-  if (normalized.includes("pending")) return "warning";
   if (normalized.includes("inactive") || normalized.includes("suspend")) return "danger";
+  if (normalized.includes("pending")) return "warning";
+  if (normalized.includes("active")) return "success";
   return "neutral";
 }
 
 function Users({ currentUser }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [query, setQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("users-directory-board");
+  const [activeTab, setActiveTab] = useState("directory");
   const [roleFilter, setRoleFilter] = useState("All");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -39,22 +43,29 @@ function Users({ currentUser }) {
   const [updatingUserId, setUpdatingUserId] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [refreshNonce, setRefreshNonce] = useState(0);
   const [directoryPage, setDirectoryPage] = useState(1);
+  const [lastUpdated, setLastUpdated] = useState("");
+  const [nowTick, setNowTick] = useState(Date.now());
 
   const isOwner = String(currentUser?.role || "") === "Owner";
+  const assistantActionLabel = location.state?.assistantActionLabel || "";
+  const assistantActionNote = location.state?.assistantActionNote || "";
 
   useEffect(() => {
     let cancelled = false;
 
-    const load = async () => {
+    const load = async ({ silent = false } = {}) => {
       try {
-        setLoading(true);
+        if (!silent) {
+          setLoading(true);
+        }
         const response = await API.get("/users");
         if (cancelled) return;
 
         startTransition(() => {
-          setUsers(toArray(getResponseData(response)));
+          const nextUsers = toArray(getResponseData(response));
+          setUsers(nextUsers);
+          setLastUpdated(String(nextUsers[0]?.updatedAt || new Date().toISOString()));
           setError("");
         });
       } catch (requestError) {
@@ -65,14 +76,30 @@ function Users({ currentUser }) {
     };
 
     load();
+    const timer = window.setInterval(() => {
+      setNowTick(Date.now());
+      load({ silent: true });
+    }, LIVE_PAGE_POLL_INTERVAL_MS);
+
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
-  }, [refreshNonce]);
+  }, []);
 
   useEffect(() => {
     setDirectoryPage(1);
   }, [query, roleFilter, departmentFilter, statusFilter, users.length]);
+
+  useEffect(() => {
+    const focus = String(location.state?.assistantFocus || "").trim();
+    if (focus !== "users-directory") return;
+
+    setActiveTab("directory");
+    window.requestAnimationFrame(() => {
+      document.getElementById("users-directory-board")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [location.key, location.state]);
 
   const filteredUsers = useMemo(() => {
     const term = String(query || "").trim().toLowerCase();
@@ -144,27 +171,76 @@ function Users({ currentUser }) {
     [users]
   );
 
-  const roleChartData = [
-    { label: "Owners", value: roleCounts.owners },
-    { label: "Managers", value: roleCounts.managers },
-    { label: "Cashiers", value: roleCounts.cashiers },
-    { label: "Inventory", value: roleCounts.inventory },
+  const accessPostureRows = [
+    {
+      label: "Owner account",
+      value: roleCounts.owners ? `${roleCounts.owners} configured` : "Missing",
+      tone: roleCounts.owners ? "success" : "danger",
+      note: roleCounts.owners ? "Owner access is the only enabled app operator path." : "Create or restore the owner account before go-live.",
+      action: "Review Owner",
+      onClick: () => {
+        setRoleFilter("Owner");
+        setDepartmentFilter("All");
+        setStatusFilter("All");
+      },
+    },
+    {
+      label: "Pending approvals",
+      value: `${pendingCount}`,
+      tone: pendingCount ? "warning" : "success",
+      note: pendingCount ? "Records need owner review before staff can be activated." : "No staff records are waiting on owner approval.",
+      action: "Open Pending",
+      onClick: () => {
+        setRoleFilter("All");
+        setDepartmentFilter("All");
+        setStatusFilter("Pending Approval");
+      },
+    },
+    {
+      label: "Session risk",
+      value: `${sessionCount} live / ${failedLogins} failed`,
+      tone: failedLogins ? "warning" : "success",
+      note: failedLogins ? "Failed sign-ins need review before approving more access." : "No failed sign-in pressure is active in the 7-day window.",
+      action: "Open Watch",
+      onClick: () => document.getElementById("users-session-board")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    },
+    {
+      label: "Staff records",
+      value: `${users.length}`,
+      tone: users.length ? "neutral" : "warning",
+      note: "Staff records are retained for audit, scheduling, and accountability. App operation stays owner-only.",
+      action: "Open Directory",
+      onClick: () => document.getElementById("users-directory-board")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    },
   ];
 
   const summaryCards = [
-    { label: "All Users", value: `${users.length}`, note: `${activeCount} active`, icon: FiUsers },
-    { label: "Admins", value: `${roleCounts.owners + roleCounts.managers}`, note: "Owner and manager access", icon: FiShield },
-    { label: "Inventory Managers", value: `${roleCounts.inventory}`, note: "Inventory-led staff records", icon: FiUser },
-    { label: "Sales Managers", value: `${roleCounts.cashiers}`, note: `${pendingCount} pending approval`, icon: FiUser },
+    { label: "Staff Records", value: `${users.length}`, note: `${activeCount} active records`, icon: FiUsers },
+    { label: "Owner Control", value: `${roleCounts.owners}`, note: "Only owner can operate the app", icon: FiShield },
+    { label: "Inventory Records", value: `${roleCounts.inventory}`, note: "For stock accountability only", icon: FiUser },
+    { label: "Approval Queue", value: `${pendingCount}`, note: "Owner review required", icon: FiUser },
   ];
 
-  const managementTabs = [
-    { label: "Workforce Directory", target: "users-directory-board" },
-    { label: "Roles & Access", target: "users-roles-board" },
-    { label: "Sessions", target: "users-session-board" },
-    { label: "Invitations", target: "users-tools-board" },
-    { label: "Notifications", target: "users-tools-board" },
-  ];
+  const openStaffCreate = (sourceLabel = "Create Staff Record") => {
+    navigate("/users/staff/new", {
+      state: {
+        assistantActionLabel: "New staff record",
+        assistantActionNote: `${sourceLabel} opened the staff setup workflow.`,
+      },
+    });
+  };
+
+  const openStaffRecord = (user) => {
+    if (!user?.id) return;
+
+    navigate(`/users/staff/${user.id}`, {
+      state: {
+        assistantActionLabel: user?.fullName ? `${user.fullName} record opened` : "Staff record opened",
+        assistantActionNote: "Review access, role coverage, schedule, and activation controls here.",
+        detailTab: "users-security-board",
+      },
+    });
+  };
 
   const quickTools = [
     {
@@ -172,9 +248,8 @@ function Users({ currentUser }) {
       label: "Invite Workspace User",
       note: "Create the next staff record with role and approval defaults.",
       icon: FiPlus,
-      actionLabel: "Invite User",
-      onClick: () => {},
-      href: "/users/staff/new",
+      actionLabel: "Create Staff Record",
+      onClick: () => openStaffCreate("Workforce tools"),
     },
     {
       key: "pending",
@@ -199,13 +274,90 @@ function Users({ currentUser }) {
     },
     {
       key: "roles",
-      label: "Role Controls",
-      note: `${roleCounts.owners + roleCounts.managers} elevated accounts across the workspace.`,
+      label: "Owner Access Controls",
+      note: `${roleCounts.owners} owner account controls the live workspace; staff remain records for audit.`,
       icon: FiBriefcase,
-      actionLabel: "View Roles",
+      actionLabel: "Review Access",
       onClick: () => {
         document.getElementById("users-roles-board")?.scrollIntoView({ behavior: "smooth", block: "start" });
       },
+    },
+  ];
+
+  const resetFilters = () => {
+    setQuery("");
+    setRoleFilter("All");
+    setDepartmentFilter("All");
+    setStatusFilter("All");
+  };
+
+  const commandFilters = [
+    {
+      key: "all",
+      label: "All staff",
+      active: roleFilter === "All" && departmentFilter === "All" && statusFilter === "All",
+      onClick: resetFilters,
+    },
+    {
+      key: "pending",
+      label: `Pending (${pendingCount})`,
+      active: statusFilter === "Pending Approval",
+      onClick: () => {
+        setRoleFilter("All");
+        setDepartmentFilter("All");
+        setStatusFilter("Pending Approval");
+      },
+    },
+    {
+      key: "cashier",
+      label: `Cashiers (${roleCounts.cashiers})`,
+      active: roleFilter === "Cashier",
+      onClick: () => {
+        setRoleFilter("Cashier");
+        setDepartmentFilter("All");
+        setStatusFilter("All");
+      },
+    },
+    {
+      key: "inventory",
+      label: `Inventory (${roleCounts.inventory})`,
+      active: roleFilter === "Inventory Clerk",
+      onClick: () => {
+        setRoleFilter("Inventory Clerk");
+        setDepartmentFilter("All");
+        setStatusFilter("All");
+      },
+    },
+  ];
+  const usersRouteStatus = loading
+    ? "Syncing workforce..."
+    : lastUpdated
+    ? `Updated ${formatDate(lastUpdated)}`
+    : "Workforce routes ready";
+  const usersQuickRoutes = [
+    {
+      key: "directory",
+      label: "Open Directory",
+      onClick: () => {
+        setActiveTab("directory");
+        document.getElementById("users-directory-board")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      },
+      primary: activeTab === "directory",
+    },
+    {
+      key: "sessions",
+      label: "Open Sessions",
+      onClick: () => {
+        setActiveTab("sessions");
+        document.getElementById("users-session-board")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      },
+      primary: activeTab === "sessions",
+    },
+    {
+      key: "invite",
+      label: "Create Staff Record",
+      onClick: () => openStaffCreate("User management routes"),
+      primary: false,
     },
   ];
 
@@ -224,9 +376,15 @@ function Users({ currentUser }) {
       setUpdatingUserId(String(user.id));
       setError("");
       setNotice("");
-      await API.patch(`/users/${user.id}/status`, { status });
+      const response = await API.patch(`/users/${user.id}/status`, { status });
+      const updatedUser = getResponseData(response);
+      if (updatedUser?.id) {
+        setUsers((current) =>
+          current.map((entry) => (String(entry?.id) === String(updatedUser.id) ? updatedUser : entry))
+        );
+        setLastUpdated(String(updatedUser.updatedAt || new Date().toISOString()));
+      }
       setNotice(`${user.fullName} set to ${status}.`);
-      setRefreshNonce((value) => value + 1);
     } catch (requestError) {
       setError(requestError?.message || "Could not update user status.");
     } finally {
@@ -236,41 +394,47 @@ function Users({ currentUser }) {
 
   return (
     <div className="page-container users-ref-page users-management-overview-page">
-      {error ? <div className="info-banner inventory-error-banner">{error}</div> : null}
-      {notice ? <div className="info-banner">{notice}</div> : null}
+      <AssistantActionBanner label={assistantActionLabel} note={assistantActionNote} />
+      <WorkspaceBannerStack error={error} notice={notice} />
 
       <section className="reference-page-heading users-reference-heading">
         <div className="reference-page-heading-copy">
-          <span className="reference-page-kicker">Workforce Control</span>
-          <h1>User Management</h1>
-          <p>Manage your team members, their roles, approval state, and store access in one calmer workforce surface.</p>
+          <span className="reference-page-kicker">Owner Workforce Control</span>
+          <h1>Staff Records</h1>
+          <p>Review owner-controlled staff records, approvals, access posture, and operational accountability from one calmer oversight surface.</p>
         </div>
 
         <div className="reference-page-heading-actions">
-          <button type="button" className="btn btn-secondary" onClick={() => setRefreshNonce((value) => value + 1)}>
-            Refresh
-          </button>
-          <Link to="/users/staff/new" className="btn btn-primary">
+          <WorkspaceDataStatus
+            loading={loading}
+            live={!loading && Boolean(lastUpdated)}
+            liveIndicatorLabel="Live workforce directory"
+            timestamp={lastUpdated}
+            nowTick={nowTick}
+            useRelativeTime
+            showPausedBadge
+          />
+          <button type="button" className="btn btn-primary" onClick={() => openStaffCreate("User management header")}>
             <FiPlus />
-            Invite User
-          </Link>
+            Create Staff Record
+          </button>
         </div>
       </section>
 
-      <section className="users-management-tabs" aria-label="User management sections">
-        {managementTabs.map((tab, index) => (
-          <button
-            key={tab.label}
-            type="button"
-            className={activeTab === tab.target || (index === 0 && activeTab === "users-directory-board") ? "users-management-tab is-active" : "users-management-tab"}
-            onClick={() => {
-              setActiveTab(tab.target);
-              document.getElementById(tab.target)?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <section className="soft-panel soft-panel--compact control-signal-board users-management-route-board" aria-label="User management routes">
+        <div className="route-pill-strip users-route-strip">
+          <span className="route-pill-status">{usersRouteStatus}</span>
+          {usersQuickRoutes.map((route) => (
+            <button
+              key={route.key}
+              type="button"
+              className={`route-pill-button${route.primary ? " is-primary" : ""}`}
+              onClick={route.onClick}
+            >
+              {route.label}
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="soft-summary-grid soft-summary-grid--four users-management-stats">
@@ -295,17 +459,25 @@ function Users({ currentUser }) {
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
-        <Link to="/users/staff/new" className="btn btn-primary">
-          <FiPlus />
-          Invite User
-        </Link>
+        <div className="users-management-command-actions" aria-label="User directory quick filters">
+          {commandFilters.map((filter) => (
+            <button
+              key={filter.key}
+              type="button"
+              className={`users-command-chip ${filter.active ? "is-active" : ""}`}
+              onClick={filter.onClick}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
       </section>
 
       <section id="users-directory-board" className="soft-panel soft-table-card users-directory-card">
         <header className="soft-panel-header">
           <div>
-            <span className="reference-page-kicker">User directory</span>
-            <h2>Live roster</h2>
+            <span className="reference-page-kicker">Staff directory</span>
+            <h2>Staff roster</h2>
           </div>
         </header>
 
@@ -336,12 +508,7 @@ function Users({ currentUser }) {
             <button
               type="button"
               className="btn btn-secondary btn-compact"
-              onClick={() => {
-                setQuery("");
-                setRoleFilter("All");
-                setDepartmentFilter("All");
-                setStatusFilter("All");
-              }}
+              onClick={resetFilters}
             >
               Clear
             </button>
@@ -375,7 +542,7 @@ function Users({ currentUser }) {
                       <div className="reference-name-cell">
                         <span
                           className="reference-avatar reference-avatar--user"
-                          data-tone={getIdentityTone(user?.fullName, "cyan")}
+                          data-tone="blue"
                         >
                           {getIdentityInitials(user?.fullName, "US")}
                         </span>
@@ -399,12 +566,17 @@ function Users({ currentUser }) {
                     </td>
                     <td>
                       <div className="soft-table-actions users-table-actions">
-                        <Link className="btn btn-secondary btn-compact" to={`/users/staff/${user?.id}`}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-compact"
+                          onClick={() => openStaffRecord(user)}
+                        >
                           View
-                        </Link>
+                        </button>
                         {isOwner ? (
                           <select
-                            className="input soft-table-select"
+                            className={`input soft-table-select users-status-select users-status-select--${getStatusTone(user?.status)}`}
+                            data-status={String(user?.status || "Pending Approval").toLowerCase().replace(/\s+/g, "-")}
                             value={user?.status || "Pending Approval"}
                             onChange={(event) => updateStatus(user, event.target.value)}
                             disabled={updatingUserId === String(user?.id)}
@@ -433,23 +605,26 @@ function Users({ currentUser }) {
       </section>
 
       <section className="soft-section-grid soft-section-grid--two users-reference-lower">
-        <article id="users-roles-board" className="soft-panel">
+        <article id="users-roles-board" className="soft-panel users-access-posture-panel">
           <header className="soft-panel-header">
             <div>
-              <span className="reference-page-kicker">Role mix</span>
-              <h2>Current workforce composition</h2>
+              <span className="reference-page-kicker">Owner access posture</span>
+              <h2>What needs the owner's decision</h2>
             </div>
           </header>
-          <div className="soft-chart-shell soft-chart-shell--short">
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={roleChartData}>
-                <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px" }} />
-                <Bar dataKey="value" fill={ANALYTICAL_BLUE_ACCENT} radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="users-access-posture-list">
+            {accessPostureRows.map((row) => (
+              <article key={row.label} className={`users-access-posture-row users-access-posture-row--${row.tone}`}>
+                <div>
+                  <span>{row.label}</span>
+                  <strong>{row.value}</strong>
+                  <p>{row.note}</p>
+                </div>
+                <button type="button" className="btn btn-secondary btn-compact" onClick={row.onClick}>
+                  {row.action}
+                </button>
+              </article>
+            ))}
           </div>
         </article>
 
@@ -467,7 +642,7 @@ function Users({ currentUser }) {
                   <div className="reference-name-cell reference-name-cell--compact">
                     <span
                       className="reference-avatar reference-avatar--user"
-                      data-tone={getIdentityTone(user?.fullName, "cyan")}
+                      data-tone="blue"
                     >
                       {getIdentityInitials(user?.fullName, "US")}
                     </span>
@@ -511,15 +686,9 @@ function Users({ currentUser }) {
                 <strong>{tool.label}</strong>
                 <small>{tool.note}</small>
               </div>
-              {tool.href ? (
-                <Link className="btn btn-secondary btn-compact" to={tool.href}>
-                  {tool.actionLabel}
-                </Link>
-              ) : (
-                <button type="button" className="btn btn-secondary btn-compact" onClick={tool.onClick}>
-                  {tool.actionLabel}
-                </button>
-              )}
+              <button type="button" className="btn btn-secondary btn-compact" onClick={tool.onClick}>
+                {tool.actionLabel}
+              </button>
             </article>
           ))}
         </div>

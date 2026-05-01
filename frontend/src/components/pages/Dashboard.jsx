@@ -1,9 +1,8 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Area,
   AreaChart,
-  Bar,
   CartesianGrid,
   ComposedChart,
   Line,
@@ -17,9 +16,11 @@ import {
   FaBoxArchive as FiPackage,
   FaChartColumn as FiBarChart2,
   FaShieldHalved as FiShield,
+  FaUsers as FiUsers,
 } from "react-icons/fa6";
 
 import API from "../../api/api";
+import AssistantActionBanner from "../AssistantActionBanner";
 import { LIVE_PAGE_POLL_INTERVAL_MS } from "./pageRuntime";
 import {
   ANALYTICAL_BLUE_ACCENT,
@@ -37,6 +38,8 @@ import {
   toObject,
 } from "./shared/dataHelpers";
 import { getProductVisual } from "./shared/productVisuals";
+import WorkspaceBannerStack from "./shared/WorkspaceBannerStack";
+import WorkspaceDataStatus from "./shared/WorkspaceDataStatus";
 
 function dashboardTone(value = "") {
   const normalized = String(value || "").toLowerCase();
@@ -68,7 +71,48 @@ function dashboardTone(value = "") {
   return "neutral";
 }
 
+function getOperationalHealthTone(health = {}) {
+  const tone = String(health?.tone || "").trim().toLowerCase();
+  if (["success", "warning", "danger", "neutral"].includes(tone)) {
+    return tone;
+  }
+
+  const status = String(health?.status || "").trim().toLowerCase();
+  if (["critical", "delayed"].includes(status)) return "danger";
+  if (["warning", "monitor"].includes(status)) return "warning";
+  if (["fresh", "healthy", "ready"].includes(status)) return "success";
+  return "neutral";
+}
+
+function getOperationalHealthLabel(health = {}) {
+  const label = String(health?.label || "").trim();
+  if (label) return label;
+
+  const status = String(health?.status || "").trim().toLowerCase();
+  if (status === "critical") return "Action needed";
+  if (status === "delayed") return "Delayed";
+  if (status === "warning") return "Needs review";
+  if (status === "monitor") return "Monitor";
+  if (status === "ready") return "Ready";
+  return "Synced";
+}
+
+function isOperationalHealthLive(health = {}) {
+  const status = String(health?.status || "").trim().toLowerCase();
+  return ["fresh", "healthy", "ready", "live"].includes(status);
+}
+
+function buildHeroCardStyle(item = {}) {
+  return {
+    "--hero-card-accent": item.accent || "#60a5fa",
+    "--hero-card-accent-strong": item.accentStrong || item.accent || "#2563eb",
+    "--hero-card-glow": item.glow || "rgba(59, 130, 246, 0.16)",
+    "--hero-card-shadow": item.shadow || "rgba(37, 99, 235, 0.2)",
+  };
+}
+
 function DashboardActionButton({ item, navigate }) {
+  const Icon = item.icon;
   const handleClick = () => {
     if (item.to) {
       navigate(item.to);
@@ -78,12 +122,27 @@ function DashboardActionButton({ item, navigate }) {
   };
 
   return (
-    <button type="button" className="dashboard-ref-action" onClick={handleClick}>
-      <span className="dashboard-ref-action-copy">
-        <small>{item.eyebrow}</small>
-        <strong>{item.title}</strong>
+    <button type="button" className="workspace-lane-card dashboard-command-card" onClick={handleClick} style={buildHeroCardStyle(item)}>
+      <span className="workspace-lane-card-head">
+        <span className="workspace-lane-card-icon">{Icon ? <Icon /> : null}</span>
       </span>
-      {item.badge ? <span className={`status-pill small ${dashboardTone(item.badge)}`}>{item.badge}</span> : null}
+
+      <span className="workspace-lane-card-copy">
+        {item.eyebrow ? <span className="workspace-lane-card-kicker">{item.eyebrow}</span> : null}
+        <strong>{item.title}</strong>
+        {item.note ? <span className="subtle">{item.note}</span> : null}
+      </span>
+
+      {item.meta ? (
+        <span className="workspace-lane-card-meta">
+          <span>{item.metaLabel || "Focus"}</span>
+          <strong>{item.meta}</strong>
+        </span>
+      ) : null}
+
+      <span className="workspace-lane-card-footer">
+        <span className="workspace-lane-card-cta">{item.actionLabel}</span>
+      </span>
     </button>
   );
 }
@@ -111,20 +170,17 @@ function DashboardProductRow({ item, currency }) {
 }
 
 function Dashboard({ settings }) {
+  const location = useLocation();
   const navigate = useNavigate();
   const [payload, setPayload] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [lastUpdated, setLastUpdated] = useState("");
-  const [refreshNonce, setRefreshNonce] = useState(0);
 
   const currency = settings?.currency || "USD";
-  const normalizePercent = (value) => {
-    const numeric = Number(value);
-    if (!Number.isFinite(numeric)) return 0;
-    return numeric <= 1 ? numeric * 100 : numeric;
-  };
+  const assistantActionLabel = location.state?.assistantActionLabel || "";
+  const assistantActionNote = location.state?.assistantActionNote || "";
 
   useEffect(() => {
     let cancelled = false;
@@ -143,7 +199,9 @@ function Dashboard({ settings }) {
 
         startTransition(() => {
           setPayload(data);
-          setLastUpdated(new Date().toISOString());
+          setLastUpdated(
+            String(data?.operationalHealth?.generatedAt || data?.generatedAt || new Date().toISOString())
+          );
           setError("");
         });
       } catch (requestError) {
@@ -167,7 +225,18 @@ function Dashboard({ settings }) {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [refreshNonce]);
+  }, []);
+
+  useEffect(() => {
+    const focus = String(location.state?.assistantFocus || "").trim();
+    if (!["dashboard-cash-pulse", "dashboard-demand-drivers", "dashboard-trading-window"].includes(focus)) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(focus)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [location.key, location.state]);
 
   const summary = useMemo(() => toObject(payload?.stats || payload?.summary), [payload]);
   const trend = useMemo(() => {
@@ -184,13 +253,11 @@ function Dashboard({ settings }) {
     return source.map((entry, index) => {
       const label = String(entry?.label || entry?.time || entry?.date || entry?.period || `P-${index + 1}`);
       const statusEntry = statusMap.get(label) || statusTrend[index] || {};
-      const paidRateRaw = firstNumberFrom(statusEntry, ["paidRate", "collectionRate"]);
 
       return {
         label,
         revenue: firstNumberFrom(entry, ["revenue", "capturedRevenue", "totalRevenue", "paidRevenue"]),
-        orders: firstNumberFrom(entry, ["orders", "count", "orderCount", "totalOrders", "paidOrders"]),
-        paidRatePct: normalizePercent(paidRateRaw),
+        orders: firstNumberFrom(statusEntry, ["orders", "count", "orderCount", "totalOrders", "paidOrders"]),
       };
     });
   }, [payload]);
@@ -213,22 +280,29 @@ function Dashboard({ settings }) {
     [payload]
   );
   const mlForecast = useMemo(() => toObject(payload?.mlForecast), [payload]);
-  const mlSummary = useMemo(() => toObject(mlForecast?.modelSummary), [mlForecast]);
   const mlPortfolioSummary = useMemo(() => toObject(mlForecast?.portfolioSummary), [mlForecast]);
   const mlFoundation = useMemo(() => toObject(mlForecast?.dataFoundation), [mlForecast]);
+  const staffingIntelligence = useMemo(() => toObject(payload?.staffingIntelligence), [payload]);
   const mlPeriods = useMemo(() => firstArrayFrom(mlForecast, ["periods"]).slice(0, 6), [mlForecast]);
   const mlQualityWarnings = useMemo(
     () => firstArrayFrom(mlFoundation, ["qualityWarnings"]).slice(0, 3),
     [mlFoundation]
   );
+  const operationalHealth = useMemo(() => toObject(payload?.operationalHealth), [payload]);
 
   const revenue = firstNumberFrom(summary, ["capturedRevenue", "revenue", "totalRevenue"]);
   const orderCount = firstNumberFrom(summary, ["totalOrders", "orders", "orderCount", "paidOrders"]);
   const averageOrderValue = firstNumberFrom(summary, ["averageOrderValue", "avgOrderValue", "aov"]);
   const paidRate = firstNumberFrom(summary, ["paidRate", "collectionRate"]);
+  const pendingOrders = firstNumberFrom(summary, ["pendingOrders"]);
+  const pendingRevenue = firstNumberFrom(summary, ["pendingRevenue"]);
+  const declinedRevenue = firstNumberFrom(summary, ["declinedRevenue"]);
   const protectedRevenue = firstNumberFrom(mlPortfolioSummary, ["protectedRevenue"]);
   const prioritySpend = firstNumberFrom(mlPortfolioSummary, ["highPriorityOrderSpend"]);
   const deferredSkuCount = firstNumberFrom(mlPortfolioSummary, ["deferredSkuCount"]);
+  const pendingApprovals = firstNumberFrom(staffingIntelligence, ["pendingApprovals"]);
+  const readinessScore = firstNumberFrom(staffingIntelligence, ["readinessScore"]);
+  const unsettledExposure = pendingRevenue + declinedRevenue;
 
   const projectionSeries = useMemo(
     () =>
@@ -243,13 +317,53 @@ function Dashboard({ settings }) {
 
   const decisionQueue = recommendations.length ? recommendations : whatChanged;
   const leadLowStock = lowStock[0] || null;
+  const operationalTone = getOperationalHealthTone(operationalHealth);
+  const operationalLabel = getOperationalHealthLabel(operationalHealth);
+  const operationalMessage = String(operationalHealth?.message || "").trim();
 
   const commandDeckItems = [
     {
+      key: "cash-exposure",
+      eyebrow: "Cash control",
+      title: "Review cash exposure",
+      note: unsettledExposure > 0
+        ? `${pendingOrders} unsettled order${pendingOrders === 1 ? "" : "s"} are holding ${formatMoney(
+            currency,
+            unsettledExposure
+          )} outside captured revenue.`
+        : "No unsettled order exposure is currently sitting outside captured revenue.",
+      metaLabel: "Control point",
+      meta: unsettledExposure > 0 ? "Orders ledger" : "Cash posture stable",
+      actionLabel: "Open orders",
+      icon: FiShield,
+      accent: "#fb7185",
+      accentStrong: "#f43f5e",
+      glow: "rgba(244, 63, 94, 0.18)",
+      shadow: "rgba(244, 63, 94, 0.24)",
+      onClick: () =>
+        navigate("/orders", {
+          state: {
+            assistantActionLabel: "Cash exposure board",
+            assistantActionNote: "Review unsettled orders, payment posture, and refund pressure from the owner ledger.",
+            ordersFocus: "orders-ledger",
+          },
+        }),
+    },
+    {
       key: "inventory",
-      eyebrow: "Inventory",
-      title: "Open replenishment",
-      badge: leadLowStock ? "stock pressure" : "balanced",
+      eyebrow: "Stock control",
+      title: "Resolve restock pressure",
+      note: leadLowStock
+        ? `${lowStock.length} live stock line${lowStock.length === 1 ? "" : "s"} are below threshold. ${leadLowStock.name} is the first owner review line.`
+        : "No stock lines are currently below the owner threshold.",
+      metaLabel: "Priority line",
+      meta: leadLowStock?.name || "Inventory balanced",
+      actionLabel: "Open replenishment",
+      icon: FiPackage,
+      accent: "#60a5fa",
+      accentStrong: "#2563eb",
+      glow: "rgba(59, 130, 246, 0.18)",
+      shadow: "rgba(37, 99, 235, 0.24)",
       onClick: () =>
         navigate("/pos-dashboard", {
           state: {
@@ -260,25 +374,46 @@ function Dashboard({ settings }) {
         }),
     },
     {
-      key: "reports",
-      eyebrow: "Strategy",
-      title: "Review forecasts",
-      badge: mlSummary?.method || "live model",
-      to: "/reports",
-    },
-    {
-      key: "terminal",
-      eyebrow: "Commerce",
-      title: "Open terminal",
-      badge: recentSales[0]?.status || "lane ready",
-      to: "/terminal",
-    },
-    {
       key: "workforce",
-      eyebrow: "Workforce",
-      title: "Check staff",
-      badge: `${deferredSkuCount} deferred`,
-      to: "/users",
+      eyebrow: "Owner approvals",
+      title: "Clear the approval queue",
+      note: pendingApprovals
+        ? `${pendingApprovals} staff record${pendingApprovals === 1 ? "" : "s"} are waiting on owner approval or activation review.`
+        : "No staff records are waiting on owner approval.",
+      metaLabel: "Workforce health",
+      meta: readinessScore ? `${readinessScore}/100 readiness` : "Owner-controlled",
+      actionLabel: "Open users",
+      icon: FiUsers,
+      accent: "#a78bfa",
+      accentStrong: "#7c3aed",
+      glow: "rgba(124, 58, 237, 0.16)",
+      shadow: "rgba(124, 58, 237, 0.24)",
+      onClick: () =>
+        navigate("/users", {
+          state: {
+            assistantActionLabel: "Approval queue",
+            assistantActionNote: "Review pending staff records, session posture, and owner-only access controls.",
+            assistantFocus: "users-directory",
+          },
+        }),
+    },
+    {
+      key: "reports",
+      eyebrow: "Owner brief",
+      title: "Read today's operating brief",
+      note:
+        String(briefing?.headline || "").trim() ||
+        operationalMessage ||
+        "Revenue trends, demand signals, and model coverage stay grouped in one reporting surface.",
+      metaLabel: "Health",
+      meta: operationalLabel,
+      actionLabel: "Open reports",
+      icon: FiBarChart2,
+      accent: "#fbbf24",
+      accentStrong: "#f59e0b",
+      glow: "rgba(245, 158, 11, 0.16)",
+      shadow: "rgba(245, 158, 11, 0.24)",
+      to: "/reports",
     },
   ];
 
@@ -308,10 +443,41 @@ function Dashboard({ settings }) {
       icon: FiShield,
     },
   ];
+  const dashboardRouteStatus = loading
+    ? "Syncing data..."
+    : lastUpdated
+    ? `Updated ${formatDate(lastUpdated)}`
+    : "Live routes ready";
+  const dashboardQuickRoutes = [
+    {
+      key: "inventory",
+      label: "Open Inventory",
+      onClick: () =>
+        navigate("/pos-dashboard", {
+          state: {
+            assistantActionLabel: "Inventory control",
+            assistantActionNote: "Open the live stock directory, reorder planner, and catalog correction lanes.",
+            inventoryFocus: "inventory-directory",
+          },
+        }),
+    },
+    {
+      key: "orders",
+      label: "Open Orders",
+      onClick: () => navigate("/orders"),
+    },
+    {
+      key: "checkout",
+      label: "Advanced Checkout",
+      onClick: () => navigate("/terminal"),
+      primary: true,
+    },
+  ];
 
   return (
     <div className="page-container dashboard-page dashboard-reference-page">
-      {error ? <div className="info-banner inventory-error-banner">{error}</div> : null}
+      <AssistantActionBanner label={assistantActionLabel} note={assistantActionNote} />
+      <WorkspaceBannerStack error={error} />
 
       <section className="dashboard-ref-hero">
         <div className="dashboard-ref-hero-copy">
@@ -321,16 +487,25 @@ function Dashboard({ settings }) {
           </h1>
           <p>Run your store with a smarter, cleaner control surface.</p>
 
-          <div className="dashboard-ref-action-row">
-            {commandDeckItems.map((item) => (
-              <DashboardActionButton key={item.key} item={item} navigate={navigate} />
+          <div className="route-pill-strip dashboard-route-strip">
+            <span className="route-pill-status">{dashboardRouteStatus}</span>
+            {dashboardQuickRoutes.map((route) => (
+              <button
+                key={route.key}
+                type="button"
+                className={`route-pill-button${route.primary ? " is-primary" : ""}`}
+                onClick={route.onClick}
+              >
+                {route.label}
+              </button>
             ))}
           </div>
-
-          <div className="dashboard-ref-toolbar">
-            <button type="button" className="btn btn-secondary btn-compact" onClick={() => setRefreshNonce((value) => value + 1)}>
-              {refreshing ? "Refreshing..." : "Refresh live view"}
-            </button>
+          <div className="dashboard-ref-action-board">
+            <div className="dashboard-ref-action-row">
+              {commandDeckItems.map((item) => (
+                <DashboardActionButton key={item.key} item={item} navigate={navigate} />
+              ))}
+            </div>
           </div>
         </div>
 
@@ -338,7 +513,11 @@ function Dashboard({ settings }) {
           <div className="dashboard-ref-spotlight-copy">
             <span className="dashboard-ref-spotlight-label">Protected revenue</span>
             <strong>{formatMoney(currency, protectedRevenue)}</strong>
-            <small>{refreshing ? "Refreshing live data..." : `Updated ${formatDate(lastUpdated)}`}</small>
+            <small>
+              {refreshing
+                ? "Refreshing live data..."
+                : operationalMessage || (lastUpdated ? `Updated ${formatDate(lastUpdated)}` : "Waiting for live data")}
+            </small>
           </div>
 
           <div className="dashboard-ref-mini-chart">
@@ -396,28 +575,22 @@ function Dashboard({ settings }) {
       </section>
 
       <section className="dashboard-ref-main-grid">
-        <article className="dashboard-ref-panel dashboard-ref-panel--chart">
+        <article id="dashboard-cash-pulse" className="dashboard-ref-panel dashboard-ref-panel--chart">
           <header className="dashboard-ref-panel-head">
             <div>
               <span className="dashboard-ref-panel-kicker">Revenue overview</span>
               <h3>Commercial movement through the live window</h3>
             </div>
-            <div className="live-indicator-row">
-              {loading || !lastUpdated ? (
-                <span className={`status-pill small ${dashboardTone(loading ? "Loading" : "Paused")}`}>
-                  {loading ? "Loading" : "Paused"}
-                </span>
-              ) : (
-                <span className="live-indicator" aria-label="Live" title="Live" />
-              )}
-              <small>
-                {loading
-                  ? "Refreshing live data..."
-                  : lastUpdated
-                  ? `Updated ${formatDate(lastUpdated)}`
-                  : "Waiting for live data"}
-              </small>
-            </div>
+            <WorkspaceDataStatus
+              loading={loading}
+              badge={loading || !lastUpdated ? "" : operationalLabel}
+              tone={operationalTone}
+              live={!loading && isOperationalHealthLive(operationalHealth)}
+              liveIndicatorLabel="Live dashboard analytics"
+              timestamp={lastUpdated}
+              message={operationalMessage}
+              showPausedBadge
+            />
           </header>
 
           <div className="dashboard-ref-chart-shell">
@@ -425,7 +598,7 @@ function Dashboard({ settings }) {
               <p className="subtle">Loading performance chart...</p>
             ) : (
               <ResponsiveContainer width="100%" height={340}>
-                <ComposedChart data={trend}>
+                <ComposedChart data={trend} margin={{ top: 10, right: 4, bottom: 4, left: 0 }}>
                   <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="label" tickLine={false} axisLine={false} />
                   <YAxis
@@ -434,7 +607,14 @@ function Dashboard({ settings }) {
                     axisLine={false}
                     tickFormatter={(value) => formatMoney(currency, value)}
                   />
-                  <YAxis yAxisId="orders" orientation="right" tickLine={false} axisLine={false} />
+                  <YAxis
+                    yAxisId="orders"
+                    orientation="right"
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                    domain={[0, (dataMax) => Math.max(4, Math.ceil((Number(dataMax) || 0) * 1.2))]}
+                  />
                   <Tooltip
                     contentStyle={{
                       background: "var(--surface)",
@@ -444,7 +624,6 @@ function Dashboard({ settings }) {
                     }}
                     formatter={(value, name) => {
                       if (name === "Orders") return [value, name];
-                      if (name === "Paid Rate") return [`${Number(value || 0).toFixed(1)}%`, name];
                       return [formatMoney(currency, value), name];
                     }}
                   />
@@ -457,30 +636,47 @@ function Dashboard({ settings }) {
                     fill="var(--chart-accent-soft)"
                     strokeWidth={2.8}
                   />
-                  <Bar
-                    yAxisId="orders"
-                    dataKey="orders"
-                    name="Orders"
-                    fill={ANALYTICAL_BLUE_FAINT}
-                    radius={[10, 10, 0, 0]}
-                    maxBarSize={28}
-                  />
                   <Line
                     yAxisId="orders"
-                    dataKey="paidRatePct"
-                    name="Paid Rate"
+                    type="monotone"
+                    dataKey="orders"
+                    name="Orders"
                     stroke={ANALYTICAL_BLUE_SOFT}
-                    strokeWidth={2}
+                    strokeWidth={2.1}
+                    strokeDasharray="7 6"
                     dot={false}
                   />
                 </ComposedChart>
               </ResponsiveContainer>
             )}
           </div>
+
+          <div className="dashboard-owner-checkpoints" aria-label="Owner revenue checkpoints">
+            <article>
+              <span>Paid capture</span>
+              <strong>{formatPercent(paidRate)}</strong>
+              <small>{orderCount} order{orderCount === 1 ? "" : "s"} in the current window</small>
+            </article>
+            <article>
+              <span>Average ticket</span>
+              <strong>{formatMoney(currency, averageOrderValue)}</strong>
+              <small>Basket quality across completed sales</small>
+            </article>
+            <article>
+              <span>Unsettled exposure</span>
+              <strong>{formatMoney(currency, unsettledExposure)}</strong>
+              <small>{pendingOrders} order{pendingOrders === 1 ? "" : "s"} need payment or status review</small>
+            </article>
+            <article>
+              <span>Stock pressure</span>
+              <strong>{lowStock.length}</strong>
+              <small>{leadLowStock?.name || "No SKU is below threshold"}</small>
+            </article>
+          </div>
         </article>
 
         <aside className="dashboard-ref-side-stack">
-          <article className="dashboard-ref-panel dashboard-ref-panel--list">
+          <article id="dashboard-demand-drivers" className="dashboard-ref-panel dashboard-ref-panel--list">
             <header className="dashboard-ref-panel-head">
               <div>
                 <span className="dashboard-ref-panel-kicker">Top stock</span>
@@ -537,7 +733,7 @@ function Dashboard({ settings }) {
       </section>
 
       <section className="dashboard-ref-lower-grid">
-        <article className="dashboard-ref-panel dashboard-ref-panel--table">
+        <article id="dashboard-trading-window" className="dashboard-ref-panel dashboard-ref-panel--table">
           <header className="dashboard-ref-panel-head">
             <div>
               <span className="dashboard-ref-panel-kicker">Recent orders</span>

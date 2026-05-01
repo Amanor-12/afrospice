@@ -4,9 +4,39 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Afro Spice</title>
+    <meta name="description" content="AfroSpice retail operations workspace for sales, inventory, suppliers, customers, and owner intelligence." />
+    <meta name="application-name" content="AfroSpice Workspace" />
+    <meta name="theme-color" content="#f7f9fd" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>AfroSpice Workspace</title>
   </head>
   <body>
+    <script>
+      (function () {
+        try {
+          var storedTheme = localStorage.getItem("afrospice_theme");
+          var prefersDark =
+            typeof window.matchMedia === "function" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var darkMode = storedTheme === "dark" || (storedTheme !== "light" && prefersDark);
+          var themeName = darkMode ? "dark" : "light";
+          var themeColor = darkMode ? "#0a0c10" : "#f7f9fd";
+          var themeMeta = document.querySelector('meta[name="theme-color"]');
+
+          document.body.classList.toggle("dark", darkMode);
+          document.body.dataset.theme = themeName;
+          document.documentElement.dataset.theme = themeName;
+          document.documentElement.style.colorScheme = themeName;
+
+          if (themeMeta) {
+            themeMeta.setAttribute("content", themeColor);
+          }
+        } catch (_error) {
+          // Keep first paint resilient if storage access is blocked.
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

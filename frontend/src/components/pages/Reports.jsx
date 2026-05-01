@@ -4,11 +4,9 @@ import {
   Area,
   AreaChart,
   Bar,
-  BarChart,
+  ComposedChart,
   CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -16,59 +14,106 @@ import {
 } from "recharts";
 import {
   FaArrowTrendUp as FiTrendingUp,
-  FaBoxArchive as FiPackage,
   FaChartColumn as FiBarChart2,
-  FaChartLine as FiActivity,
   FaDownload as FiDownload,
+  FaReceipt as FiReceipt,
   FaShieldHalved as FiShield,
 } from "react-icons/fa6";
 
 import API from "../../api/api";
+import { LIVE_PAGE_POLL_INTERVAL_MS } from "./pageRuntime";
 import TimeRangeSwitch from "./shared/TimeRangeSwitch";
-import SoftPagination from "./shared/SoftPagination";
-import {
-  ANALYTICAL_BLUE_ACCENT,
-  ANALYTICAL_BLUE_DEEP,
-  ANALYTICAL_BLUE_FAINT,
-  ANALYTICAL_BLUE_SCALE,
-} from "./shared/chartTheme";
+import WorkspaceBannerStack from "./shared/WorkspaceBannerStack";
+import WorkspaceDataStatus from "./shared/WorkspaceDataStatus";
+import { ANALYTICAL_BLUE_DEEP } from "./shared/chartTheme";
 import {
   firstArrayFrom,
   firstNumberFrom,
-  formatDate,
   formatMoney,
   formatPercent,
   getResponseData,
   toObject,
 } from "./shared/dataHelpers";
-import { getProductVisual } from "./shared/productVisuals";
 
-const SKU_PAGE_SIZE = 8;
-const CATEGORY_COLORS = ANALYTICAL_BLUE_SCALE;
+const CHART_MODES = [
+  { id: "revenue", label: "Revenue" },
+  { id: "cost", label: "Cost" },
+  { id: "profit", label: "Profit" },
+  { id: "orders", label: "Orders" },
+  { id: "forecast", label: "Forecast" },
+];
+
+function normalizePercent(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  return numeric <= 1 ? numeric * 100 : numeric;
+}
+
+function getEntryLabel(entry, fallback) {
+  return String(entry?.label || entry?.period || entry?.date || entry?.name || fallback);
+}
+
+function getDisplayLabel(entry, fallback) {
+  return String(entry?.name || entry?.category || entry?.label || fallback);
+}
+
+function getForecastRevenue(entry) {
+  return firstNumberFrom(entry, ["projectedRevenue", "revenue", "value", "expectedRevenue"]);
+}
+
+function getForecastConfidence(entry) {
+  return normalizePercent(firstNumberFrom(entry, ["confidence", "confidenceScore", "coverage", "modelCoverage"]));
+}
+
+function calculateDelta(current, previous) {
+  const currentValue = Number(current);
+  const previousValue = Number(previous);
+
+  if (!Number.isFinite(currentValue) || !Number.isFinite(previousValue)) return 0;
+  if (previousValue === 0) {
+    if (currentValue === 0) return 0;
+    return currentValue > 0 ? 100 : -100;
+  }
+
+  return ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+}
+
+function formatDeltaLabel(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || Math.abs(numeric) < 0.1) return "Flat vs previous";
+  return `${numeric > 0 ? "+" : ""}${numeric.toFixed(1)}% vs previous`;
+}
+
+function getOwnerActionLabel(product = {}, lowStockThreshold = 10) {
+  const status = String(product?.status || "").trim();
+  const stock = firstNumberFrom(product, ["stock"]);
+
+  if (["Out of Stock", "Awaiting Receipt", "Reorder Soon", "Covered Reorder", "Watch"].includes(status)) {
+    return "Review stock";
+  }
+  if (stock <= lowStockThreshold) return "Restock line";
+  if (firstNumberFrom(product, ["profit"]) <= 0) return "Fix margin";
+  return "Keep visible";
+}
 
 function Reports({ settings }) {
   const navigate = useNavigate();
   const [range, setRange] = useState("monthly");
+  const [chartMode, setChartMode] = useState("revenue");
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [refreshNonce, setRefreshNonce] = useState(0);
-  const [skuPage, setSkuPage] = useState(1);
-  const currency = settings?.currency || "USD";
-  const normalizePercent = (value) => {
-    const numeric = Number(value);
-    if (!Number.isFinite(numeric)) return 0;
-    return numeric <= 1 ? numeric * 100 : numeric;
-  };
+  const [nowTick, setNowTick] = useState(Date.now());
+  const currency = data?.currency || settings?.currency || "CAD";
 
   useEffect(() => {
     let cancelled = false;
 
-    const load = async () => {
+    const load = async ({ silent = false } = {}) => {
       try {
-        setLoading(true);
+        if (!silent) setLoading(true);
         const response = await API.get(`/reports?range=${range}`);
         if (cancelled) return;
         startTransition(() => {
@@ -76,20 +121,45 @@ function Reports({ settings }) {
           setError("");
         });
       } catch (requestError) {
-        if (!cancelled) setError(requestError?.message || "Could not load reports.");
+        if (!cancelled) setError(requestError?.message || "Could not load owner reports.");
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
 
     load();
+    const timer = window.setInterval(() => {
+      setNowTick(Date.now());
+      load({ silent: true });
+    }, LIVE_PAGE_POLL_INTERVAL_MS);
+
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
-  }, [range, refreshNonce]);
+  }, [range]);
 
   const summary = useMemo(() => toObject(data?.summary), [data]);
   const executiveSummary = useMemo(() => toObject(data?.executiveSummary), [data]);
+  const operationalHealth = useMemo(() => toObject(data?.operationalHealth), [data]);
+  const mlForecast = useMemo(() => toObject(data?.mlForecast), [data]);
+  const actionSignals = useMemo(() => firstArrayFrom(data, ["actionSignals"]).slice(0, 2), [data]);
+  const supplierSignals = useMemo(() => firstArrayFrom(mlForecast, ["supplierSignals"]).slice(0, 2), [mlForecast]);
+  const topProducts = useMemo(() => firstArrayFrom(data, ["topProducts"]).slice(0, 4), [data]);
+  const categoryBreakdown = useMemo(() => {
+    const source = firstArrayFrom(data, ["categoryBreakdown"]).slice(0, 4);
+    const totalRevenue = firstNumberFrom(summary, ["paidRevenue", "trackedRevenue", "totalRevenue"]);
+    return source.map((item) => {
+      const value = firstNumberFrom(item, ["value", "revenue", "sales"]);
+      return {
+        ...item,
+        label: getDisplayLabel(item, "Category"),
+        value,
+        share: totalRevenue > 0 ? (value / totalRevenue) * 100 : 0,
+      };
+    });
+  }, [data, summary]);
+
   const trendUpdatedAt = useMemo(() => {
     if (data?.generatedAt) return data.generatedAt;
     const source = firstArrayFrom(data, ["trend", "statusTrend"]);
@@ -98,115 +168,211 @@ function Reports({ settings }) {
       .find((entry) => entry?.updatedAt || entry?.date || entry?.periodEnd || entry?.timestamp);
     return latest?.updatedAt || latest?.date || latest?.periodEnd || latest?.timestamp || "";
   }, [data]);
+
   const trend = useMemo(() => {
     const revenueTrend = firstArrayFrom(data, ["trend"]);
-    const statusTrend = firstArrayFrom(data, ["statusTrend"]);
-    const statusMap = new Map(
-      statusTrend.map((entry, index) => [
-        String(entry?.label || entry?.date || entry?.period || `P-${index + 1}`),
-        entry,
-      ])
-    );
-    const source = revenueTrend.length ? revenueTrend : statusTrend;
+    const statusTrendSource = firstArrayFrom(data, ["statusTrend"]);
+    const statusMap = new Map(statusTrendSource.map((entry, index) => [getEntryLabel(entry, `P-${index + 1}`), entry]));
+    const source = revenueTrend.length ? revenueTrend : statusTrendSource;
 
     return source.map((entry, index) => {
-      const label = String(entry?.label || entry?.date || entry?.period || `P-${index + 1}`);
-      const statusEntry = statusMap.get(label) || statusTrend[index] || {};
-      const paidRateRaw = firstNumberFrom(statusEntry, ["paidRate", "collectionRate"]);
+      const label = getEntryLabel(entry, `P-${index + 1}`);
+      const statusEntry = statusMap.get(label) || statusTrendSource[index] || {};
+      const revenue = firstNumberFrom(entry, ["revenue", "capturedRevenue", "totalRevenue", "paidRevenue"]);
+      const profit = firstNumberFrom(entry, ["profit", "grossProfit"]);
+      const orders = firstNumberFrom(statusEntry, ["totalOrders", "orders", "count"]) || firstNumberFrom(entry, ["orders", "orderCount", "totalOrders"]);
+      const paidRate = normalizePercent(firstNumberFrom(statusEntry, ["paidRate", "collectionRate"]));
+      const settledOrders = Math.round((orders * paidRate) / 100);
 
       return {
         label,
-        revenue: firstNumberFrom(entry, ["revenue", "capturedRevenue", "totalRevenue", "paidRevenue"]),
-        paidRate: normalizePercent(paidRateRaw),
+        revenue,
+        profit,
+        cost: Math.max(revenue - profit, 0),
+        orders,
+        paidRate,
+        settledOrders,
+        openOrders: Math.max(orders - settledOrders, 0),
       };
     });
   }, [data]);
-  const statusTrend = useMemo(() => {
-    const source = firstArrayFrom(data, ["statusBreakdown", "orderStatusBreakdown", "statusTrend", "ordersOverview"]);
-    return source.map((entry, index) => ({
-      label: String(entry?.label || entry?.status || entry?.name || `Status ${index + 1}`),
-      value: firstNumberFrom(entry, ["revenue", "value", "amount", "paidRevenue"]),
+
+  const forecastSeries = useMemo(() => {
+    const source = firstArrayFrom(mlForecast, ["periods"]).length
+      ? firstArrayFrom(mlForecast, ["periods"])
+      : firstArrayFrom(data, ["forecast"]);
+    const trendBaseline = trend.slice(-Math.min(trend.length, 3));
+    const baselineRevenue = trendBaseline.length
+      ? trendBaseline.reduce((sum, item) => sum + firstNumberFrom(item, ["revenue"]), 0) / trendBaseline.length
+      : 0;
+
+    return source.slice(0, 6).map((entry, index) => ({
+      label: getEntryLabel(entry, `F-${index + 1}`),
+      forecastRevenue: getForecastRevenue(entry),
+      confidence: getForecastConfidence(entry),
+      baselineRevenue,
     }));
-  }, [data]);
-  const topProducts = useMemo(() => firstArrayFrom(data, ["topProducts"]).slice(0, 5), [data]);
-  const categoryBreakdown = useMemo(() => {
-    const source = firstArrayFrom(data, ["categoryBreakdown"]).slice(0, 5);
-    const total = source.reduce((sum, item) => sum + firstNumberFrom(item, ["value", "revenue"]), 0);
-    return source.map((item) => ({
-      name: String(item?.name || item?.category || "Uncategorized"),
-      value: firstNumberFrom(item, ["value", "revenue"]),
-      share: total > 0 ? (firstNumberFrom(item, ["value", "revenue"]) / total) * 100 : 0,
-    }));
-  }, [data]);
-  const mlForecast = useMemo(() => toObject(data?.mlForecast), [data]);
-  const mlPeriods = useMemo(() => firstArrayFrom(mlForecast, ["periods"]).slice(0, 6), [mlForecast]);
-  const mlRecommendations = useMemo(() => firstArrayFrom(mlForecast, ["restockRecommendations"]).slice(0, 4), [mlForecast]);
-  const mlSupplierSignals = useMemo(() => firstArrayFrom(mlForecast, ["supplierSignals"]).slice(0, 4), [mlForecast]);
-  const mlSkuForecasts = useMemo(() => firstArrayFrom(mlForecast, ["skuForecasts"]).slice(0, 24), [mlForecast]);
-  const mlPortfolioSummary = useMemo(() => toObject(mlForecast?.portfolioSummary), [mlForecast]);
-  const mlFoundation = useMemo(() => toObject(mlForecast?.dataFoundation), [mlForecast]);
-  const mlFoundationCoverage = useMemo(() => toObject(mlFoundation?.coverage), [mlFoundation]);
-  const recentRevenueRows = useMemo(() => trend.slice(-3).reverse(), [trend]);
-  const archiveRows = useMemo(
-    () =>
-      (mlRecommendations.length ? mlRecommendations : mlSupplierSignals).slice(0, 5).map((item, index) => ({
-        id: item?.sku || item?.supplier || `archive-${index + 1}`,
-        name: item?.name || item?.supplier || item?.sku || "Report signal",
-        detail: item?.whyNow || item?.reason || item?.note || "Operational note",
+  }, [data, mlForecast, trend]);
+
+  const leadProduct = useMemo(() => topProducts[0] || {}, [topProducts]);
+  const leadCategory = useMemo(() => categoryBreakdown[0] || {}, [categoryBreakdown]);
+  const leadSupplierSignal = useMemo(() => supplierSignals[0] || {}, [supplierSignals]);
+  const leadActionSignal = useMemo(() => actionSignals[0] || {}, [actionSignals]);
+  const latestTrend = useMemo(() => trend[trend.length - 1] || {}, [trend]);
+  const previousTrend = useMemo(() => trend[trend.length - 2] || {}, [trend]);
+
+  const paidCapture = normalizePercent(firstNumberFrom(summary, ["paidRate", "collectionRate"]));
+  const unsettledExposure = firstNumberFrom(summary, ["pendingRevenue"]) + firstNumberFrom(summary, ["declinedRevenue"]);
+  const lowStockThreshold = Math.max(
+    1,
+    firstNumberFrom(summary, ["lowStockThreshold"], firstNumberFrom(settings || {}, ["lowStockThreshold"], 10))
+  );
+  const forecastAverageRevenue = forecastSeries.length
+    ? forecastSeries.reduce((sum, item) => sum + firstNumberFrom(item, ["forecastRevenue"]), 0) / forecastSeries.length
+    : 0;
+  const forecastConfidenceAverage = forecastSeries.length
+    ? forecastSeries.reduce((sum, item) => sum + firstNumberFrom(item, ["confidence"]), 0) / forecastSeries.length
+    : 0;
+
+  const kpiCards = useMemo(
+    () => [
+      {
+        label: "Captured revenue",
+        value: formatMoney(currency, firstNumberFrom(summary, ["paidRevenue", "trackedRevenue", "totalRevenue"])),
+        meta: `${firstNumberFrom(summary, ["paidOrders", "orders", "orderCount"])} paid orders closed in this view`,
+        delta: formatDeltaLabel(
+          calculateDelta(firstNumberFrom(latestTrend, ["revenue"]), firstNumberFrom(previousTrend, ["revenue"]))
+        ),
+        tone: "blue",
+        icon: FiBarChart2,
+      },
+      {
+        label: "Gross profit",
+        value: formatMoney(currency, firstNumberFrom(summary, ["profit", "grossProfit"])),
+        meta: `${formatPercent(normalizePercent(firstNumberFrom(summary, ["grossMargin"])))} gross margin`,
+        delta: formatDeltaLabel(
+          calculateDelta(firstNumberFrom(latestTrend, ["profit"]), firstNumberFrom(previousTrend, ["profit"]))
+        ),
+        tone: "green",
+        icon: FiTrendingUp,
+      },
+      {
+        label: "Average ticket",
+        value: formatMoney(currency, firstNumberFrom(summary, ["averageOrderValue"])),
+        meta: `${formatPercent(paidCapture)} paid capture across the current range`,
+        delta: formatDeltaLabel(
+          calculateDelta(firstNumberFrom(latestTrend, ["orders"]), firstNumberFrom(previousTrend, ["orders"]))
+        ),
+        tone: "amber",
+        icon: FiReceipt,
+      },
+      {
+        label: "Forecast window",
+        value: formatMoney(currency, forecastAverageRevenue),
+        meta: `${formatPercent(forecastConfidenceAverage)} confidence on the next modeled range`,
+        delta: unsettledExposure > 0 ? "Cash exposure still open" : "No active cash exposure",
+        tone: "orange",
+        icon: FiShield,
+      },
+    ],
+    [
+      currency,
+      forecastAverageRevenue,
+      forecastConfidenceAverage,
+      latestTrend,
+      paidCapture,
+      previousTrend,
+      summary,
+      unsettledExposure,
+    ]
+  );
+
+  const ownerBriefCards = useMemo(
+    () => [
+      {
+        label: "What changed",
         value:
-          item?.orderSpend !== undefined
-            ? formatMoney(currency, firstNumberFrom(item, ["orderSpend"]))
-            : `${(firstNumberFrom(item, ["maxStockoutProbability"]) * 100).toFixed(1)}%`,
-      })),
-    [currency, mlRecommendations, mlSupplierSignals]
+          executiveSummary?.summary ||
+          `The store captured ${formatMoney(currency, firstNumberFrom(summary, ["paidRevenue", "trackedRevenue", "totalRevenue"]))} in this reporting range.`,
+      },
+      {
+        label: "What needs watching",
+        value: leadSupplierSignal?.supplier
+          ? `${leadSupplierSignal.supplier} carries the lead supply risk at ${formatPercent(normalizePercent(firstNumberFrom(leadSupplierSignal, ["maxStockoutProbability"])))} stockout pressure.`
+          : leadProduct?.name
+            ? `${leadProduct.name} is still the leading line and needs ${firstNumberFrom(leadProduct, ["stock"])} units on-hand reviewed against current demand.`
+          : leadCategory?.label
+            ? `${leadCategory.label} now holds ${formatPercent(firstNumberFrom(leadCategory, ["share"]))} of revenue concentration.`
+            : operationalHealth?.message || "No elevated supply or data-quality watch is active right now.",
+      },
+      {
+        label: "What to do next",
+        value: leadActionSignal?.title
+          ? `${leadActionSignal.title}: ${leadActionSignal.message || "Use this as the next owner action."}`
+          : forecastSeries.length
+            ? `The next forecast window averages ${formatMoney(currency, forecastAverageRevenue)} at ${formatPercent(forecastConfidenceAverage)} confidence.`
+            : executiveSummary?.nextMove || "No explicit next move was returned by the reporting engine.",
+      },
+    ],
+    [
+      currency,
+      executiveSummary,
+      forecastAverageRevenue,
+      forecastConfidenceAverage,
+      forecastSeries,
+      leadActionSignal,
+      leadCategory,
+      leadProduct,
+      leadSupplierSignal,
+      operationalHealth,
+      summary,
+    ]
   );
 
-  useEffect(() => {
-    setSkuPage(1);
-  }, [range, mlSkuForecasts.length]);
-
-  const forecastSeries = useMemo(
-    () =>
-      mlPeriods.map((entry, index) => ({
-        label: String(entry?.label || `F-${index + 1}`),
-        projectedRevenue: firstNumberFrom(entry, ["projectedRevenue"]),
-      })),
-    [mlPeriods]
-  );
-
-  const summaryCards = [
-    {
-      label: "Total Sales",
-      value: formatMoney(currency, firstNumberFrom(summary, ["revenue", "capturedRevenue", "totalRevenue"])),
-      note: `${formatPercent(firstNumberFrom(summary, ["paidRate", "collectionRate"]))} paid rate`,
-      icon: FiBarChart2,
-    },
-    {
-      label: "Revenue Forecast",
-      value: formatMoney(currency, firstNumberFrom(forecastSeries[0], ["projectedRevenue"])),
-      note: "Forward-looking revenue envelope",
-      icon: FiTrendingUp,
-    },
-    {
-      label: "Profit To Date",
-      value: formatMoney(currency, firstNumberFrom(summary, ["profit"])),
-      note: `${formatPercent(firstNumberFrom(summary, ["profitCoverageRate"]))} coverage`,
-      icon: FiActivity,
-    },
-    {
-      label: "Total Orders",
-      value: `${firstNumberFrom(summary, ["orderCount", "orders", "totalOrders"])}`,
-      note: `${firstNumberFrom(mlPortfolioSummary, ["deferredSkuCount"])} deferred SKUs`,
-      icon: FiPackage,
-    },
-  ];
-
-  const skuTotalPages = Math.max(1, Math.ceil(mlSkuForecasts.length / SKU_PAGE_SIZE));
-  const activeSkuPage = Math.min(skuPage, skuTotalPages);
-  const pagedSkuForecasts = mlSkuForecasts.slice((activeSkuPage - 1) * SKU_PAGE_SIZE, activeSkuPage * SKU_PAGE_SIZE);
+  const chartHeadline = useMemo(() => {
+    switch (chartMode) {
+      case "cost":
+        return {
+          title: "Cost load across the reporting range",
+          note: "Use this to see whether cost pressure is rising faster than revenue quality.",
+          chipPrimary: formatMoney(currency, trend.reduce((sum, item) => sum + firstNumberFrom(item, ["cost"]), 0)),
+          chipSecondary: "Estimated operating cost tied to recognized sales",
+        };
+      case "profit":
+        return {
+          title: "Profit movement across the reporting range",
+          note: "This view isolates how much contribution the store kept after cost, period by period.",
+          chipPrimary: formatMoney(currency, firstNumberFrom(summary, ["profit", "grossProfit"])),
+          chipSecondary: `${formatPercent(normalizePercent(firstNumberFrom(summary, ["grossMargin"])))} gross margin`,
+        };
+      case "orders":
+        return {
+          title: "Order quality and settlement posture",
+          note: "This shows whether order volume is becoming settled cash or staying unresolved.",
+          chipPrimary: `${firstNumberFrom(summary, ["paidOrders", "orders", "orderCount"])} paid orders`,
+          chipSecondary: `${firstNumberFrom(summary, ["pendingOrders"]) + firstNumberFrom(summary, ["declinedOrders"])} unsettled orders`,
+        };
+      case "forecast":
+        return {
+          title: "Forecast runway for the next demand window",
+          note: "Use this to decide how much inventory risk to take into the next modeled period.",
+          chipPrimary: formatMoney(currency, forecastAverageRevenue),
+          chipSecondary: `${formatPercent(forecastConfidenceAverage)} average confidence`,
+        };
+      case "revenue":
+      default:
+        return {
+          title: "Revenue movement across the reporting range",
+          note: "This is the cleanest view of what the store actually captured in this range.",
+          chipPrimary: formatMoney(currency, firstNumberFrom(summary, ["paidRevenue", "trackedRevenue", "totalRevenue"])),
+          chipSecondary: `${formatPercent(paidCapture)} paid capture`,
+        };
+    }
+  }, [chartMode, currency, forecastAverageRevenue, forecastConfidenceAverage, paidCapture, summary, trend]);
 
   const exportCsv = async () => {
     if (exporting) return;
+
     try {
       setExporting(true);
       setError("");
@@ -215,392 +381,288 @@ function Reports({ settings }) {
       const url = window.URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `afrospice-reports-${new Date().toISOString().slice(0, 10)}.csv`;
+      anchor.download = `afrospice-owner-report-${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.append(anchor);
       anchor.click();
       anchor.remove();
       window.URL.revokeObjectURL(url);
-      setNotice("Report export downloaded.");
+      setNotice("Owner report export downloaded.");
     } catch (exportError) {
-      setError(exportError?.message || "Could not export CSV.");
+      setError(exportError?.message || "Could not export report CSV.");
     } finally {
       setExporting(false);
     }
   };
 
   return (
-    <div className="page-container reports-ref-page">
-      {error ? <div className="info-banner inventory-error-banner">{error}</div> : null}
-      {notice ? <div className="info-banner">{notice}</div> : null}
+    <div className="page-container reports-ref-page reports-owner-page reports-owner-page--executive reports-owner-page--graph-first">
+      <WorkspaceBannerStack error={error} notice={notice} />
 
-      <section className="reference-page-heading reports-reference-heading">
-        <div className="reference-page-heading-copy">
-          <span className="reference-page-kicker">Reporting</span>
-          <h1>Reports</h1>
+      <section className="reports-executive-hero">
+        <div className="reports-executive-hero-copy">
+          <span className="reference-page-kicker">Owner report desk</span>
+          <h1>One graph first, then only the actions that actually matter.</h1>
           <p>
-            {executiveSummary?.headline ||
-              "Run insightful reports backed by live metrics and a softer, cleaner command surface."}
+            {executiveSummary?.summary ||
+              "This report is intentionally reduced for the owner. You switch the graph between revenue, cost, profit, orders, and forecast instead of reading multiple competing charts."}
           </p>
         </div>
-      </section>
-
-      <section className="reports-reference-toolbar">
-        <div className="reports-reference-toolbar-copy">
-          <span className="reference-page-kicker">Reporting window</span>
-          <strong>Switch the live analysis range with the same cleaner control language used in Orders.</strong>
-        </div>
-        <div className="orders-reference-toolbar-actions">
+        <div className="reports-executive-hero-actions">
           <TimeRangeSwitch value={range} onChange={setRange} ariaLabel="Reporting range" className="range-switch--toolbar" />
-          <button type="button" className="btn btn-secondary" onClick={() => setRefreshNonce((value) => value + 1)}>
-            Refresh
-          </button>
-          <button type="button" className="btn btn-primary" onClick={exportCsv} disabled={exporting}>
+          <WorkspaceDataStatus
+            loading={loading}
+            live={!loading && Boolean(trendUpdatedAt)}
+            liveIndicatorLabel="Backend report snapshot"
+            timestamp={trendUpdatedAt}
+            nowTick={nowTick}
+            useRelativeTime
+            waitingMessage="Waiting for backend report data"
+            showPausedBadge
+          />
+          <button type="button" className="route-pill-button is-primary" onClick={exportCsv} disabled={exporting}>
             <FiDownload />
-            {exporting ? "Exporting..." : "Create Report"}
+            {exporting ? "Exporting" : "Export report"}
           </button>
         </div>
       </section>
 
-      <section className="soft-summary-grid soft-summary-grid--four">
-        {summaryCards.map((card) => (
-          <article key={card.label} className="soft-summary-card">
-            <div className="soft-summary-icon">{card.icon ? <card.icon /> : null}</div>
+      <section className="reports-executive-kpi-grid">
+        {kpiCards.map((card) => (
+          <article key={card.label} className="reports-executive-kpi-card">
+            <div className={`reports-executive-kpi-icon reports-executive-kpi-icon--${card.tone}`}>
+              <card.icon />
+            </div>
             <span>{card.label}</span>
             <strong>{card.value}</strong>
-            <small>{card.note}</small>
+            <small>{card.meta}</small>
+            <em>{card.delta}</em>
           </article>
         ))}
       </section>
 
-      <section className="soft-main-grid soft-main-grid--reports reports-reference-main">
-        <article className="soft-panel soft-panel--chart reports-breakdown-panel">
-          <header className="soft-panel-header">
-            <div>
-              <span className="reference-page-kicker">Revenue breakdown</span>
-              <h2>Revenue movement across the current window</h2>
-              <p>{executiveSummary?.summary || "Track live performance in one clearer analytical surface."}</p>
-            </div>
-            <div className="live-indicator-row">
-              {loading || !trendUpdatedAt ? (
-                <span className="status-pill small neutral">{loading ? "Loading" : "Paused"}</span>
-              ) : (
-                <span className="live-indicator" aria-label="Live trend" title="Live trend" />
-              )}
-              <small>{trendUpdatedAt ? `Updated ${formatDate(trendUpdatedAt)}` : "Waiting for live data"}</small>
-            </div>
-          </header>
-          <div className="soft-chart-shell">
-            {loading ? (
-              <p className="subtle">Loading revenue trend...</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={320}>
-                <AreaChart data={trend}>
+      <section className="reports-executive-panel reports-executive-panel--graph-first">
+        <header className="reports-executive-panel-header reports-executive-panel-header--graph-first">
+          <div>
+            <span className="reference-page-kicker">Primary owner graph</span>
+            <h2>{chartHeadline.title}</h2>
+            <p>{chartHeadline.note}</p>
+          </div>
+          <div className="reports-executive-header-chip">
+            <strong>{chartHeadline.chipPrimary}</strong>
+            <span>{chartHeadline.chipSecondary}</span>
+          </div>
+        </header>
+
+        <div className="reports-executive-mode-switch" role="tablist" aria-label="Owner graph mode">
+          {CHART_MODES.map((mode) => (
+            <button
+              key={mode.id}
+              type="button"
+              className={`route-pill-button ${chartMode === mode.id ? "is-primary" : ""}`}
+              aria-pressed={chartMode === mode.id}
+              onClick={() => setChartMode(mode.id)}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="reports-executive-chart-shell reports-executive-chart-shell--hero">
+          {loading ? (
+            <p className="subtle">Loading owner reporting graph...</p>
+          ) : chartMode === "forecast" ? (
+            forecastSeries.length ? (
+              <ResponsiveContainer width="100%" height={500}>
+                <AreaChart data={forecastSeries}>
                   <defs>
-                    <linearGradient id="reportsAreaFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={ANALYTICAL_BLUE_ACCENT} stopOpacity="0.2" />
-                      <stop offset="100%" stopColor={ANALYTICAL_BLUE_FAINT} stopOpacity="0.02" />
+                    <linearGradient id="reportsGraphForecastFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#2563eb" stopOpacity="0.28" />
+                      <stop offset="100%" stopColor="#2563eb" stopOpacity="0.04" />
                     </linearGradient>
                   </defs>
                   <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="label" tickLine={false} axisLine={false} />
                   <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => formatMoney(currency, value)} />
+                  <YAxis
+                    yAxisId="confidence"
+                    orientation="right"
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `${Number(value || 0).toFixed(0)}%`}
+                  />
                   <Tooltip
                     contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px" }}
-                    formatter={(value) => [formatMoney(currency, value), "Revenue"]}
+                    formatter={(value, name) => {
+                      if (name === "confidence") return [`${Number(value || 0).toFixed(1)}%`, "Confidence"];
+                      if (name === "baselineRevenue") return [formatMoney(currency, value), "Recent baseline"];
+                      return [formatMoney(currency, value), "Forecast revenue"];
+                    }}
+                  />
+                  <Area type="monotone" dataKey="forecastRevenue" name="Forecast revenue" stroke="#2563eb" fill="url(#reportsGraphForecastFill)" strokeWidth={3} />
+                  <Line type="monotone" dataKey="baselineRevenue" name="Recent baseline" stroke="#94a3b8" strokeWidth={2} strokeDasharray="6 6" dot={false} />
+                  <Line type="monotone" dataKey="confidence" name="Confidence" yAxisId="confidence" stroke="#f59e0b" strokeWidth={2.4} dot={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="subtle">No forecast series was returned for this range.</p>
+            )
+          ) : chartMode === "orders" ? (
+            trend.length ? (
+              <ResponsiveContainer width="100%" height={500}>
+                <ComposedChart data={trend}>
+                  <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="orders" tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px" }}
+                    formatter={(value, name) => [value, name === "settledOrders" ? "Settled orders" : "Unsettled orders"]}
+                  />
+                  <Bar yAxisId="orders" dataKey="settledOrders" name="Settled orders" fill={ANALYTICAL_BLUE_DEEP} radius={[12, 12, 0, 0]} />
+                  <Bar yAxisId="orders" dataKey="openOrders" name="Unsettled orders" fill="#f59e0b" radius={[12, 12, 0, 0]} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="subtle">No order trend returned for this range.</p>
+            )
+          ) : (
+            trend.length ? (
+              <ResponsiveContainer width="100%" height={500}>
+                <AreaChart data={trend}>
+                  <defs>
+                    <linearGradient id="reportsGraphFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#2563eb" stopOpacity="0.26" />
+                      <stop offset="100%" stopColor="#2563eb" stopOpacity="0.04" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                  {chartMode === "revenue" || chartMode === "cost" || chartMode === "profit" ? (
+                    <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => formatMoney(currency, value)} />
+                  ) : (
+                    <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `${Number(value || 0).toFixed(0)}%`} />
+                  )}
+                  <Tooltip
+                    contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px" }}
+                    formatter={(value) => {
+                      if (chartMode === "revenue" || chartMode === "cost" || chartMode === "profit") {
+                        return [formatMoney(currency, value), CHART_MODES.find((item) => item.id === chartMode)?.label || "Value"];
+                      }
+                      return [`${Number(value || 0).toFixed(1)}%`, "Paid capture"];
+                    }}
                   />
                   <Area
                     type="monotone"
-                    dataKey="revenue"
-                    name="Revenue"
-                    stroke={ANALYTICAL_BLUE_DEEP}
-                    fill="url(#reportsAreaFill)"
-                    strokeWidth={2.8}
+                    dataKey={chartMode}
+                    name={CHART_MODES.find((item) => item.id === chartMode)?.label || "Value"}
+                    stroke={chartMode === "cost" ? "#f59e0b" : chartMode === "profit" ? "#16a34a" : ANALYTICAL_BLUE_DEEP}
+                    fill="url(#reportsGraphFill)"
+                    strokeWidth={3}
                   />
                 </AreaChart>
               </ResponsiveContainer>
-            )}
-          </div>
-          <div className="reports-breakdown-rows">
-            {recentRevenueRows.length ? (
-              recentRevenueRows.map((row) => (
-                <article key={row.label} className="reports-breakdown-row">
-                  <div>
-                    <strong>{row.label}</strong>
-                    <small>{formatPercent(row.paidRate)} paid rate</small>
-                  </div>
-                  <span>{formatMoney(currency, row.revenue)}</span>
-                </article>
-              ))
             ) : (
-              <p className="subtle">No revenue checkpoints are available yet.</p>
-            )}
-          </div>
-        </article>
-
-        <aside className="soft-side-stack">
-          <article className="soft-panel soft-panel--compact reports-side-card">
-            <header className="soft-panel-header">
-              <div>
-                <span className="reference-page-kicker">Top products by revenue</span>
-                <h3>Top Products By Revenue</h3>
-              </div>
-            </header>
-            <div className="soft-list">
-              {topProducts.length ? (
-                topProducts.map((item) => {
-                  const visual = getProductVisual(item);
-                  return (
-                    <article key={item?.name || item?.sku} className="soft-list-row soft-list-row--media">
-                      <div className={`product-thumb product-thumb--${visual.tone}`}>
-                        <img src={visual.image} alt={visual.alt} />
-                      </div>
-                      <div>
-                        <strong>{item?.name || item?.sku || "Product"}</strong>
-                        <small>{item?.category || item?.supplier || "Live catalog item"}</small>
-                      </div>
-                      <div className="soft-inline-value">
-                        <strong>{formatMoney(currency, firstNumberFrom(item, ["revenue", "value", "sales"]))}</strong>
-                      </div>
-                    </article>
-                  );
-                })
-              ) : (
-                <p className="subtle">No product leaderboard returned yet.</p>
-              )}
-            </div>
-          </article>
-
-          <article className="soft-panel soft-panel--compact reports-side-card">
-            <header className="soft-panel-header">
-              <div>
-                <span className="reference-page-kicker">Model posture</span>
-                <h3>Protected revenue and coverage</h3>
-              </div>
-            </header>
-            <div className="reports-side-metrics">
-              <article className="reports-side-metric">
-                <span>Protected revenue</span>
-                <strong>{formatMoney(currency, firstNumberFrom(mlPortfolioSummary, ["protectedRevenue"]))}</strong>
-                <small>{firstNumberFrom(mlPortfolioSummary, ["deferredSkuCount"])} deferred SKUs</small>
-              </article>
-              <article className="reports-side-metric">
-                <span>Coverage</span>
-                <strong>{formatPercent(firstNumberFrom(summary, ["profitCoverageRate"]))}</strong>
-                <small>Profit coverage across the reporting window.</small>
-              </article>
-              <article className="reports-side-metric reports-side-metric--action">
-                <button type="button" className="btn btn-secondary btn-full" onClick={() => navigate("/orders")}>
-                  <FiShield />
-                  Open Order Operations
-                </button>
-              </article>
-            </div>
-          </article>
-
-          <article className="soft-panel soft-panel--compact reports-side-card">
-            <header className="soft-panel-header">
-              <div>
-                <span className="reference-page-kicker">Model queue</span>
-                <h3>Next recommended moves</h3>
-              </div>
-            </header>
-            <div className="soft-list">
-              {mlRecommendations.length ? (
-                mlRecommendations.slice(0, 3).map((item, index) => (
-                  <article key={`${item?.sku || item?.name || "recommendation"}-${index}`} className="soft-list-row">
-                    <div>
-                      <strong>{item?.name || item?.sku || "Recommendation"}</strong>
-                      <small>{item?.whyNow || item?.reason || "No recommendation note returned."}</small>
-                    </div>
-                    <span className="status-pill small neutral">{formatMoney(currency, firstNumberFrom(item, ["orderSpend"]))}</span>
-                  </article>
-                ))
-              ) : (
-                <p className="subtle">No replenishment queue is available yet.</p>
-              )}
-            </div>
-          </article>
-        </aside>
-      </section>
-
-      <section className="soft-section-grid soft-section-grid--two reports-reference-secondary">
-        <article className="soft-panel">
-          <header className="soft-panel-header">
-            <div>
-              <span className="reference-page-kicker">Orders overview</span>
-              <h3>How order value is settling</h3>
-            </div>
-          </header>
-          <div className="soft-chart-shell soft-chart-shell--short">
-            {statusTrend.length ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={statusTrend}>
-                  <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tickLine={false} axisLine={false} />
-                  <YAxis tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px" }} formatter={(value) => [formatMoney(currency, value), "Value"]} />
-                  <Bar dataKey="value" fill={ANALYTICAL_BLUE_DEEP} radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="subtle">No order overview is available yet.</p>
-            )}
-          </div>
-        </article>
-
-        <article className="soft-panel reports-mix-panel">
-          <header className="soft-panel-header">
-            <div>
-              <span className="reference-page-kicker">Category mix</span>
-              <h3>Where revenue is concentrated</h3>
-            </div>
-          </header>
-          <div className="reports-mix-surface">
-            <div className="soft-chart-shell soft-chart-shell--short">
-              {categoryBreakdown.length ? (
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie data={categoryBreakdown} dataKey="share" nameKey="name" innerRadius={58} outerRadius={88} paddingAngle={3}>
-                      {categoryBreakdown.map((entry, index) => (
-                        <Cell key={`${entry.name}-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`${Number(value || 0).toFixed(1)}%`, "Share"]} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="subtle">No category mix is available yet.</p>
-              )}
-            </div>
-            <div className="soft-list reports-mix-list">
-              {categoryBreakdown.map((item) => (
-                <article key={item.name} className="soft-list-row">
-                  <div>
-                    <strong>{item.name}</strong>
-                    <small>{formatMoney(currency, item.value)}</small>
-                  </div>
-                  <span className="status-pill small neutral">{item.share.toFixed(1)}%</span>
-                </article>
-              ))}
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <section className="soft-panel soft-table-card reports-planning-card">
-        <header className="soft-panel-header">
-          <div>
-            <span className="reference-page-kicker">Planning table</span>
-            <h2>SKU forecast and planning board</h2>
-            <p>Use the live model outputs as a cleaner decision table instead of scrolling through raw payloads.</p>
-          </div>
-          <span className="status-pill small neutral">{mlSkuForecasts.length} tracked SKUs</span>
-        </header>
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Policy</th>
-                <th>Service Level</th>
-                <th>Stockout Risk</th>
-                <th>Order Spend</th>
-                <th>Next Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pagedSkuForecasts.length ? (
-                pagedSkuForecasts.map((item, index) => (
-                  <tr key={`${item?.sku || item?.name || "sku"}-${index}`}>
-                    <td>
-                      <strong>{item?.name || item?.sku || "SKU"}</strong>
-                      <div>{item?.sku || item?.supplier || "Forecast item"}</div>
-                    </td>
-                    <td>{item?.stockPolicyClass || item?.cashPriorityTier || "watch"}</td>
-                    <td>{`${firstNumberFrom(item, ["serviceLevelTargetPct"]).toFixed(1)}%`}</td>
-                    <td>{`${(firstNumberFrom(item, ["stockoutProbability"]) * 100).toFixed(1)}%`}</td>
-                    <td>{formatMoney(currency, firstNumberFrom(item, ["orderSpend"]))}</td>
-                    <td>{item?.nextAction || item?.whyNow || "Review"}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="empty-cell">
-                    No forecast purchase table is available yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              <p className="subtle">No report trend returned for this range.</p>
+            )
+          )}
         </div>
-        <SoftPagination currentPage={activeSkuPage} totalPages={skuTotalPages} onChange={setSkuPage} />
       </section>
 
-      <section className="soft-section-grid soft-section-grid--two reports-reference-tertiary">
-        <article className="soft-panel">
-          <header className="soft-panel-header">
+      <section className="reports-executive-lower-grid">
+        <article className="reports-executive-panel reports-executive-panel--brief">
+          <header className="reports-executive-panel-header">
             <div>
-              <span className="reference-page-kicker">Supplier pressure</span>
-              <h3>Drag and stockout risk</h3>
+              <span className="reference-page-kicker">Owner AI brief</span>
+              <h2>{leadActionSignal?.title || executiveSummary?.nextMove || "Protect the strongest revenue line first."}</h2>
+              <p>{leadActionSignal?.message || executiveSummary?.whyItMatters || "The report engine did not return a blocking anomaly, so owner attention should stay on margin quality and stock posture."}</p>
             </div>
           </header>
-          <div className="soft-list">
-            {mlSupplierSignals.length ? (
-              mlSupplierSignals.map((item, index) => (
-                <article key={`${item?.supplier || "supplier"}-${index}`} className="soft-list-row">
-                  <div>
-                    <strong>{item?.supplier || "Supplier"}</strong>
-                    <small>{firstNumberFrom(item, ["weightedRiskScore"]).toFixed(1)} weighted risk</small>
-                  </div>
-                  <span className="status-pill small neutral">
-                    {(firstNumberFrom(item, ["maxStockoutProbability"]) * 100).toFixed(1)}%
-                  </span>
-                </article>
-              ))
-            ) : (
-              <p className="subtle">No supplier pressure is active right now.</p>
-            )}
+
+          <div className="reports-executive-brief-grid">
+            {ownerBriefCards.map((item) => (
+              <article key={item.label} className="reports-executive-brief-card">
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </article>
+            ))}
+          </div>
+
+          <div className="reports-executive-action-row">
+            <button type="button" className="route-pill-button is-primary" onClick={() => navigate("/orders")}>
+              Open orders
+            </button>
+            <button type="button" className="route-pill-button" onClick={() => navigate("/inventory")}>
+              Review inventory
+            </button>
+            <button type="button" className="route-pill-button" onClick={() => navigate("/suppliers")}>
+              Review suppliers
+            </button>
           </div>
         </article>
 
-        <article className="soft-panel">
-          <header className="soft-panel-header">
+        <section className="reports-executive-table-panel reports-executive-table-panel--compact">
+          <header className="reports-executive-panel-header">
             <div>
-              <span className="reference-page-kicker">Signals archive</span>
-              <h3>Archive and quick-read notes</h3>
+              <span className="reference-page-kicker">Priority products</span>
+              <h2>Lines that deserve owner action now</h2>
+              <p>These are the most important lines in the current payload based on revenue, margin, and stock posture.</p>
             </div>
           </header>
-          <div className="reports-archive-grid">
-            <div className="soft-list">
-              {archiveRows.length ? (
-                archiveRows.map((row) => (
-                  <article key={row.id} className="soft-list-row">
-                    <div>
-                      <strong>{row.name}</strong>
-                      <small>{row.detail}</small>
-                    </div>
-                    <span className="status-pill small neutral">{row.value}</span>
-                  </article>
-                ))
-              ) : (
-                <p className="subtle">No archived signals are available yet.</p>
-              )}
-            </div>
-            <div className="soft-key-value-list">
-              {[
-                ["Movement", firstNumberFrom(mlFoundationCoverage, ["movementCoverageRate"])],
-                ["Lead Time", firstNumberFrom(mlFoundationCoverage, ["leadTimeCoverageRate"])],
-                ["Cycle Count", firstNumberFrom(mlFoundationCoverage, ["cycleCountCoverageRate"])],
-                ["Named Customer", firstNumberFrom(mlFoundationCoverage, ["namedCustomerRate"])],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <span>{label}</span>
-                  <strong>{Number(value || 0).toFixed(1)}%</strong>
-                </div>
-              ))}
-            </div>
+
+          <div className="table-wrap reports-owner-table-wrap">
+            <table className="table reports-executive-products-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Units Sold</th>
+                  <th>On Hand</th>
+                  <th>Revenue</th>
+                  <th>Status</th>
+                  <th>Owner Move</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topProducts.length ? (
+                  topProducts.map((item) => {
+                    const status = String(item?.status || "").trim() || "Healthy";
+                    const stock = firstNumberFrom(item, ["stock"]);
+                    const statusTone =
+                      status === "Out of Stock"
+                        ? "danger"
+                        : ["Awaiting Receipt", "Reorder Soon", "Covered Reorder", "Watch"].includes(status) || stock <= lowStockThreshold
+                        ? "warning"
+                        : "success";
+
+                    return (
+                      <tr key={item?.sku || item?.id || item?.name}>
+                        <td>
+                          <strong>{item?.name || "Product"}</strong>
+                          <div>{item?.supplier || item?.category || "General Supplier"}</div>
+                        </td>
+                        <td>{firstNumberFrom(item, ["unitsSold"])}</td>
+                        <td>{stock}</td>
+                        <td>{formatMoney(currency, firstNumberFrom(item, ["revenue"]))}</td>
+                        <td>
+                          <span className={`status-pill small ${statusTone}`}>{status}</span>
+                        </td>
+                        <td>
+                          <button type="button" className="route-pill-button" onClick={() => navigate("/inventory")}>
+                            {getOwnerActionLabel(item, lowStockThreshold)}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="empty-cell">
+                      No priority-product data is available yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        </article>
+        </section>
       </section>
     </div>
   );

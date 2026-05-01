@@ -1,51 +1,48 @@
 ﻿import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
   FaAddressCard as FiAddressCard,
   FaBasketShopping as FiShoppingBag,
   FaBoxArchive as FiPackage,
   FaChartLine as FiActivity,
   FaDollarSign as FiDollarSign,
+  FaMagnifyingGlass as FiSearch,
   FaUserPlus as FiUserPlus,
 } from "react-icons/fa6";
 
 import API from "../../api/api";
 import AssistantActionBanner from "../AssistantActionBanner";
+import { LIVE_PAGE_POLL_INTERVAL_MS } from "./pageRuntime";
 import {
-  ANALYTICAL_BLUE_ACCENT,
-  ANALYTICAL_BLUE_FAINT,
-} from "./shared/chartTheme";
-import { formatDate, formatMoney, getResponseData, toArray, toNumber } from "./shared/dataHelpers";
+  formatDate,
+  formatMoney,
+  getResponseData,
+  normalizeCollectionPayload,
+  toArray,
+  toNumber,
+} from "./shared/dataHelpers";
 import { getProductVisual } from "./shared/productVisuals";
+import SoftPagination from "./shared/SoftPagination";
+import WorkspaceBannerStack from "./shared/WorkspaceBannerStack";
+import WorkspaceDataStatus from "./shared/WorkspaceDataStatus";
 
-function normalizeProducts(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.products)) return payload.products;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return [];
-}
+const DEFAULT_CHECKOUT = {
+  customer: "Walk-in Customer",
+  customerId: null,
+  paymentMethod: "Card",
+  channel: "In-Store",
+  status: "Paid",
+};
+const CATALOG_PAGE_SIZE = 18;
 
-function normalizeSales(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.sales)) return payload.sales;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return [];
-}
-
-function normalizeCustomers(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.customers)) return payload.customers;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return [];
+function buildCheckoutSnapshot(checkout = {}) {
+  return {
+    customer: String(checkout?.customer || DEFAULT_CHECKOUT.customer).trim() || DEFAULT_CHECKOUT.customer,
+    customerId: checkout?.customerId ? Number(checkout.customerId) : null,
+    paymentMethod: String(checkout?.paymentMethod || DEFAULT_CHECKOUT.paymentMethod).trim() || DEFAULT_CHECKOUT.paymentMethod,
+    channel: String(checkout?.channel || DEFAULT_CHECKOUT.channel).trim() || DEFAULT_CHECKOUT.channel,
+    status: String(checkout?.status || DEFAULT_CHECKOUT.status).trim() || DEFAULT_CHECKOUT.status,
+  };
 }
 
 function isWalkInCustomerLabel(value = "") {
@@ -69,34 +66,284 @@ function customerMatchesTerm(customer = {}, term = "") {
     .includes(normalizedTerm);
 }
 
+function escapeReceiptHtml(value = "") {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildReceiptDocument({ sale, settings, currency }) {
+  const storeName = String(settings?.storeName || "AfroSpice").trim() || "AfroSpice";
+  const branchCode = String(settings?.branchCode || "").trim();
+  const receiptFooter =
+    String(settings?.receiptFooter || "Thank you for shopping with AfroSpice.").trim() ||
+    "Thank you for shopping with AfroSpice.";
+  const saleDate = sale?.date || sale?.createdAt || new Date().toISOString();
+  const receiptTimestamp = new Date(saleDate);
+  const receiptDateLabel = Number.isNaN(receiptTimestamp.getTime())
+    ? String(saleDate || "")
+    : receiptTimestamp.toLocaleString();
+  const itemsMarkup = toArray(sale?.items)
+    .map((item) => {
+      const quantity = Math.max(1, Number(item?.qty || 1));
+      const unitPrice = formatMoney(currency, item?.price);
+      const lineSubtotal = formatMoney(currency, item?.lineSubtotal ?? item?.lineTotal);
+      const lineTax = formatMoney(currency, item?.taxAmount);
+      const lineGross = formatMoney(currency, item?.lineGrossTotal ?? item?.lineTotal);
+
+      return `
+        <li class="receipt-line">
+          <div class="receipt-line-head">
+            <strong>${escapeReceiptHtml(item?.name || "Item")}</strong>
+            <span>${escapeReceiptHtml(lineGross)}</span>
+          </div>
+          <div class="receipt-line-meta">
+            <span>${quantity} x ${escapeReceiptHtml(unitPrice)}</span>
+            <span>${escapeReceiptHtml(String(item?.sku || "No SKU"))}</span>
+          </div>
+          <div class="receipt-line-meta">
+            <span>Subtotal ${escapeReceiptHtml(lineSubtotal)}</span>
+            <span>Tax ${escapeReceiptHtml(lineTax)}</span>
+          </div>
+        </li>
+      `;
+    })
+    .join("");
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>${escapeReceiptHtml(storeName)} Receipt</title>
+    <style>
+      @page { margin: 10mm; }
+      body {
+        margin: 0;
+        color: #0f172a;
+        background: #ffffff;
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 12px;
+      }
+      .receipt {
+        width: 80mm;
+        max-width: 100%;
+        margin: 0 auto;
+      }
+      .receipt-header,
+      .receipt-section,
+      .receipt-summary,
+      .receipt-footer {
+        border-bottom: 1px dashed #cbd5e1;
+      }
+      .receipt-header {
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .receipt-header h1 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.2;
+      }
+      .receipt-header p {
+        margin: 4px 0 0;
+        color: #475569;
+      }
+      .receipt-grid {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .receipt-grid-row,
+      .receipt-summary-row,
+      .receipt-line-head,
+      .receipt-line-meta {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .receipt-grid-row span:first-child,
+      .receipt-summary-row span:first-child,
+      .receipt-line-meta span:first-child {
+        color: #475569;
+      }
+      .receipt-lines {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .receipt-line {
+        padding: 8px 0;
+        border-top: 1px dashed #e2e8f0;
+      }
+      .receipt-line:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+      .receipt-line-head strong {
+        font-size: 12.5px;
+      }
+      .receipt-line-meta {
+        margin-top: 2px;
+        font-size: 11px;
+      }
+      .receipt-summary {
+        padding: 10px 0;
+        margin: 10px 0;
+      }
+      .receipt-summary-row.total {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #cbd5e1;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .receipt-footer {
+        border-bottom: 0;
+        padding-top: 10px;
+        text-align: center;
+        color: #475569;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="receipt">
+      <header class="receipt-header">
+        <h1>${escapeReceiptHtml(storeName)}</h1>
+        <p>${escapeReceiptHtml(branchCode || "Main branch")}</p>
+      </header>
+
+      <section class="receipt-section">
+        <div class="receipt-grid">
+          <div class="receipt-grid-row"><span>Receipt</span><strong>${escapeReceiptHtml(sale?.id || "Pending")}</strong></div>
+          <div class="receipt-grid-row"><span>Date</span><strong>${escapeReceiptHtml(receiptDateLabel)}</strong></div>
+          <div class="receipt-grid-row"><span>Cashier</span><strong>${escapeReceiptHtml(sale?.cashier || "Front Desk")}</strong></div>
+          <div class="receipt-grid-row"><span>Customer</span><strong>${escapeReceiptHtml(sale?.customer || "Walk-in Customer")}</strong></div>
+          <div class="receipt-grid-row"><span>Payment</span><strong>${escapeReceiptHtml(sale?.paymentMethod || "Card")}</strong></div>
+          <div class="receipt-grid-row"><span>Channel</span><strong>${escapeReceiptHtml(sale?.channel || "In-Store")}</strong></div>
+          <div class="receipt-grid-row"><span>Status</span><strong>${escapeReceiptHtml(sale?.status || "Paid")}</strong></div>
+        </div>
+      </section>
+
+      <section class="receipt-section">
+        <ul class="receipt-lines">
+          ${itemsMarkup || '<li class="receipt-line"><div class="receipt-line-head"><strong>No line items returned</strong><span></span></div></li>'}
+        </ul>
+      </section>
+
+      <section class="receipt-summary">
+        <div class="receipt-summary-row"><span>Pre-discount</span><strong>${escapeReceiptHtml(formatMoney(currency, sale?.preDiscountSubtotal ?? sale?.subtotal))}</strong></div>
+        ${
+          Number(sale?.discount || 0) > 0
+            ? `<div class="receipt-summary-row"><span>Discount</span><strong>-${escapeReceiptHtml(formatMoney(currency, sale?.discount))}</strong></div>`
+            : ""
+        }
+        <div class="receipt-summary-row"><span>Subtotal</span><strong>${escapeReceiptHtml(formatMoney(currency, sale?.subtotal))}</strong></div>
+        <div class="receipt-summary-row"><span>Ontario HST</span><strong>${escapeReceiptHtml(formatMoney(currency, sale?.tax))}</strong></div>
+        <div class="receipt-summary-row total"><span>Total</span><strong>${escapeReceiptHtml(formatMoney(currency, sale?.total))}</strong></div>
+      </section>
+
+      <footer class="receipt-footer">
+        <p>${escapeReceiptHtml(receiptFooter)}</p>
+      </footer>
+    </main>
+  </body>
+</html>`;
+}
+
+function printSaleReceipt({ sale, settings, currency }) {
+  if (typeof window === "undefined" || typeof document === "undefined" || !sale) {
+    return false;
+  }
+
+  const printFrame = document.createElement("iframe");
+  printFrame.setAttribute("aria-hidden", "true");
+  printFrame.style.position = "fixed";
+  printFrame.style.right = "0";
+  printFrame.style.bottom = "0";
+  printFrame.style.width = "0";
+  printFrame.style.height = "0";
+  printFrame.style.border = "0";
+  printFrame.style.opacity = "0";
+  document.body.appendChild(printFrame);
+
+  const cleanup = () => {
+    window.setTimeout(() => {
+      printFrame.remove();
+    }, 300);
+  };
+
+  const frameWindow = printFrame.contentWindow;
+  const frameDocument = frameWindow?.document;
+  if (!frameWindow || !frameDocument) {
+    cleanup();
+    return false;
+  }
+
+  frameWindow.onafterprint = cleanup;
+  frameDocument.open();
+  frameDocument.write(buildReceiptDocument({ sale, settings, currency }));
+  frameDocument.close();
+
+  window.setTimeout(() => {
+    try {
+      frameWindow.focus();
+      frameWindow.print();
+    } catch {
+      cleanup();
+    }
+  }, 180);
+
+  return true;
+}
+
 function PosCatalogCardPremium({ product, currency, onAdd }) {
   const visual = getProductVisual(product);
   const taxRate = toNumber(product?.taxRate);
-  const taxLabel = String(product?.taxLabel || (taxRate > 0 ? "Ontario HST" : "Basic grocery"));
+  const taxLabel = String(product?.taxLabel || (taxRate > 0 ? "Ontario HST" : "Zero-rated grocery"));
+  const stock = Math.max(0, toNumber(product?.stock));
+  const inStock = stock > 0;
+  const categoryLabel = String(product?.category || "General grocery").trim() || "General grocery";
+  const productName = String(product?.name || "Unnamed product").trim() || "Unnamed product";
+  const supplierLabel = String(product?.supplier || "").trim();
+  const skuLabel = String(product?.sku || "").trim();
+  const catalogNote = skuLabel
+    ? `SKU ${skuLabel}`
+    : supplierLabel || taxLabel;
 
   return (
     <button
       type="button"
-      className="pos-ref-card"
+      className={`pos-catalog-card${inStock ? "" : " is-unavailable"}`}
       onClick={() => onAdd(product)}
-      disabled={toNumber(product?.stock) <= 0}
+      disabled={!inStock}
+      aria-label={`${inStock ? "Add" : "View"} ${productName}${inStock ? " to the current ticket" : ""}`}
     >
-      <div className={`pos-ref-card-media pos-ref-card-media--${visual.tone}`}>
+      <div className={`pos-catalog-card-media pos-catalog-card-media--${visual.tone}`}>
         <img src={visual.image} alt={visual.alt} />
       </div>
-      <div className="pos-ref-card-copy">
-        <strong>{product?.name || "Unnamed product"}</strong>
-        <small>{product?.category || product?.sku || "General"}</small>
+
+      <div className="pos-catalog-card-copy">
+        <strong>{productName}</strong>
+        <small>{categoryLabel}</small>
       </div>
-      <div className="pos-ref-card-tax-row">
-        <span className={`pos-ref-tax-chip${taxRate > 0 ? " is-taxable" : " is-zero-rated"}`}>
-          {taxRate > 0 ? `${taxRate}% HST` : "0% grocery"}
+
+      <div className="pos-catalog-card-tags">
+        <span className={`pos-catalog-chip${taxRate > 0 ? " is-taxable" : " is-zero-rated"}`}>
+          {taxRate > 0 ? `${taxRate}% HST` : "Zero-rated"}
         </span>
-        <small className="pos-ref-card-tax-label">{taxLabel}</small>
+        <small className="pos-catalog-card-note">{catalogNote}</small>
       </div>
-      <div className="pos-ref-card-meta">
-        <span>{formatMoney(currency, product?.price)}</span>
-        <em>Stock {toNumber(product?.stock)}</em>
+
+      <div className="pos-catalog-card-footer">
+        <span className="pos-catalog-card-price">{formatMoney(currency, product?.price)}</span>
+        <span className={`pos-catalog-stock${inStock ? "" : " is-out"}`}>
+          {inStock ? `${stock} in stock` : "Sold out"}
+        </span>
       </div>
     </button>
   );
@@ -169,6 +416,7 @@ function POS({ settings }) {
   const [recentSales, setRecentSales] = useState([]);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [catalogPage, setCatalogPage] = useState(1);
   const [cart, setCart] = useState([]);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -176,13 +424,9 @@ function POS({ settings }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [lastSale, setLastSale] = useState(null);
-  const [checkout, setCheckout] = useState({
-    customer: "Walk-in Customer",
-    customerId: null,
-    paymentMethod: "Card",
-    channel: "In-Store",
-    status: "Paid",
-  });
+  const [lastUpdated, setLastUpdated] = useState("");
+  const [nowTick, setNowTick] = useState(Date.now());
+  const [checkout, setCheckout] = useState(DEFAULT_CHECKOUT);
 
   const deferredQuery = useDeferredValue(query);
   const currency = settings?.currency || "USD";
@@ -204,9 +448,20 @@ function POS({ settings }) {
         if (cancelled) return;
 
         startTransition(() => {
-          setProducts(normalizeProducts(getResponseData(productsResponse)));
-          setRecentSales(normalizeSales(getResponseData(salesResponse)).slice(0, 16));
-          setCustomers(normalizeCustomers(getResponseData(customersResponse)));
+          const productPayload = normalizeCollectionPayload(getResponseData(productsResponse), ["products"]);
+          const salesPayload = normalizeCollectionPayload(getResponseData(salesResponse), ["sales"]).slice(0, 16);
+          const customerPayload = normalizeCollectionPayload(getResponseData(customersResponse), ["customers"]);
+          setProducts(productPayload);
+          setRecentSales(salesPayload);
+          setCustomers(customerPayload);
+          setLastUpdated(
+            String(
+              salesPayload[0]?.updatedAt ||
+                salesPayload[0]?.date ||
+                productPayload[0]?.updatedAt ||
+                new Date().toISOString()
+            )
+          );
           setError("");
         });
       } catch (requestError) {
@@ -221,8 +476,13 @@ function POS({ settings }) {
     };
 
     load();
+    const timer = window.setInterval(() => {
+      setNowTick(Date.now());
+    }, LIVE_PAGE_POLL_INTERVAL_MS);
+
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
   }, []);
 
@@ -263,7 +523,23 @@ function POS({ settings }) {
     });
   }, [products, deferredQuery, category]);
 
-  const catalogPreview = filteredProducts.slice(0, 24);
+  useEffect(() => {
+    setCatalogPage(1);
+  }, [category, deferredQuery, products.length]);
+
+  const catalogTotalPages = Math.max(1, Math.ceil(filteredProducts.length / CATALOG_PAGE_SIZE));
+  const activeCatalogPage = Math.min(catalogPage, catalogTotalPages);
+  const catalogPreview = filteredProducts.slice(
+    (activeCatalogPage - 1) * CATALOG_PAGE_SIZE,
+    activeCatalogPage * CATALOG_PAGE_SIZE
+  );
+  const catalogVisibleStart = filteredProducts.length
+    ? (activeCatalogPage - 1) * CATALOG_PAGE_SIZE + 1
+    : 0;
+  const catalogVisibleEnd = filteredProducts.length
+    ? Math.min(activeCatalogPage * CATALOG_PAGE_SIZE, filteredProducts.length)
+    : 0;
+  const activeCategoryLabel = category === "All" ? "All categories" : category;
   const normalizedCustomerQuery = String(checkout.customer || "").trim().toLowerCase();
   const normalizedCustomerSearchValue = String(checkout.customer || "").trim();
   const selectedCustomer = useMemo(() => {
@@ -455,45 +731,80 @@ function POS({ settings }) {
   }, 0);
   const averageTicketValue = paidTicketCount > 0 ? recentCapturedRevenue / paidTicketCount : 0;
 
-  const recentTicketTrend = useMemo(
-    () =>
-      recentSales
-        .slice()
-        .reverse()
-        .slice(-10)
-        .map((sale, index) => ({
-          label: sale?.id || `T-${index + 1}`,
-          total: toNumber(sale?.total),
-        })),
-    [recentSales]
-  );
-
   const summaryCards = [
     {
       label: "Visible Products",
       value: `${filteredProducts.length}`,
-      note: `${catalogPreview.length} in the current checkout view`,
+      note: filteredProducts.length
+        ? `${catalogVisibleStart}-${catalogVisibleEnd} on page ${activeCatalogPage} of ${catalogTotalPages}`
+        : "No products in the current filter",
       icon: FiPackage,
     },
     {
       label: "Paid Tickets",
       value: `${paidTicketCount}`,
-      note: `${formatMoney(currency, recentCapturedRevenue)} captured in recent checkout flow`,
+      note: `${formatMoney(currency, recentCapturedRevenue)} settled in recent checkout activity`,
       icon: FiShoppingBag,
     },
     {
       label: "Average Ticket",
       value: formatMoney(currency, averageTicketValue),
-      note: latestTicket?.id ? `Latest ticket ${latestTicket.id}` : "No ticket posted yet",
+      note: latestTicket?.id ? `Latest ticket ${latestTicket.id}` : "No settled ticket yet",
       icon: FiActivity,
     },
     {
       label: "Current Basket",
       value: formatMoney(currency, estimatedTotal),
-      note: `${cart.length} live lines in the active order summary`,
+      note: `${cart.length} line${cart.length === 1 ? "" : "s"} ready for checkout`,
       icon: FiDollarSign,
     },
   ];
+  const ticketDirty = useMemo(
+    () =>
+      cart.length > 0 ||
+      advancedOpen ||
+      JSON.stringify(buildCheckoutSnapshot(checkout)) !== JSON.stringify(buildCheckoutSnapshot(DEFAULT_CHECKOUT)),
+    [advancedOpen, cart.length, checkout]
+  );
+  const ticketStatus = useMemo(() => {
+    if (!cart.length) {
+      return {
+        label: "Awaiting basket",
+        note: "Start from the catalog to build the next live sale.",
+        tone: ticketDirty ? "warning" : "neutral",
+      };
+    }
+
+    if (selectedCustomer?.discountEligible) {
+      return {
+        label: "Ready to collect",
+        note: `${selectedCustomer.discountPercent || 0}% named-customer pricing is active on this ticket.`,
+        tone: "success",
+      };
+    }
+
+    if (selectedCustomer) {
+      return {
+        label: "Named customer selected",
+        note: "Checkout is linked to a saved customer record, but loyalty pricing is not active on this basket.",
+        tone: "brand",
+      };
+    }
+
+    return {
+      label: "Walk-in ticket",
+      note: "This basket can be collected now, or converted into a named customer checkout.",
+      tone: "warning",
+    };
+  }, [cart.length, selectedCustomer, ticketDirty]);
+
+  const resetTicket = () => {
+    setCart([]);
+    setCheckout(DEFAULT_CHECKOUT);
+    setAdvancedOpen(false);
+    setError("");
+    setNotice("");
+  };
 
   const updateLineQty = (productId, nextQty) => {
     setCart((current) => {
@@ -546,6 +857,11 @@ function POS({ settings }) {
     setCart((current) => current.filter((line) => Number(line.productId) !== Number(productId)));
   };
 
+  const printLatestReceipt = () => {
+    if (!latestTicket) return;
+    printSaleReceipt({ sale: latestTicket, settings, currency });
+  };
+
   const submitSale = async () => {
     if (!cart.length || submitting) return;
 
@@ -570,12 +886,27 @@ function POS({ settings }) {
       const sale = getResponseData(response) || {};
       setLastSale(sale);
       setCart([]);
-      setNotice(`Sale ${sale?.id || ""} posted successfully.`);
+      setCheckout(DEFAULT_CHECKOUT);
+      setAdvancedOpen(false);
+      setNotice(`Sale ${sale?.id || ""} posted successfully. Opening receipt print dialog.`);
+      window.setTimeout(() => {
+        printSaleReceipt({ sale, settings, currency });
+      }, 80);
 
       const [productsResponse, salesResponse] = await Promise.all([API.get("/products"), API.get("/sales")]);
       startTransition(() => {
-        setProducts(normalizeProducts(getResponseData(productsResponse)));
-        setRecentSales(normalizeSales(getResponseData(salesResponse)).slice(0, 16));
+        const productPayload = normalizeCollectionPayload(getResponseData(productsResponse), ["products"]);
+        const salesPayload = normalizeCollectionPayload(getResponseData(salesResponse), ["sales"]).slice(0, 16);
+        setProducts(productPayload);
+        setRecentSales(salesPayload);
+        setLastUpdated(
+          String(
+            salesPayload[0]?.updatedAt ||
+              salesPayload[0]?.date ||
+              productPayload[0]?.updatedAt ||
+              new Date().toISOString()
+          )
+        );
       });
     } catch (submitError) {
       setError(submitError?.message || "Could not post sale.");
@@ -587,17 +918,25 @@ function POS({ settings }) {
   return (
     <div className="page-container pos-terminal-page pos-reference-page">
       <AssistantActionBanner label={assistantActionLabel} note={assistantActionNote} />
-      {error ? <div className="info-banner inventory-error-banner">{error}</div> : null}
-      {notice ? <div className="info-banner">{notice}</div> : null}
+      <WorkspaceBannerStack error={error} notice={notice} />
 
       <section className="reference-page-heading pos-reference-heading">
         <div className="reference-page-heading-copy">
           <span className="reference-page-kicker">Checkout workspace</span>
           <h1>POS</h1>
-          <p>Sell faster with a cleaner catalog, clearer basket flow, and backend-authoritative settlement.</p>
+          <p>Run checkout from one clean catalog surface and a single live basket.</p>
         </div>
 
         <div className="pos-reference-heading-actions">
+          <WorkspaceDataStatus
+            loading={loading}
+            live={!loading && Boolean(lastUpdated)}
+            liveIndicatorLabel="Live POS catalog and sales"
+            timestamp={lastUpdated}
+            nowTick={nowTick}
+            useRelativeTime
+            showPausedBadge
+          />
           <button type="button" className="btn btn-secondary" onClick={() => navigate("/pos-dashboard")}>
             Open Inventory
           </button>
@@ -624,45 +963,82 @@ function POS({ settings }) {
       </section>
 
       <section className="pos-reference-shell">
-        <div className="pos-reference-catalog">
-          <div className="pos-reference-searchbar">
-            <input
-              className="input pos-reference-search"
-              type="text"
-              placeholder="Search products, SKU, or barcode"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-          </div>
+        <div className="pos-catalog-surface">
+          <div className="pos-catalog-toolbar">
+            <label className="reference-inline-search pos-catalog-search">
+              <FiSearch />
+              <input
+                className="input"
+                type="text"
+                placeholder="Search products, SKU, or barcode"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+            </label>
 
-          <div className="pos-reference-tabs">
-            {categories.map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={`pos-reference-tab${category === option ? " active" : ""}`}
-                onClick={() => setCategory(option)}
-              >
-                {option}
-              </button>
-            ))}
+            <div className="pos-catalog-toolbar-meta">
+              <div className="pos-catalog-toolbar-meta-copy">
+                <strong>{activeCategoryLabel}</strong>
+                <small>
+                  {filteredProducts.length
+                    ? `${catalogVisibleStart}-${catalogVisibleEnd} of ${filteredProducts.length} live products`
+                    : "No live products in this filter"}
+                </small>
+              </div>
+              <label className="pos-catalog-category-shell">
+                <span className="reference-page-kicker">Category</span>
+                <select
+                  className="toolbar-select pos-catalog-category-select"
+                  value={category}
+                  onChange={(event) => setCategory(event.target.value)}
+                >
+                  {categories.map((option) => (
+                    <option key={option} value={option}>
+                      {option === "All" ? "All categories" : option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           </div>
 
           {loading ? (
-            <div className="dashboard-ref-panel pos-reference-loading">
-              <p className="subtle">Loading products...</p>
+            <div className="pos-catalog-feedback" role="status" aria-live="polite">
+              <strong>Loading live catalog</strong>
+              <p>Pulling the latest products, prices, and stock levels into checkout.</p>
+            </div>
+          ) : !filteredProducts.length ? (
+            <div className="pos-catalog-feedback">
+              <strong>No products match this filter</strong>
+              <p>Clear the search or switch categories to reopen the live catalog.</p>
             </div>
           ) : (
-            <div className="pos-reference-grid">
-              {catalogPreview.map((product) => (
-                <PosCatalogCardPremium
-                  key={product.id}
-                  product={product}
-                  currency={currency}
-                  onAdd={addProductToCart}
+            <>
+              <div className="pos-catalog-grid">
+                {catalogPreview.map((product) => (
+                  <PosCatalogCardPremium
+                    key={product.id}
+                    product={product}
+                    currency={currency}
+                    onAdd={addProductToCart}
+                  />
+                ))}
+              </div>
+              <div className="pos-catalog-footer">
+                <div className="pos-catalog-meta">
+                  <strong>
+                    Showing {catalogVisibleStart}-{catalogVisibleEnd} of {filteredProducts.length} products
+                  </strong>
+                  <small>Use the pager to move through the rest of the live catalog.</small>
+                </div>
+                <SoftPagination
+                  currentPage={activeCatalogPage}
+                  totalPages={catalogTotalPages}
+                  onChange={setCatalogPage}
+                  label="Product catalog pages"
                 />
-              ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
 
@@ -681,6 +1057,27 @@ function POS({ settings }) {
               >
                 {basketTaxMode}
               </span>
+            </div>
+          </div>
+
+          <div className={`pos-reference-ticket-status pos-reference-ticket-status--${ticketStatus.tone}`}>
+            <div className="pos-reference-ticket-status-copy">
+              <span className="reference-page-kicker">Live ticket status</span>
+              <strong>{ticketStatus.label}</strong>
+              <small>{ticketStatus.note}</small>
+            </div>
+            <div className="pos-reference-ticket-status-actions">
+              <span className={`status-pill small ${ticketDirty ? "warning" : "success"}`}>
+                {ticketDirty ? "Active ticket" : "Clean slate"}
+              </span>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={resetTicket}
+                disabled={!ticketDirty}
+              >
+                Start New Ticket
+              </button>
             </div>
           </div>
 
@@ -936,78 +1333,37 @@ function POS({ settings }) {
             {submitting ? "Posting Sale..." : "Collect Payment"}
           </button>
 
-          <button type="button" className="btn btn-secondary btn-full" onClick={() => setCart([])} disabled={!cart.length}>
-            Cancel Order
+          {latestTicket ? (
+            <div className="pos-reference-receipt-card">
+              <div className="pos-reference-receipt-copy">
+                <span className="reference-page-kicker">Last receipt</span>
+                <strong>{latestTicket?.id || "Latest sale"}</strong>
+                <small>
+                  {latestTicket?.customer || "Walk-in Customer"} / {formatDate(latestTicket?.date || latestTicket?.createdAt)}
+                </small>
+              </div>
+              <div className="pos-reference-receipt-actions">
+                <span className="status-pill small neutral">{formatMoney(currency, latestTicket?.total)}</span>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={printLatestReceipt}
+                >
+                  Print Receipt
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            className="btn btn-secondary btn-full"
+            onClick={resetTicket}
+            disabled={!ticketDirty}
+          >
+            Start New Ticket
           </button>
         </aside>
-      </section>
-
-      <section className="pos-reference-insights">
-        <article className="dashboard-ref-panel">
-          <header className="dashboard-ref-panel-head">
-            <div>
-              <span className="dashboard-ref-panel-kicker">Ticket flow</span>
-              <h3>Recent captured revenue</h3>
-            </div>
-            <span className="status-pill small neutral">{paidTicketCount} paid tickets</span>
-          </header>
-
-          <div className="dashboard-ref-chart-shell dashboard-ref-chart-shell--compact">
-            {recentTicketTrend.length ? (
-              <ResponsiveContainer width="100%" height={220}>
-                <AreaChart data={recentTicketTrend}>
-                  <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tickLine={false} axisLine={false} />
-                  <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => formatMoney(currency, value)} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--surface)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "14px",
-                      color: "var(--text-primary)",
-                    }}
-                    formatter={(value) => formatMoney(currency, value)}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="total"
-                    stroke={ANALYTICAL_BLUE_ACCENT}
-                    fill={ANALYTICAL_BLUE_FAINT}
-                    strokeWidth={2.4}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="subtle">No recent ticket trend is available yet.</p>
-            )}
-          </div>
-        </article>
-
-        <article className="dashboard-ref-panel">
-          <header className="dashboard-ref-panel-head">
-            <div>
-              <span className="dashboard-ref-panel-kicker">Latest receipts</span>
-              <h3>Live order feed</h3>
-            </div>
-            <span className="status-pill small neutral">{formatMoney(currency, averageTicketValue)} avg</span>
-          </header>
-
-          <div className="dashboard-ref-list">
-            {toArray(recentSales).length ? (
-              recentSales.slice(0, 6).map((sale) => (
-                <article key={sale?.id || `${sale?.date}`} className="dashboard-ref-decision-row">
-                  <div>
-                    <strong>{sale?.id || "No ID"}</strong>
-                    <small>{sale?.cashier || "Unknown cashier"} / {formatDate(sale?.date || sale?.createdAt)}</small>
-                  </div>
-                  <span className="status-pill small neutral">{formatMoney(currency, sale?.total)}</span>
-                </article>
-              ))
-            ) : (
-              <p className="subtle">No recent tickets yet.</p>
-            )}
-          </div>
-        </article>
       </section>
     </div>
   );

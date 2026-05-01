@@ -12,7 +12,7 @@ import {
 
 import API from "../../api/api";
 import AssistantActionBanner from "../AssistantActionBanner";
-import TimeRangeSwitch from "./shared/TimeRangeSwitch";
+import { LIVE_PAGE_POLL_INTERVAL_MS } from "./pageRuntime";
 import SoftPagination from "./shared/SoftPagination";
 import { ANALYTICAL_BLUE_ACCENT } from "./shared/chartTheme";
 import { getIdentityInitials, getIdentityTone } from "./shared/identityAvatar";
@@ -25,28 +25,10 @@ import {
   toArray,
   toObject,
 } from "./shared/dataHelpers";
+import WorkspaceBannerStack from "./shared/WorkspaceBannerStack";
+import WorkspaceDataStatus from "./shared/WorkspaceDataStatus";
 
 const DIRECTORY_PAGE_SIZE = 8;
-
-const emptySupplierDraft = {
-  name: "",
-  contactName: "",
-  email: "",
-  phone: "",
-  notes: "",
-  isActive: true,
-};
-
-function toSupplierDraft(supplier = null) {
-  return {
-    name: String(supplier?.name || ""),
-    contactName: String(supplier?.contactName || ""),
-    email: String(supplier?.email || ""),
-    phone: String(supplier?.phone || ""),
-    notes: String(supplier?.notes || ""),
-    isActive: Boolean(supplier?.isActive ?? true),
-  };
-}
 
 function sortSuppliers(items = []) {
   return [...items].sort((left, right) => String(left?.name || "").localeCompare(String(right?.name || "")));
@@ -66,6 +48,14 @@ function percentageTone(value) {
 function signalTone(value = "") {
   const normalized = String(value || "").toLowerCase();
   if (
+    normalized.includes("inactive") ||
+    normalized.includes("critical") ||
+    normalized.includes("breach") ||
+    normalized.includes("failed")
+  ) {
+    return "danger";
+  }
+  if (
     normalized.includes("good") ||
     normalized.includes("healthy") ||
     normalized.includes("ready") ||
@@ -83,36 +73,80 @@ function signalTone(value = "") {
   ) {
     return "warning";
   }
-  if (
-    normalized.includes("inactive") ||
-    normalized.includes("critical") ||
-    normalized.includes("breach") ||
-    normalized.includes("failed")
-  ) {
-    return "danger";
-  }
   return "neutral";
+}
+
+function wrapAxisLabel(value = "", maxLineLength = 18, maxLines = 2) {
+  const words = String(value || "")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (!words.length) {
+    return [""];
+  }
+
+  const lines = [];
+  let currentLine = "";
+
+  words.forEach((word) => {
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
+    if (nextLine.length <= maxLineLength || !currentLine) {
+      currentLine = nextLine;
+      return;
+    }
+
+    lines.push(currentLine);
+    currentLine = word;
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  if (lines.length <= maxLines) {
+    return lines;
+  }
+
+  const visibleLines = lines.slice(0, maxLines);
+  visibleLines[maxLines - 1] = `${visibleLines[maxLines - 1].replace(/[. ]+$/u, "")}...`;
+  return visibleLines;
+}
+
+function SupplierAxisTick({ x = 0, y = 0, payload }) {
+  const lines = wrapAxisLabel(payload?.value, 18, 2);
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={12} textAnchor="middle" fill="var(--text-tertiary)" fontSize="11" fontWeight="600">
+        {lines.map((line, index) => (
+          <tspan key={`${line}-${index}`} x={0} dy={index === 0 ? 0 : 14}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
+  );
 }
 
 function Suppliers({ settings }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [range, setRange] = useState("monthly");
+  const range = "monthly";
   const [analyticsData, setAnalyticsData] = useState({});
   const [suppliers, setSuppliers] = useState([]);
   const [selectedSupplierId, setSelectedSupplierId] = useState(null);
-  const [draft, setDraft] = useState(emptySupplierDraft);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [directoryPage, setDirectoryPage] = useState(1);
+  const [lastUpdated, setLastUpdated] = useState("");
+  const [nowTick, setNowTick] = useState(Date.now());
 
   const currency = settings?.currency || "USD";
   const assistantActionLabel = location.state?.assistantActionLabel || "";
   const assistantActionNote = location.state?.assistantActionNote || "";
+  const assistantFocus = String(location.state?.assistantFocus || "").trim();
 
   useEffect(() => {
     let cancelled = false;
@@ -127,8 +161,18 @@ function Suppliers({ settings }) {
         if (cancelled) return;
 
         startTransition(() => {
-          setAnalyticsData(getResponseData(analyticsResponse) || {});
-          setSuppliers(sortSuppliers(toArray(getResponseData(suppliersResponse))));
+          const analyticsPayload = getResponseData(analyticsResponse) || {};
+          const supplierPayload = sortSuppliers(toArray(getResponseData(suppliersResponse)));
+          setAnalyticsData(analyticsPayload);
+          setSuppliers(supplierPayload);
+          setLastUpdated(
+            String(
+              analyticsPayload?.generatedAt ||
+                analyticsPayload?.operationalHealth?.generatedAt ||
+                supplierPayload[0]?.updatedAt ||
+                new Date().toISOString()
+            )
+          );
           setError("");
         });
       } catch (requestError) {
@@ -145,21 +189,55 @@ function Suppliers({ settings }) {
   }, [range, refreshNonce]);
 
   useEffect(() => {
-    if (!selectedSupplierId) return;
-
-    const selected = suppliers.find((supplier) => String(supplier.id) === String(selectedSupplierId));
-    if (!selected) {
-      setSelectedSupplierId(null);
-      setDraft(emptySupplierDraft);
+    const highlightedId = location.state?.highlightSupplierId;
+    if (highlightedId) {
+      setSelectedSupplierId(String(highlightedId));
       return;
     }
 
-    setDraft(toSupplierDraft(selected));
-  }, [selectedSupplierId, suppliers]);
+    if (!selectedSupplierId && suppliers.length) {
+      setSelectedSupplierId(String(suppliers[0].id));
+      return;
+    }
+
+    if (selectedSupplierId && !suppliers.some((supplier) => String(supplier.id) === String(selectedSupplierId))) {
+      setSelectedSupplierId(suppliers[0] ? String(suppliers[0].id) : null);
+    }
+  }, [location.state, selectedSupplierId, suppliers]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setNowTick(Date.now());
+      setRefreshNonce((value) => value + 1);
+    }, LIVE_PAGE_POLL_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     setDirectoryPage(1);
   }, [query, suppliers.length, range]);
+
+  useEffect(() => {
+    if (!assistantFocus) return;
+
+    const targetId =
+      assistantFocus === "suppliers-service"
+        ? "suppliers-service"
+        : assistantFocus === "suppliers-open-orders"
+        ? "suppliers-open-orders"
+        : assistantFocus === "suppliers-risk-ladder"
+        ? "suppliers-risk-ladder"
+        : assistantFocus === "suppliers-directory"
+        ? "suppliers-directory"
+        : "";
+
+    if (!targetId) return;
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [assistantFocus, location.key]);
 
   const summary = useMemo(() => toObject(analyticsData?.summary), [analyticsData]);
   const executiveSummary = useMemo(() => toObject(analyticsData?.executiveSummary), [analyticsData]);
@@ -169,7 +247,6 @@ function Suppliers({ settings }) {
   const signals = useMemo(() => firstArrayFrom(analyticsData, ["actionSignals", "watchtower"]).slice(0, 4), [analyticsData]);
 
   const selectedSupplier = suppliers.find((supplier) => String(supplier.id) === String(selectedSupplierId)) || null;
-  const isEditing = Boolean(selectedSupplier);
   const filteredSuppliers = useMemo(() => {
     const term = String(query || "").trim().toLowerCase();
     if (!term) return suppliers;
@@ -225,13 +302,6 @@ function Suppliers({ settings }) {
     activeDirectoryPage * DIRECTORY_PAGE_SIZE
   );
 
-  const resetDraft = () => {
-    setSelectedSupplierId(null);
-    setDraft(emptySupplierDraft);
-    setNotice("");
-    setError("");
-  };
-
   const openInventoryForSupplier = (supplierName, focus = "inventory-directory") => {
     const nextSupplier = String(supplierName || "").trim();
     if (!nextSupplier) return;
@@ -251,73 +321,62 @@ function Suppliers({ settings }) {
     });
   };
 
-  const saveSupplier = async (event) => {
-    event.preventDefault();
-    if (saving) return;
-
-    try {
-      setSaving(true);
-      setError("");
-      setNotice("");
-
-      const payload = {
-        name: draft.name,
-        contactName: draft.contactName || "",
-        email: draft.email || "",
-        phone: draft.phone || "",
-        notes: draft.notes || "",
-        isActive: Boolean(draft.isActive),
-      };
-      const response = isEditing
-        ? await API.put(`/suppliers/${selectedSupplier.id}`, payload)
-        : await API.post("/suppliers", payload);
-      const savedSupplier = getResponseData(response);
-
-      setSuppliers((previous) =>
-        sortSuppliers([savedSupplier, ...previous.filter((supplier) => String(supplier.id) !== String(savedSupplier.id))])
-      );
-      setSelectedSupplierId(savedSupplier?.id || null);
-      setDraft(toSupplierDraft(savedSupplier));
-      setNotice(
-        isEditing
-          ? `${savedSupplier?.name || "Supplier"} updated successfully.`
-          : `${savedSupplier?.name || "Supplier"} created successfully.`
-      );
-      setRefreshNonce((value) => value + 1);
-    } catch (submitError) {
-      setError(submitError?.message || "Could not save the supplier record.");
-    } finally {
-      setSaving(false);
+  const openSupplierStudio = (supplier = null) => {
+    if (supplier?.id) {
+      navigate(`/suppliers/${supplier.id}`, {
+        state: {
+          assistantActionLabel: `Supplier record for ${supplier.name}`,
+          assistantActionNote: "Commercial controls, contacts, and lane expectations are maintained in the supplier studio.",
+        },
+      });
+      return;
     }
+
+    navigate("/suppliers/new", {
+      state: {
+        assistantActionLabel: "Create supplier",
+        assistantActionNote: "Supplier creation lives on its own page so the portfolio dashboard stays focused on live procurement visibility.",
+      },
+    });
   };
 
-  const deleteSupplier = async () => {
-    if (!selectedSupplier || saving) return;
-    if (!window.confirm(`Delete ${selectedSupplier.name}? This cannot be undone.`)) return;
+  const openSupplierOrderDraft = (supplier = null) => {
+    const supplierName = String(supplier?.name || "").trim();
+    navigate("/purchase-orders/new", {
+      state: {
+        assistantActionLabel: supplierName ? `Draft order for ${supplierName}` : "Draft supplier order",
+        assistantActionNote:
+          "Supplier ordering stays on its own route so inbound commitments, receiving context, and commercial detail stay clean.",
+        prefillPurchaseOrderDraft: {
+          supplier: supplierName,
+          paymentTermsSnapshot: String(supplier?.paymentTerms || "").trim(),
+          expectedDate: "",
+          note: supplierName ? `Prepared from the supplier dashboard for ${supplierName}.` : "Prepared from the supplier dashboard.",
+          contactSnapshot: {
+            name: String(supplier?.contactName || "").trim(),
+            email: String(supplier?.email || "").trim(),
+            phone: String(supplier?.phone || "").trim(),
+          },
+          items: [],
+        },
+      },
+    });
+  };
 
-    try {
-      setSaving(true);
-      setError("");
-      setNotice("");
-      await API.delete(`/suppliers/${selectedSupplier.id}`);
-      setSuppliers((previous) => previous.filter((supplier) => String(supplier.id) !== String(selectedSupplier.id)));
-      setSelectedSupplierId(null);
-      setDraft(emptySupplierDraft);
-      setNotice(`${selectedSupplier.name} deleted successfully.`);
-      setRefreshNonce((value) => value + 1);
-    } catch (deleteError) {
-      setError(deleteError?.message || "Could not delete the supplier record.");
-    } finally {
-      setSaving(false);
-    }
+  const focusSupplier = (supplierId) => {
+    const nextId = String(supplierId || "").trim();
+    if (!nextId) return;
+
+    setSelectedSupplierId(nextId);
+    window.requestAnimationFrame(() => {
+      document.getElementById("supplier-selection-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   return (
     <div className="page-container suppliers-ref-page">
       <AssistantActionBanner label={assistantActionLabel} note={assistantActionNote} />
-      {error ? <div className="info-banner inventory-error-banner">{error}</div> : null}
-      {notice ? <div className="info-banner">{notice}</div> : null}
-
+      <WorkspaceBannerStack error={error} />
       <section className="reference-page-heading suppliers-reference-heading">
         <div className="reference-page-heading-copy">
           <span className="reference-page-kicker">Suppliers</span>
@@ -329,10 +388,18 @@ function Suppliers({ settings }) {
         </div>
 
         <div className="reference-page-heading-actions">
-          <TimeRangeSwitch value={range} onChange={setRange} ariaLabel="Supplier reporting range" />
-          <button type="button" className="btn btn-primary" onClick={resetDraft}>
+          <WorkspaceDataStatus
+            loading={loading}
+            live={!loading && Boolean(lastUpdated)}
+            liveIndicatorLabel="Live supplier portfolio"
+            timestamp={lastUpdated}
+            nowTick={nowTick}
+            useRelativeTime
+            showPausedBadge
+          />
+          <button type="button" className="btn btn-primary" onClick={() => openSupplierStudio()}>
             <FiPlus />
-            Add Supplier
+            Create Supplier
           </button>
         </div>
       </section>
@@ -348,7 +415,7 @@ function Suppliers({ settings }) {
         ))}
       </section>
 
-      <section className="soft-panel soft-panel--compact suppliers-signal-board">
+      <section id="suppliers-risk-ladder" className="soft-panel soft-panel--compact suppliers-signal-board">
         <header className="soft-panel-header">
           <div>
             <span className="reference-page-kicker">Procurement lanes</span>
@@ -357,13 +424,13 @@ function Suppliers({ settings }) {
           <button
             type="button"
             className="btn btn-secondary btn-compact"
-            onClick={() => document.getElementById("suppliers-insight-board")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            onClick={() => document.getElementById("suppliers-service")?.scrollIntoView({ behavior: "smooth", block: "start" })}
           >
-            Open Watchboard
+            Open Insight Board
           </button>
         </header>
         <div className="soft-card-grid soft-card-grid--four">
-          <article className="soft-panel soft-panel--compact suppliers-signal-card">
+          <article id="suppliers-open-orders" className="soft-panel soft-panel--compact suppliers-signal-card">
             <div className="suppliers-signal-card-copy">
               <span className="reference-page-kicker">Best service</span>
               <h3>{topSuppliers[0]?.supplier || "No leader yet"}</h3>
@@ -399,10 +466,18 @@ function Suppliers({ settings }) {
               <button
                 type="button"
                 className="btn btn-secondary btn-compact"
-                onClick={() => openInventoryForSupplier(openOrders[0]?.supplier)}
-                disabled={!openOrders[0]?.supplier}
+                onClick={() =>
+                  openSupplierOrderDraft(
+                    suppliers.find(
+                      (supplier) =>
+                        String(supplier?.name || "").trim().toLowerCase() ===
+                        String(openOrders[0]?.supplier || "").trim().toLowerCase()
+                    ) || { name: openOrders[0]?.supplier || "" }
+                  )
+                }
+                disabled={!openOrders[0]?.supplier && !openOrders[0]?.id}
               >
-                Review Queue
+                Draft Review
               </button>
             </div>
           </article>
@@ -438,23 +513,26 @@ function Suppliers({ settings }) {
               </p>
             </div>
             <div className="soft-panel-actions">
-              <button type="button" className="btn btn-secondary btn-compact" onClick={() => setRefreshNonce((value) => value + 1)}>
-                Refresh Signals
+              <button
+                type="button"
+                className="btn btn-secondary btn-compact"
+                onClick={() => openSupplierStudio(selectedSupplier)}
+                disabled={!selectedSupplier}
+              >
+                Open Record
               </button>
             </div>
           </article>
         </div>
       </section>
 
-      <section className="soft-panel soft-table-card suppliers-directory-card">
+      <section id="suppliers-directory" className="soft-panel soft-table-card suppliers-directory-card">
           <header className="soft-panel-header">
             <div>
               <span className="reference-page-kicker">Supplier List</span>
               <h2>Supplier directory</h2>
             </div>
-            <button type="button" className="btn btn-secondary btn-compact" onClick={() => setRefreshNonce((value) => value + 1)}>
-              Refresh
-            </button>
+            <span className="users-directory-count">{filteredSuppliers.length} suppliers</span>
           </header>
 
           <div className="soft-table-toolbar soft-table-toolbar--filters">
@@ -501,6 +579,7 @@ function Suppliers({ settings }) {
                           String(item?.supplier || item?.name || "").trim().toLowerCase() ===
                           String(supplier?.name || "").trim().toLowerCase()
                       );
+                    const isSelected = String(selectedSupplierId) === String(supplier.id);
                     const openOrderCount = openOrders.filter(
                       (item) =>
                         String(item?.supplier || "").trim().toLowerCase() ===
@@ -508,7 +587,7 @@ function Suppliers({ settings }) {
                     ).length;
 
                     return (
-                    <tr key={supplier.id}>
+                    <tr key={supplier.id} className={isSelected ? "suppliers-directory-row is-selected" : "suppliers-directory-row"}>
                       <td>
                         <div className="reference-name-cell">
                           <span
@@ -539,11 +618,16 @@ function Suppliers({ settings }) {
                       </td>
                       <td>
                         <div className="soft-table-actions">
-                          <button type="button" className="btn btn-secondary btn-compact" onClick={() => setSelectedSupplierId(supplier.id)}>
-                            View
+                          <button
+                            type="button"
+                            className={`btn btn-secondary btn-compact suppliers-directory-select${isSelected ? " is-selected" : ""}`}
+                            onClick={() => focusSupplier(supplier.id)}
+                            aria-pressed={isSelected}
+                          >
+                            {isSelected ? "Selected" : "Select"}
                           </button>
-                          <button type="button" className="btn btn-primary btn-compact" onClick={() => openInventoryForSupplier(supplier?.name)}>
-                            Inventory
+                          <button type="button" className="btn btn-primary btn-compact" onClick={() => openSupplierStudio(supplier)}>
+                            Studio
                           </button>
                         </div>
                       </td>
@@ -564,48 +648,62 @@ function Suppliers({ settings }) {
       </section>
 
       <section className="soft-section-grid soft-section-grid--two suppliers-reference-lower">
-        <article className="soft-panel soft-form-panel">
+        <article id="supplier-selection-panel" className="soft-panel soft-form-panel">
           <header className="soft-panel-header">
             <div>
-              <span className="reference-page-kicker">Supplier Profile</span>
-              <h2>{isEditing ? selectedSupplier?.name || "Edit supplier" : "Add supplier"}</h2>
+              <span className="reference-page-kicker">Selected supplier</span>
+              <h2>{selectedSupplier?.name || "Choose a supplier from the directory"}</h2>
             </div>
           </header>
 
-          <form className="stack-form" onSubmit={saveSupplier}>
-            <div className="form-two-col">
-              <input className="input" value={draft.name} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} placeholder="Supplier name" />
-              <input className="input" value={draft.contactName} onChange={(event) => setDraft((current) => ({ ...current, contactName: event.target.value }))} placeholder="Contact name" />
-            </div>
-            <div className="form-two-col">
-              <input className="input" value={draft.email} onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))} placeholder="Email" />
-              <input className="input" value={draft.phone} onChange={(event) => setDraft((current) => ({ ...current, phone: event.target.value }))} placeholder="Phone" />
-            </div>
-            <textarea className="input textarea" rows={4} value={draft.notes} onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Notes" />
-            <label className="settings-control-row">
-              <div className="settings-control-copy">
-                <span>Supplier active</span>
-                <small>Keep the supplier available for receiving and procurement workflows.</small>
+          {selectedSupplier ? (
+            <div className="soft-key-value-list">
+              <div>
+                <span>Contact owner</span>
+                <strong>{selectedSupplier?.contactName || "Not captured"}</strong>
               </div>
-              <input type="checkbox" checked={Boolean(draft.isActive)} onChange={(event) => setDraft((current) => ({ ...current, isActive: event.target.checked }))} />
-            </label>
-            <div className="soft-form-actions">
-              <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? "Saving..." : isEditing ? "Save Supplier" : "Create Supplier"}
-              </button>
-              <button type="button" className="btn btn-secondary" onClick={resetDraft}>
-                Reset
-              </button>
-              {isEditing ? (
-                <button type="button" className="btn btn-danger" onClick={deleteSupplier} disabled={saving}>
-                  Delete
-                </button>
-              ) : null}
+              <div>
+                <span>Reachability</span>
+                <strong>{selectedSupplier?.email || selectedSupplier?.phone || "No contact method on file"}</strong>
+              </div>
+              <div>
+                <span>Operating status</span>
+                <strong>{selectedSupplier?.isActive ? "Active procurement lane" : "Inactive procurement lane"}</strong>
+              </div>
+              <div>
+                <span>Portfolio note</span>
+                <strong>{selectedSupplier?.notes || "No supplier note has been recorded yet."}</strong>
+              </div>
+              <div>
+                <span>Next action</span>
+                <strong>
+                  {selectedSupplier?.isActive
+                    ? "Open the supplier studio to maintain contacts and terms, or draft a purchase order from the dedicated procurement route."
+                    : "Review this supplier in the studio before returning the lane to active use."}
+                </strong>
+              </div>
             </div>
-          </form>
+          ) : (
+            <div className="customer-record-empty">
+              <strong>No supplier selected.</strong>
+              <p>Choose a supplier from the directory to inspect its current operating posture and route into the right workspace.</p>
+            </div>
+          )}
+
+          <div className="soft-form-actions">
+            <button type="button" className="btn btn-primary" onClick={() => openSupplierStudio(selectedSupplier)} disabled={!selectedSupplier}>
+              Open Supplier Studio
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={() => openSupplierOrderDraft(selectedSupplier)} disabled={!selectedSupplier}>
+              Draft Supplier Order
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={() => openInventoryForSupplier(selectedSupplier?.name)} disabled={!selectedSupplier}>
+              Open Inventory
+            </button>
+          </div>
         </article>
 
-        <article id="suppliers-insight-board" className="soft-panel suppliers-insight-card">
+        <article id="suppliers-service" className="soft-panel suppliers-insight-card">
           <header className="soft-panel-header">
             <div>
               <span className="reference-page-kicker">Service board</span>
@@ -617,12 +715,12 @@ function Suppliers({ settings }) {
               <p className="subtle">Loading suppliers...</p>
             ) : supplierServiceChart.length ? (
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={supplierServiceChart}>
+                <BarChart data={supplierServiceChart} margin={{ top: 8, right: 4, bottom: 18, left: 0 }}>
                   <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                  <XAxis dataKey="label" tickLine={false} axisLine={false} interval={0} height={56} tick={<SupplierAxisTick />} />
                   <YAxis tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px" }} formatter={(value) => [Number(value || 0).toFixed(1), "Service score"]} />
-                  <Bar dataKey="serviceScore" fill={ANALYTICAL_BLUE_ACCENT} radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="serviceScore" fill={ANALYTICAL_BLUE_ACCENT} radius={[8, 8, 0, 0]} maxBarSize={48} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

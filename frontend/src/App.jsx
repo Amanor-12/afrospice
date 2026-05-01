@@ -1,4 +1,4 @@
-﻿import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -21,7 +21,6 @@ import {
   FaMagnifyingGlass as FiSearch,
   FaTableCellsLarge as FiHome,
   FaTruckFast as FiTruck,
-  FaUser as FiUser,
   FaUsers as FiUsers,
   FaUserShield as FiUserCheck,
   FaXmark as FiX,
@@ -37,25 +36,69 @@ import {
   readStoredUser as readStoredSessionUser,
   writeAuthSession,
 } from "./utils/sessionStore";
+import lazyWithPreload from "./utils/lazyWithPreload.js";
 import GlobalCommandPalette from "./components/GlobalCommandPalette.jsx";
 import { getIdentityTone } from "./components/pages/shared/identityAvatar.js";
-import "./components/pages/global.css";
 import "./components/pages/reference-surfaces.css";
 
-const Login = lazy(() => import("./components/pages/Login.jsx"));
-const Dashboard = lazy(() => import("./components/pages/Dashboard.jsx"));
-const POSDashboard = lazy(() => import("./components/pages/POSDashboard.jsx"));
-const POS = lazy(() => import("./components/pages/POS.jsx"));
-const Users = lazy(() => import("./components/pages/Users.jsx"));
-const UserManagementDesk = lazy(() => import("./components/pages/UserManagementDesk.jsx"));
-const Reports = lazy(() => import("./components/pages/Reports.jsx"));
-const Settings = lazy(() => import("./components/pages/Settings.jsx"));
-const Orders = lazy(() => import("./components/pages/Orders.jsx"));
-const Customers = lazy(() => import("./components/pages/Customers.jsx"));
-const CustomerProfile = lazy(() => import("./components/pages/CustomerProfile.jsx"));
-const Suppliers = lazy(() => import("./components/pages/Suppliers.jsx"));
-const NotFound = lazy(() => import("./components/pages/NotFound.jsx"));
-const OwnerAssistantDock = lazy(() => import("./components/OwnerAssistantDock.jsx"));
+const Login = lazyWithPreload(() => import("./components/pages/Login.jsx"));
+const Dashboard = lazyWithPreload(() => import("./components/pages/Dashboard.jsx"));
+const POSDashboard = lazyWithPreload(() => import("./components/pages/POSDashboard.jsx"));
+const POS = lazyWithPreload(() => import("./components/pages/POS.jsx"));
+const Users = lazyWithPreload(() => import("./components/pages/Users.jsx"));
+const UserManagementDesk = lazyWithPreload(() => import("./components/pages/UserManagementDesk.jsx"));
+const Reports = lazyWithPreload(() => import("./components/pages/Reports.jsx"));
+const Settings = lazyWithPreload(() => import("./components/pages/Settings.jsx"));
+const Orders = lazyWithPreload(() => import("./components/pages/Orders.jsx"));
+const RefundDesk = lazyWithPreload(() => import("./components/pages/RefundDesk.jsx"));
+const Customers = lazyWithPreload(() => import("./components/pages/Customers.jsx"));
+const CustomerProfile = lazyWithPreload(() => import("./components/pages/CustomerProfile.jsx"));
+const Suppliers = lazyWithPreload(() => import("./components/pages/Suppliers.jsx"));
+const SupplierStudio = lazyWithPreload(() => import("./components/pages/SupplierStudio.jsx"));
+const PurchaseOrderBuilder = lazyWithPreload(() => import("./components/pages/PurchaseOrderBuilder.jsx"));
+const NotFound = lazyWithPreload(() => import("./components/pages/NotFound.jsx"));
+const OwnerAssistantDock = lazyWithPreload(() => import("./components/OwnerAssistantDock.jsx"));
+
+const ROUTE_COMPONENT_REGISTRY = [
+  { matches: (path) => path === "/", component: Dashboard },
+  { matches: (path) => path.startsWith("/pos-dashboard"), component: POSDashboard },
+  { matches: (path) => path.startsWith("/terminal"), component: POS },
+  { matches: (path) => path.startsWith("/orders/refunds"), component: RefundDesk },
+  { matches: (path) => path.startsWith("/orders"), component: Orders },
+  { matches: (path) => path.startsWith("/reports"), component: Reports },
+  { matches: (path) => path === "/customers", component: Customers },
+  { matches: (path) => path.startsWith("/customers"), component: CustomerProfile },
+  { matches: (path) => path === "/suppliers", component: Suppliers },
+  { matches: (path) => path.startsWith("/suppliers"), component: SupplierStudio },
+  { matches: (path) => path.startsWith("/purchase-orders"), component: PurchaseOrderBuilder },
+  { matches: (path) => path.startsWith("/users/staff"), component: UserManagementDesk },
+  { matches: (path) => path.startsWith("/users"), component: Users },
+  { matches: (path) => path.startsWith("/settings"), component: Settings },
+];
+
+function scheduleIdleWork(callback) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  if (typeof window.requestIdleCallback === "function") {
+    const callbackId = window.requestIdleCallback(callback, { timeout: 1800 });
+    return () => window.cancelIdleCallback?.(callbackId);
+  }
+
+  const timeoutId = window.setTimeout(callback, 320);
+  return () => window.clearTimeout(timeoutId);
+}
+
+function preloadRouteComponent(path = "") {
+  const normalizedPath = String(path || "").trim();
+  if (!normalizedPath) {
+    return;
+  }
+
+  const match = ROUTE_COMPONENT_REGISTRY.find((entry) => entry.matches(normalizedPath));
+  match?.component?.preload?.();
+}
 
 const NAV_ICONS = {
   "/": FiHome,
@@ -160,7 +203,6 @@ const WELCOME_AVATAR_STYLES = {
 };
 
 const RECENT_ROUTE_STORAGE_KEY = "afrospice_recent_routes";
-
 function readRecentRoutes() {
   try {
     const parsed = JSON.parse(localStorage.getItem(RECENT_ROUTE_STORAGE_KEY) || "[]");
@@ -184,11 +226,26 @@ function rememberRoute(path) {
   writeRecentRoutes(next);
 }
 
+function formatNotificationTimestamp(value) {
+  const date = new Date(value || Date.now());
+  if (Number.isNaN(date.getTime())) {
+    return "Just now";
+  }
+
+  return new Intl.DateTimeFormat("en-CA", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
 function resolveRouteTheme(pathname) {
   if (pathname === "/") return "dashboard";
   if (pathname.startsWith("/pos-dashboard")) return "inventory";
   if (pathname.startsWith("/terminal")) return "pos";
   if (pathname.startsWith("/orders")) return "orders";
+  if (pathname.startsWith("/purchase-orders")) return "suppliers";
   if (pathname.startsWith("/reports")) return "reports";
   if (pathname.startsWith("/customers")) return "customers";
   if (pathname.startsWith("/suppliers")) return "suppliers";
@@ -230,6 +287,34 @@ function RouteLoader() {
   );
 }
 
+function WorkspacePageLoader({
+  eyebrow = "Preparing view",
+  title = "Loading workspace page",
+  description = "Hydrating live data, controls, and surface layouts for this route.",
+}) {
+  return (
+    <div className="workspace-page-loader" aria-live="polite" aria-busy="true">
+      <div className="workspace-page-loader-hero">
+        <div className="workspace-page-loader-copy">
+          <span>{eyebrow}</span>
+          <strong>{title}</strong>
+          <p>{description}</p>
+        </div>
+        <div className="workspace-page-loader-actions">
+          <span className="workspace-page-loader-pill" />
+          <span className="workspace-page-loader-pill workspace-page-loader-pill--wide" />
+        </div>
+      </div>
+
+      <div className="workspace-page-loader-grid">
+        <div className="workspace-page-loader-card workspace-page-loader-card--feature" />
+        <div className="workspace-page-loader-card" />
+        <div className="workspace-page-loader-card" />
+      </div>
+    </div>
+  );
+}
+
 function ProtectedRoute({ loggedIn, sessionReady, userRole, allowedRoles, children }) {
   if (!loggedIn) {
     return <Navigate to="/login" replace />;
@@ -240,10 +325,37 @@ function ProtectedRoute({ loggedIn, sessionReady, userRole, allowedRoles, childr
   }
 
   if (allowedRoles?.length && !canAccessRoute(userRole, allowedRoles)) {
-    return <Navigate to={getDefaultRoute(userRole)} replace />;
+    return (
+      <div className="app-boot-shell app-boot-shell--denied">
+        <div className="app-boot-mark">Owner Access Required</div>
+        <p>This AfroSpice workspace is configured for the owner account only.</p>
+      </div>
+    );
   }
 
   return children;
+}
+
+function LazyWorkspaceRoute({
+  component,
+  pageKey,
+  props = {},
+  loadingTitle,
+  loadingDescription,
+}) {
+  const location = useLocation();
+  const PageComponent = component;
+  const resolvedPageKey = pageKey || location.pathname;
+
+  return (
+    <Suspense
+      fallback={
+        <WorkspacePageLoader title={loadingTitle} description={loadingDescription} />
+      }
+    >
+      <PageComponent key={resolvedPageKey} {...props} />
+    </Suspense>
+  );
 }
 
 function OwnerMenu({ settings, sessionUser, onLogout }) {
@@ -300,7 +412,10 @@ function OwnerMenu({ settings, sessionUser, onLogout }) {
               key={item.path}
               type="button"
               className="owner-menu-item"
+              onMouseEnter={() => preloadRouteComponent(item.path)}
+              onFocus={() => preloadRouteComponent(item.path)}
               onClick={() => {
+                preloadRouteComponent(item.path);
                 navigate(item.path);
                 setOpen(false);
               }}
@@ -436,10 +551,23 @@ function AppShell({ settings, sessionUser, onLogout, onUserUpdate, children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notificationPayload, setNotificationPayload] = useState({
+    generatedAt: "",
+    unreadCount: 0,
+    items: [],
+  });
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsMutating, setNotificationsMutating] = useState(false);
+  const [notificationError, setNotificationError] = useState("");
   const routeMeta = useMemo(() => getRouteMeta(location.pathname), [location.pathname]);
   const routeTheme = useMemo(() => resolveRouteTheme(location.pathname), [location.pathname]);
   const navItems = useMemo(() => getVisibleNavItems(sessionUser?.role), [sessionUser?.role]);
   const navGroups = useMemo(() => groupNavItems(navItems), [navItems]);
+  const notificationRef = useRef(null);
+  const notificationAudioRef = useRef(null);
+  const notificationBootstrappedRef = useRef(false);
+  const previousUnreadCountRef = useRef(0);
   const profileInitials = useMemo(() => {
     const source = String(sessionUser?.fullName || settings.managerName || "AfroSpice")
       .split(" ")
@@ -463,6 +591,75 @@ function AppShell({ settings, sessionUser, onLogout, onUserUpdate, children }) {
     () => `Search ${String(routeMeta.label || "workspace").toLowerCase()}, actions, and tools`,
     [routeMeta.label]
   );
+  const notificationsEnabled = useMemo(
+    () =>
+      Boolean(settings?.notifications) &&
+      ["Owner", "Manager", "Cashier", "Inventory Clerk"].includes(String(sessionUser?.role || "")),
+    [sessionUser?.role, settings?.notifications]
+  );
+  const notificationItems = useMemo(
+    () => (Array.isArray(notificationPayload?.items) ? notificationPayload.items : []),
+    [notificationPayload]
+  );
+  const unreadNotificationCount = useMemo(
+    () =>
+      Number(notificationPayload?.unreadCount || 0) ||
+      notificationItems.filter((item) => !item?.acknowledged).length,
+    [notificationItems, notificationPayload?.unreadCount]
+  );
+
+  const playNotificationTone = useCallback(({ force = false } = {}) => {
+    if ((!settings?.soundEffects && !force) || typeof window === "undefined") {
+      return;
+    }
+
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextConstructor) {
+      return;
+    }
+
+    try {
+      const context = notificationAudioRef.current || new AudioContextConstructor();
+      notificationAudioRef.current = context;
+
+      if (context.state === "suspended") {
+        context.resume().catch(() => {});
+      }
+
+      const createTone = (frequency, startOffset, duration, volume) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+
+        oscillator.type = "sine";
+        oscillator.frequency.value = frequency;
+        gain.gain.value = 0.0001;
+
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+
+        const startAt = context.currentTime + startOffset;
+        oscillator.start(startAt);
+        gain.gain.exponentialRampToValueAtTime(volume, startAt + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+        oscillator.stop(startAt + duration + 0.03);
+      };
+
+      createTone(880, 0, 0.18, 0.05);
+      createTone(1175, 0.11, 0.18, 0.035);
+    } catch {
+      // Keep the shell resilient if the browser blocks synthesized audio.
+    }
+  }, [settings?.soundEffects]);
+
+  useEffect(() => {
+    const handleNotificationSoundTest = () => {
+      playNotificationTone({ force: true });
+    };
+
+    window.addEventListener("afrospice:notification-sound:test", handleNotificationSoundTest);
+    return () =>
+      window.removeEventListener("afrospice:notification-sound:test", handleNotificationSoundTest);
+  }, [playNotificationTone]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -476,8 +673,151 @@ function AppShell({ settings, sessionUser, onLogout, onUserUpdate, children }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (!notificationOpen) return undefined;
+
+    const handleOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setNotificationOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [notificationOpen]);
+
+  const fetchNotifications = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!notificationsEnabled) {
+        setNotificationPayload({
+          generatedAt: "",
+          unreadCount: 0,
+          items: [],
+        });
+        setNotificationError("");
+        return;
+      }
+
+      if (!silent) {
+        setNotificationsLoading(true);
+      }
+
+      try {
+        const response = await API.get("/reports/notifications");
+        const data = response?.data?.data || {};
+        setNotificationPayload({
+          generatedAt: String(data?.generatedAt || ""),
+          unreadCount: Number(data?.unreadCount || 0),
+          items: Array.isArray(data?.items) ? data.items : [],
+        });
+        setNotificationError("");
+      } catch (loadError) {
+        setNotificationError(loadError?.message || "Could not load workspace notifications.");
+      } finally {
+        if (!silent) {
+          setNotificationsLoading(false);
+        }
+      }
+    },
+    [notificationsEnabled]
+  );
+
+  const acknowledgeNotifications = useCallback(
+    async ({ ids = [], markAll = false, silent = false } = {}) => {
+      const normalizedIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
+      if (!notificationsEnabled || (!markAll && !normalizedIds.length)) {
+        return;
+      }
+
+      if (!silent) {
+        setNotificationsMutating(true);
+      }
+
+      try {
+        const response = await API.post("/reports/notifications/acknowledge", {
+          ids: normalizedIds,
+          markAll,
+        });
+        const data = response?.data?.data || {};
+        setNotificationPayload({
+          generatedAt: String(data?.generatedAt || ""),
+          unreadCount: Number(data?.unreadCount || 0),
+          items: Array.isArray(data?.items) ? data.items : [],
+        });
+        setNotificationError("");
+      } catch (acknowledgeError) {
+        setNotificationError(
+          acknowledgeError?.message || "Could not acknowledge workspace notifications."
+        );
+      } finally {
+        if (!silent) {
+          setNotificationsMutating(false);
+        }
+      }
+    },
+    [notificationsEnabled]
+  );
+
+  useEffect(() => {
+    fetchNotifications();
+
+    if (!notificationsEnabled) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      fetchNotifications({ silent: true });
+    }, 45000);
+
+    return () => window.clearInterval(intervalId);
+  }, [fetchNotifications, notificationsEnabled]);
+
+  useEffect(() => {
+    if (!notificationsEnabled) {
+      notificationBootstrappedRef.current = false;
+      previousUnreadCountRef.current = 0;
+      return;
+    }
+
+    if (!notificationBootstrappedRef.current) {
+      notificationBootstrappedRef.current = true;
+      previousUnreadCountRef.current = unreadNotificationCount;
+      return;
+    }
+
+    if (settings?.soundEffects && unreadNotificationCount > previousUnreadCountRef.current) {
+      playNotificationTone();
+    }
+
+    previousUnreadCountRef.current = unreadNotificationCount;
+  }, [notificationsEnabled, playNotificationTone, settings?.soundEffects, unreadNotificationCount]);
+
+  useEffect(() => {
+    return scheduleIdleWork(() => {
+      navItems
+        .filter((item) => item.path !== location.pathname)
+        .slice(0, 5)
+        .forEach((item) => preloadRouteComponent(item.path));
+
+      if (["Owner", "Manager"].includes(String(sessionUser?.role || ""))) {
+        OwnerAssistantDock.preload?.();
+      }
+    });
+  }, [location.pathname, navItems, sessionUser?.role]);
+
   const handleNavigate = useCallback(
     (path) => {
+      preloadRouteComponent(path);
       rememberRoute(path);
       setCommandPaletteOpen(false);
       setCommandQuery("");
@@ -485,6 +825,42 @@ function AppShell({ settings, sessionUser, onLogout, onUserUpdate, children }) {
       navigate(path);
     },
     [navigate]
+  );
+
+  const handleNotificationAction = useCallback(
+    async (item) => {
+      const path = String(item?.action?.path || "").trim();
+      if (!path) {
+        setNotificationOpen(false);
+        return;
+      }
+
+      await acknowledgeNotifications({
+        ids: [item?.id],
+        silent: true,
+      });
+      preloadRouteComponent(path);
+      rememberRoute(path);
+      setNotificationOpen(false);
+      navigate(path, {
+        state: {
+          assistantActionLabel: item?.title || item?.action?.label || "Notification",
+          assistantActionNote: item?.action?.note || item?.detail || "",
+          assistantFocus: item?.action?.focus || "",
+          assistantTs: Date.now(),
+        },
+      });
+    },
+    [acknowledgeNotifications, navigate]
+  );
+
+  const handleNotificationAcknowledge = useCallback(
+    async (item) => {
+      await acknowledgeNotifications({
+        ids: [item?.id],
+      });
+    },
+    [acknowledgeNotifications]
   );
 
   const commandPaletteItems = useMemo(() => {
@@ -612,7 +988,7 @@ function AppShell({ settings, sessionUser, onLogout, onUserUpdate, children }) {
           <div className="sidebar-welcome-copy">
             <span>Workspace owner</span>
             <strong>{sessionUser?.fullName?.split(" ")?.[0] || settings.managerName || "Operator"}</strong>
-            <small>{`${sessionUser?.role || "Store staff"} · ${settings.branchCode}`}</small>
+            <small>{`${sessionUser?.role || "Store staff"} � ${settings.branchCode}`}</small>
           </div>
         </div>
 
@@ -631,6 +1007,8 @@ function AppShell({ settings, sessionUser, onLogout, onUserUpdate, children }) {
                       key={item.path}
                       to={item.path}
                       end={item.path === "/"}
+                      onMouseEnter={() => preloadRouteComponent(item.path)}
+                      onFocus={() => preloadRouteComponent(item.path)}
                       onClick={() => {
                         rememberRoute(item.path);
                         setSidebarOpen(false);
@@ -656,33 +1034,19 @@ function AppShell({ settings, sessionUser, onLogout, onUserUpdate, children }) {
           ))}
         </nav>
 
-        <div className="sidebar-footer">
-          <div className="sidebar-footer-card">
-            <div className="sidebar-footer-card-copy">
-              <strong>{settings.storeName || "AfroSpice Main Branch"}</strong>
-              <small>{sessionUser?.role || "Admin"} access on the live retail workspace.</small>
+          <div className="sidebar-footer">
+            <div className="sidebar-footer-card">
+              <div className="sidebar-footer-card-copy">
+                <strong>{settings.storeName || "AfroSpice Main Branch"}</strong>
+                <small>{sessionUser?.role || "Admin"} access on the live retail workspace.</small>
+              </div>
             </div>
-          </div>
 
-          <div className="sidebar-footer-actions">
-            <button type="button" className="sidebar-footer-action" onClick={() => navigate("/settings")}>
-              <FiUser />
-              <span>Account</span>
-            </button>
-            <button
-              type="button"
-              className="sidebar-footer-action"
-              onClick={() => navigate(["Owner", "Manager"].includes(String(sessionUser?.role || "")) ? "/users" : getDefaultRoute(sessionUser?.role))}
-            >
-              <FiUserCheck />
-              <span>{sessionUser?.role || "Admin"}</span>
-            </button>
             <button type="button" className="sidebar-footer-action sidebar-footer-action--danger" onClick={onLogout}>
               <FiLogOut />
               <span>Logout</span>
             </button>
           </div>
-        </div>
       </aside>
 
       <section className="main workspace-main">
@@ -724,16 +1088,112 @@ function AppShell({ settings, sessionUser, onLogout, onUserUpdate, children }) {
 
             <div className="workspace-commandbar-side">
               <div className="workspace-command-tools">
-                <button type="button" className="workspace-topbar-icon" aria-label="Notifications">
-                  <FiBell />
-                </button>
+                {notificationsEnabled ? (
+                  <div className="workspace-topbar-notification" ref={notificationRef}>
+                    <button
+                      type="button"
+                      className={unreadNotificationCount > 0 ? "workspace-topbar-icon workspace-topbar-icon--alert" : "workspace-topbar-icon"}
+                      aria-label="Notifications"
+                      onClick={() => setNotificationOpen((current) => !current)}
+                    >
+                      <FiBell />
+                      {unreadNotificationCount > 0 ? (
+                        <span className="workspace-topbar-badge">
+                          {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+                        </span>
+                      ) : null}
+                    </button>
+
+                    {notificationOpen ? (
+                      <div className="workspace-notification-popover">
+                        <div className="workspace-notification-header">
+                          <div>
+                            <strong>Workspace alerts</strong>
+                            <small>
+                              {notificationPayload?.generatedAt
+                                ? `Updated ${formatNotificationTimestamp(notificationPayload.generatedAt)}`
+                                : "Auto-ranked from live workspace data"}
+                            </small>
+                          </div>
+                          <div className="workspace-notification-header-actions">
+                            {unreadNotificationCount > 0 ? (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-compact"
+                                onClick={() => acknowledgeNotifications({ markAll: true })}
+                                disabled={notificationsMutating}
+                              >
+                                {notificationsMutating ? "Saving..." : "Acknowledge all"}
+                              </button>
+                            ) : null}
+                            <span className="workspace-topbar-pill workspace-topbar-pill--soft">
+                              {notificationItems.length} {notificationItems.length === 1 ? "alert" : "alerts"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {notificationError ? (
+                          <div className="info-banner inventory-error-banner">{notificationError}</div>
+                        ) : null}
+
+                        <div className="workspace-notification-list">
+                          {!notificationItems.length && !notificationsLoading ? (
+                            <div className="workspace-notification-empty">
+                              <strong>Nothing urgent is open right now.</strong>
+                              <p>The notification stream will surface inventory, order, supplier, security, and forecast pressure automatically.</p>
+                            </div>
+                          ) : null}
+
+                          {notificationItems.map((item) => (
+                            <article
+                              key={item.id}
+                              className={`workspace-notification-item workspace-notification-item--${item.tone || "neutral"} ${
+                                item?.acknowledged ? "is-read" : "is-unread"
+                              }`}
+                            >
+                              <div className="workspace-notification-copy">
+                                <div className="workspace-notification-meta">
+                                  <span className="workspace-notification-category">{item.category || "Operations"}</span>
+                                  <small>{formatNotificationTimestamp(item.generatedAt)}</small>
+                                </div>
+                                <strong>{item.title}</strong>
+                                <p>{item.detail}</p>
+                              </div>
+                              <div className="workspace-notification-actions">
+                                {item?.acknowledged ? (
+                                  <span className="workspace-notification-ack">
+                                    Acknowledged {formatNotificationTimestamp(item?.acknowledgedAt || item?.generatedAt)}
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary btn-compact"
+                                    onClick={() => handleNotificationAcknowledge(item)}
+                                    disabled={notificationsMutating}
+                                  >
+                                    Acknowledge
+                                  </button>
+                                )}
+                                {item?.action?.path ? (
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary btn-compact"
+                                    onClick={() => handleNotificationAction(item)}
+                                  >
+                                    {item?.action?.label || "Open"}
+                                  </button>
+                                ) : null}
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
                 <span className="workspace-topbar-pill">
                   <FiMapPin />
                   {settings.branchCode}
-                </span>
-                <span className="workspace-topbar-pill workspace-topbar-pill--soft">
-                  <FiUserCheck />
-                  {sessionUser?.role || "Workspace Staff"}
                 </span>
                 <OwnerMenu settings={settings} sessionUser={sessionUser} onLogout={onLogout} />
               </div>
@@ -790,9 +1250,18 @@ function App() {
   const { settings, settingsSaving, saveSettings } = useWorkspaceSettings(loggedIn);
 
   useEffect(() => {
+    const themeName = darkMode ? "dark" : "light";
+    const themeColor = darkMode ? "#0a0c10" : "#f7f9fd";
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
     document.body.classList.toggle("dark", darkMode);
+    document.body.dataset.theme = themeName;
+    document.documentElement.dataset.theme = themeName;
     document.documentElement.style.colorScheme = darkMode ? "dark" : "light";
-    localStorage.setItem("afrospice_theme", darkMode ? "dark" : "light");
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute("content", themeColor);
+    }
+    localStorage.setItem("afrospice_theme", themeName);
   }, [darkMode]);
 
   const handleLogout = useCallback(async () => {
@@ -895,7 +1364,9 @@ function App() {
                     <div className="app-boot-shell">Loading workspace session...</div>
                   )
                 ) : (
-                  <Login onLogin={handleLogin} settings={currentSettings} />
+                  <Suspense fallback={<RouteLoader />}>
+                    <Login onLogin={handleLogin} settings={currentSettings} />
+                  </Suspense>
                 )
               }
             />
@@ -907,26 +1378,39 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <Dashboard settings={currentSettings} />
+                    <LazyWorkspaceRoute
+                      component={Dashboard}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading dashboard"
+                      loadingDescription="Preparing the executive flight deck, live revenue, and stock signals."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
             />
 
             <Route
-              path="/pos-dashboard"
+              path="/pos-dashboard/*"
               element={
                 <ProtectedRoute
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager", "Inventory Clerk"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <POSDashboard lowStockThreshold={Number(currentSettings.lowStockThreshold || 10)} />
+                    <LazyWorkspaceRoute
+                      component={POSDashboard}
+                      props={{
+                        settings: currentSettings,
+                        lowStockThreshold: Number(currentSettings.lowStockThreshold || 10),
+                      }}
+                      loadingTitle="Loading inventory command"
+                      loadingDescription="Preparing replenishment, receiving, and stock health surfaces."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -939,10 +1423,15 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager", "Cashier"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <POS settings={currentSettings} />
+                    <LazyWorkspaceRoute
+                      component={POS}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading POS terminal"
+                      loadingDescription="Preparing checkout controls, cart state, and receipt-ready selling tools."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -955,10 +1444,36 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <Orders settings={currentSettings} />
+                    <LazyWorkspaceRoute
+                      component={Orders}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading orders"
+                      loadingDescription="Preparing transaction flow, payment quality, and channel performance views."
+                    />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/orders/refunds"
+              element={
+                <ProtectedRoute
+                  loggedIn={loggedIn}
+                  sessionReady={sessionReady}
+                  userRole={role}
+                  allowedRoles={["Owner"]}
+                >
+                  <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
+                    <LazyWorkspaceRoute
+                      component={RefundDesk}
+                      props={{ settings: currentSettings, currentUser: sessionUser }}
+                      loadingTitle="Loading refund desk"
+                      loadingDescription="Preparing refund decisions, audit context, and approval controls."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -971,10 +1486,15 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <Reports settings={currentSettings} />
+                    <LazyWorkspaceRoute
+                      component={Reports}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading reports"
+                      loadingDescription="Preparing forecasting, category performance, and executive analysis surfaces."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -987,10 +1507,15 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <Customers settings={currentSettings} />
+                    <LazyWorkspaceRoute
+                      component={Customers}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading customers"
+                      loadingDescription="Preparing customer intelligence, account detail, and outreach readiness."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -1003,10 +1528,15 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <CustomerProfile settings={currentSettings} />
+                    <LazyWorkspaceRoute
+                      component={CustomerProfile}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading customer profile"
+                      loadingDescription="Preparing customer record, delivery context, and communications history."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -1019,10 +1549,15 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <CustomerProfile settings={currentSettings} />
+                    <LazyWorkspaceRoute
+                      component={CustomerProfile}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading customer profile"
+                      loadingDescription="Preparing customer record, delivery context, and communications history."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -1035,10 +1570,78 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager", "Inventory Clerk"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <Suppliers settings={currentSettings} />
+                    <LazyWorkspaceRoute
+                      component={Suppliers}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading suppliers"
+                      loadingDescription="Preparing supplier health, inbound risk, and lead-time control surfaces."
+                    />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/suppliers/new"
+              element={
+                <ProtectedRoute
+                  loggedIn={loggedIn}
+                  sessionReady={sessionReady}
+                  userRole={role}
+                  allowedRoles={["Owner"]}
+                >
+                  <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
+                    <LazyWorkspaceRoute
+                      component={SupplierStudio}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading supplier studio"
+                      loadingDescription="Preparing supplier profile, intake rules, and commercial detail."
+                    />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/suppliers/:supplierId"
+              element={
+                <ProtectedRoute
+                  loggedIn={loggedIn}
+                  sessionReady={sessionReady}
+                  userRole={role}
+                  allowedRoles={["Owner"]}
+                >
+                  <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
+                    <LazyWorkspaceRoute
+                      component={SupplierStudio}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading supplier studio"
+                      loadingDescription="Preparing supplier profile, intake rules, and commercial detail."
+                    />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/purchase-orders/new"
+              element={
+                <ProtectedRoute
+                  loggedIn={loggedIn}
+                  sessionReady={sessionReady}
+                  userRole={role}
+                  allowedRoles={["Owner"]}
+                >
+                  <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
+                    <LazyWorkspaceRoute
+                      component={PurchaseOrderBuilder}
+                      props={{ settings: currentSettings }}
+                      loadingTitle="Loading procurement builder"
+                      loadingDescription="Preparing purchase-order drafting, receiving paths, and supplier-linked controls."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -1051,10 +1654,15 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <Users currentUser={sessionUser} />
+                    <LazyWorkspaceRoute
+                      component={Users}
+                      props={{ currentUser: sessionUser }}
+                      loadingTitle="Loading workforce control"
+                      loadingDescription="Preparing roster visibility, access policy, and staff operating context."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -1067,10 +1675,15 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <UserManagementDesk currentUser={sessionUser} />
+                    <LazyWorkspaceRoute
+                      component={UserManagementDesk}
+                      props={{ currentUser: sessionUser }}
+                      loadingTitle="Loading user management desk"
+                      loadingDescription="Preparing staff records, permissions, and oversight actions."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -1083,10 +1696,15 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <UserManagementDesk currentUser={sessionUser} />
+                    <LazyWorkspaceRoute
+                      component={UserManagementDesk}
+                      props={{ currentUser: sessionUser }}
+                      loadingTitle="Loading user management desk"
+                      loadingDescription="Preparing staff records, permissions, and oversight actions."
+                    />
                   </AppShell>
                 </ProtectedRoute>
               }
@@ -1099,25 +1717,37 @@ function App() {
                   loggedIn={loggedIn}
                   sessionReady={sessionReady}
                   userRole={role}
-                  allowedRoles={["Owner", "Manager"]}
+                  allowedRoles={["Owner"]}
                 >
                   <AppShell settings={currentSettings} sessionUser={sessionUser} onLogout={handleLogout} onUserUpdate={handleUserUpdate}>
-                    <Settings
-                      key={currentSettings.updatedAt || currentSettings.branchCode || "settings"}
-                      darkMode={darkMode}
-                      setDarkMode={setDarkMode}
-                      settings={currentSettings}
-                      onSaveSettings={saveSettings}
-                      settingsSaving={settingsSaving}
-                      currentUser={sessionUser}
-                      onLogout={handleLogout}
+                    <LazyWorkspaceRoute
+                      component={Settings}
+                      pageKey={currentSettings.updatedAt || currentSettings.branchCode || "settings"}
+                      props={{
+                        darkMode,
+                        setDarkMode,
+                        settings: currentSettings,
+                        onSaveSettings: saveSettings,
+                        settingsSaving,
+                        currentUser: sessionUser,
+                        onLogout: handleLogout,
+                      }}
+                      loadingTitle="Loading operating controls"
+                      loadingDescription="Preparing theme, policy, and workspace configuration controls."
                     />
                   </AppShell>
                 </ProtectedRoute>
               }
             />
 
-            <Route path="*" element={<NotFound />} />
+            <Route
+              path="*"
+              element={
+                <Suspense fallback={<RouteLoader />}>
+                  <NotFound />
+                </Suspense>
+              }
+            />
           </Routes>
         </Suspense>
       </Router>
@@ -1126,4 +1756,7 @@ function App() {
 }
 
 export default App;
+
+
+
 

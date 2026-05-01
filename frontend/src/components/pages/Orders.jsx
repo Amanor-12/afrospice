@@ -2,19 +2,20 @@ import { startTransition, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   FaArrowTrendUp as FiTrendingUp,
+  FaArrowRotateLeft as FiRefund,
   FaChartLine as FiActivity,
   FaClock as FiClock,
   FaDownload as FiDownload,
   FaMagnifyingGlass as FiSearch,
   FaPlus as FiPlus,
-  FaRotateRight as FiRefreshCw,
   FaShieldHalved as FiShield,
 } from "react-icons/fa6";
 
 import API from "../../api/api";
 import AssistantActionBanner from "../AssistantActionBanner";
-import TimeRangeSwitch from "./shared/TimeRangeSwitch";
+import { LIVE_PAGE_POLL_INTERVAL_MS } from "./pageRuntime";
 import SoftPagination from "./shared/SoftPagination";
+import WorkspaceDataStatus from "./shared/WorkspaceDataStatus";
 import {
   firstNumberFrom,
   formatDate,
@@ -73,12 +74,47 @@ function getStatusOptions(currentStatus) {
   const normalized = String(currentStatus || "Pending").trim();
   const transitions = {
     Pending: ["Pending", "Paid", "Declined"],
-    Paid: ["Paid", "Refunded"],
+    Paid: ["Paid"],
     Declined: ["Declined"],
     Refunded: ["Refunded"],
   };
 
   return transitions[normalized] || [normalized];
+}
+
+function getRefundAction(order = {}) {
+  const orderStatus = String(order?.status || "").trim().toLowerCase();
+  const refundRequestStatus = String(order?.refundRequest?.status || "").trim().toLowerCase();
+
+  if (refundRequestStatus === "pending") {
+    return {
+      label: "Open Refund",
+      note: "Continue the queued refund review.",
+      disabled: false,
+    };
+  }
+
+  if (orderStatus.includes("refund")) {
+    return {
+      label: "View Refund",
+      note: "Review the recorded refund outcome.",
+      disabled: false,
+    };
+  }
+
+  if (orderStatus.includes("paid")) {
+    return {
+      label: "Refund",
+      note: "Open the refund request workflow for this paid order.",
+      disabled: false,
+    };
+  }
+
+  return {
+    label: "Refund",
+    note: "Only paid orders can be sent into the refund workflow.",
+    disabled: true,
+  };
 }
 
 function downloadCsv(rows = [], currency = "USD") {
@@ -112,7 +148,12 @@ function downloadCsv(rows = [], currency = "USD") {
 function Orders({ settings }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [range, setRange] = useState("monthly");
+  const range = useMemo(() => {
+    const normalized = String(settings?.defaultReportsView || "monthly").trim().toLowerCase();
+    return ["daily", "weekly", "monthly", "quarterly", "yearly"].includes(normalized)
+      ? normalized
+      : "monthly";
+  }, [settings?.defaultReportsView]);
   const [analytics, setAnalytics] = useState({});
   const [orders, setOrders] = useState([]);
   const [query, setQuery] = useState("");
@@ -120,8 +161,9 @@ function Orders({ settings }) {
   const [updatingOrderId, setUpdatingOrderId] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [refreshNonce, setRefreshNonce] = useState(0);
   const [ledgerPage, setLedgerPage] = useState(1);
+  const [lastUpdated, setLastUpdated] = useState("");
+  const [nowTick, setNowTick] = useState(Date.now());
 
   const currency = settings?.currency || "USD";
   const assistantActionLabel = location.state?.assistantActionLabel || "";
@@ -130,9 +172,11 @@ function Orders({ settings }) {
   useEffect(() => {
     let cancelled = false;
 
-    const load = async () => {
+    const load = async ({ silent = false } = {}) => {
       try {
-        setLoading(true);
+        if (!silent) {
+          setLoading(true);
+        }
         const [analyticsResponse, salesResponse] = await Promise.all([
           API.get(`/reports/orders?range=${range}`),
           API.get("/sales"),
@@ -141,8 +185,18 @@ function Orders({ settings }) {
         if (cancelled) return;
 
         startTransition(() => {
-          setAnalytics(getResponseData(analyticsResponse) || {});
-          setOrders(normalizeSales(getResponseData(salesResponse)));
+          const analyticsPayload = getResponseData(analyticsResponse) || {};
+          const salesPayload = normalizeSales(getResponseData(salesResponse));
+          setAnalytics(analyticsPayload);
+          setOrders(salesPayload);
+          setLastUpdated(
+            String(
+              analyticsPayload?.generatedAt ||
+                salesPayload[0]?.updatedAt ||
+                salesPayload[0]?.date ||
+                new Date().toISOString()
+            )
+          );
           setError("");
         });
       } catch (requestError) {
@@ -155,10 +209,16 @@ function Orders({ settings }) {
     };
 
     load();
+    const timer = window.setInterval(() => {
+      setNowTick(Date.now());
+      load({ silent: true });
+    }, LIVE_PAGE_POLL_INTERVAL_MS);
+
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
-  }, [range, refreshNonce]);
+  }, [range]);
 
   useEffect(() => {
     const routeState = location.state || {};
@@ -219,12 +279,44 @@ function Orders({ settings }) {
       setNotice("");
       await API.patch(`/sales/${order.id}/status`, { status });
       setNotice(`Order ${order.id} updated to ${status}.`);
-      setRefreshNonce((value) => value + 1);
+      const [analyticsResponse, salesResponse] = await Promise.all([
+        API.get(`/reports/orders?range=${range}`),
+        API.get("/sales"),
+      ]);
+      const analyticsPayload = getResponseData(analyticsResponse) || {};
+      const salesPayload = normalizeSales(getResponseData(salesResponse));
+      startTransition(() => {
+        setAnalytics(analyticsPayload);
+        setOrders(salesPayload);
+        setLastUpdated(
+          String(
+            analyticsPayload?.generatedAt ||
+              salesPayload[0]?.updatedAt ||
+              salesPayload[0]?.date ||
+              new Date().toISOString()
+          )
+        );
+      });
     } catch (submitError) {
       setError(submitError?.message || "Could not update order status.");
     } finally {
       setUpdatingOrderId("");
     }
+  };
+
+  const openRefundDesk = (order) => {
+    if (!order?.id) return;
+
+    const refundAction = getRefundAction(order);
+    if (refundAction.disabled) return;
+
+    navigate("/orders/refunds", {
+      state: {
+        prefillOrderId: order.id,
+        assistantActionLabel: `${refundAction.label} for ${order.id}`,
+        assistantActionNote: refundAction.note,
+      },
+    });
   };
 
   return (
@@ -254,11 +346,15 @@ function Orders({ settings }) {
         </div>
 
         <div className="orders-reference-toolbar-actions">
-          <TimeRangeSwitch value={range} onChange={setRange} ariaLabel="Order reporting range" className="range-switch--toolbar" />
-          <button type="button" className="btn btn-secondary" onClick={() => setRefreshNonce((value) => value + 1)}>
-            <FiRefreshCw />
-            Refresh
-          </button>
+          <WorkspaceDataStatus
+            loading={loading}
+            live={!loading && Boolean(lastUpdated)}
+            liveIndicatorLabel="Live order ledger"
+            timestamp={lastUpdated}
+            nowTick={nowTick}
+            useRelativeTime
+            showPausedBadge
+          />
           <button type="button" className="btn btn-primary" onClick={() => downloadCsv(filteredOrders, currency)}>
             <FiDownload />
             Export CSV
@@ -312,7 +408,6 @@ function Orders({ settings }) {
           <table className="table">
             <thead>
               <tr>
-                <th />
                 <th>Order ID</th>
                 <th>Date</th>
                 <th>Customer</th>
@@ -326,7 +421,7 @@ function Orders({ settings }) {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="empty-cell">
+                  <td colSpan={8} className="empty-cell">
                     Loading live orders...
                   </td>
                 </tr>
@@ -335,12 +430,10 @@ function Orders({ settings }) {
                   const statusTone = getStatusTone(order?.status);
                   const fulfillment = getFulfillmentPercent(order?.status);
                   const paymentLabel = getPaymentLabel(order);
+                  const refundAction = getRefundAction(order);
 
                   return (
                     <tr key={order?.id}>
-                      <td>
-                        <input type="checkbox" aria-label={`Select ${order?.id || "order"}`} />
-                      </td>
                       <td>{order?.id || "n/a"}</td>
                       <td>{formatDate(order?.date || order?.createdAt)}</td>
                       <td>{order?.customer || "Walk-in"}</td>
@@ -360,25 +453,37 @@ function Orders({ settings }) {
                         <span className={`status-pill small ${getStatusTone(paymentLabel)}`}>{paymentLabel}</span>
                       </td>
                       <td>
-                        <select
-                          className="input soft-table-select"
-                          value={order?.status || "Pending"}
-                          onChange={(event) => updateOrderStatus(order, event.target.value)}
-                          disabled={updatingOrderId === String(order?.id)}
-                        >
-                          {getStatusOptions(order?.status).map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="soft-table-actions orders-table-actions">
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-compact"
+                            onClick={() => openRefundDesk(order)}
+                            disabled={refundAction.disabled}
+                            title={refundAction.note}
+                          >
+                            <FiRefund />
+                            {refundAction.label}
+                          </button>
+                          <select
+                            className="input soft-table-select"
+                            value={order?.status || "Pending"}
+                            onChange={(event) => updateOrderStatus(order, event.target.value)}
+                            disabled={updatingOrderId === String(order?.id)}
+                          >
+                            {getStatusOptions(order?.status).map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="empty-cell">
+                  <td colSpan={8} className="empty-cell">
                     {query ? "No orders matched the current search." : "No order records returned."}
                   </td>
                 </tr>

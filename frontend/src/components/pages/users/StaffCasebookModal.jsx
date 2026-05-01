@@ -19,9 +19,9 @@ function formatTimestamp(value) {
 
 function getStatusTone(status = "") {
   const normalized = String(status || "").toLowerCase();
-  if (normalized.includes("active")) return "success";
-  if (normalized.includes("pending")) return "warning";
   if (normalized.includes("inactive") || normalized.includes("suspend")) return "danger";
+  if (normalized.includes("pending")) return "warning";
+  if (normalized.includes("active")) return "success";
   return "neutral";
 }
 
@@ -139,10 +139,10 @@ function StaffCasebookModal({
       <div className="staff-casebook-modal" onClick={(event) => event.stopPropagation()}>
         <header className="staff-casebook-modal-header">
           <div className="staff-casebook-modal-copy">
-            <span className="reference-page-kicker">User Management</span>
+            <span className="reference-page-kicker">Staff Records</span>
             <h3>Staff Casebook</h3>
             <p>
-              Keep coaching notes, incident flags, and access context in one calmer user-management surface for{" "}
+              Keep coaching notes, incident flags, and access context in one calmer owner-control surface for{" "}
               {user.fullName}.
             </p>
           </div>

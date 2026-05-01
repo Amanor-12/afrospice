@@ -1,6 +1,7 @@
 const TOKEN_KEY = "afrospice_token";
 const USER_KEY = "afrospice_user";
 const SESSION_KEY = "afrospice_session_active";
+const LAST_IDENTIFIER_KEY = "afrospice_last_identifier";
 
 function readSessionStorage(key) {
   return window.sessionStorage.getItem(key);
@@ -16,8 +17,8 @@ function removeLegacyToken() {
 }
 
 function markSessionActive() {
-  window.localStorage.setItem(SESSION_KEY, "1");
-  window.sessionStorage.removeItem(SESSION_KEY);
+  window.sessionStorage.setItem(SESSION_KEY, "1");
+  window.localStorage.removeItem(SESSION_KEY);
 }
 
 function migrateLegacySessionIfPresent() {
@@ -85,6 +86,32 @@ export function writeAuthSession(user = null) {
     }
   } catch {
     // Intentionally silent: server-side auth remains authoritative.
+  }
+}
+
+export function readLastSignInIdentifier() {
+  if (typeof window === "undefined") return "";
+
+  try {
+    return String(window.localStorage.getItem(LAST_IDENTIFIER_KEY) || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+export function writeLastSignInIdentifier(identifier = "") {
+  if (typeof window === "undefined") return;
+
+  try {
+    const normalized = String(identifier || "").trim();
+    if (!normalized) {
+      window.localStorage.removeItem(LAST_IDENTIFIER_KEY);
+      return;
+    }
+
+    window.localStorage.setItem(LAST_IDENTIFIER_KEY, normalized);
+  } catch {
+    // Intentionally silent.
   }
 }
 

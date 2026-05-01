@@ -1,16 +1,51 @@
-# React + Vite
+# AfroSpice Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + Vite 8 owner workspace for AfroSpice.
 
-Currently, two official plugins are available:
+## Node baseline
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node `>=20.19.0`
+- npm `>=10`
 
-## React Compiler
+## Local development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+From the repository root:
 
-## Expanding the ESLint configuration
+```powershell
+npm.cmd run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Frontend only:
+
+```powershell
+npm.cmd --prefix frontend run dev
+```
+
+## Quality gates
+
+```powershell
+npm.cmd --prefix frontend run lint
+npm.cmd --prefix frontend run build
+```
+
+## Environment
+
+Start from [`frontend/.env.example`](C:/Users/regan/Downloads/afrospice/frontend/.env.example).
+
+- Leave `VITE_API_URL` blank when the deployed frontend and backend share the same origin and `/api` is reverse-proxied.
+- Set `VITE_API_URL` when the frontend is deployed on a different origin than the API.
+- `VITE_BACKEND_URL` is only used by the local Vite proxy.
+
+## Production packaging
+
+- Frontend container build: [`frontend/Dockerfile`](C:/Users/regan/Downloads/afrospice/frontend/Dockerfile)
+- Reverse proxy config: [`deploy/nginx/default.conf`](C:/Users/regan/Downloads/afrospice/deploy/nginx/default.conf)
+- Compose example: [`deploy/docker-compose.production.yml`](C:/Users/regan/Downloads/afrospice/deploy/docker-compose.production.yml)
+
+## Important runtime note
+
+This frontend expects:
+
+- `/api/*` to be available at runtime
+- SPA route fallback to `index.html`
+- cookies to be preserved for authenticated API calls

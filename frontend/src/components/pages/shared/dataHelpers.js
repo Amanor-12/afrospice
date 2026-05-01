@@ -10,6 +10,21 @@ export function toObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
+export function normalizeCollectionPayload(payload, keys = []) {
+  if (Array.isArray(payload)) return payload;
+
+  const source = toObject(payload);
+  const nestedData = toObject(source.data);
+  const candidates = [...keys, "items", "rows", "results", "records"];
+
+  for (const key of candidates) {
+    if (Array.isArray(source[key])) return source[key];
+    if (Array.isArray(nestedData[key])) return nestedData[key];
+  }
+
+  return [];
+}
+
 export function toNumber(value, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;

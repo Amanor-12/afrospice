@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import API from "../api/api";
+import { BACKEND_RUNTIME_MISMATCH_CODE } from "../utils/backendRuntime";
 
 function createMessage(role, payload) {
   return {
@@ -30,7 +31,47 @@ function normalizeAction(action = {}) {
   };
 }
 
+function normalizeEngine(engine = null) {
+  if (!engine) return null;
+
+  if (typeof engine === "string") {
+    const label = String(engine || "").trim();
+    return label
+      ? {
+          label,
+          detail: "",
+          liveModel: false,
+          mode: "",
+        }
+      : null;
+  }
+
+  if (typeof engine !== "object") {
+    return null;
+  }
+
+  const label = String(engine?.label || engine?.mode || "").trim();
+  const detail = String(engine?.detail || "").trim();
+
+  if (!label && !detail) {
+    return null;
+  }
+
+  return {
+    label: label || "Owner AI Assistant",
+    detail,
+    liveModel: Boolean(engine?.liveModel),
+    mode: String(engine?.mode || "").trim(),
+  };
+}
+
 function createAssistantPayload(data = {}, fallbackContent = "") {
+  const normalizedFollowUps = Array.isArray(data?.followUps)
+    ? data.followUps
+    : Array.isArray(data?.suggestedQuestions)
+    ? data.suggestedQuestions
+    : [];
+
   return {
     headline: data?.headline || "Owner AI Assistant",
     content: data?.greeting || data?.answer || fallbackContent,
@@ -50,12 +91,115 @@ function createAssistantPayload(data = {}, fallbackContent = "") {
       : [],
     questionBack: data?.questionBack || "",
     sources: Array.isArray(data?.sources) ? data.sources : [],
-    followUps: Array.isArray(data?.followUps) ? data.followUps : [],
+    followUps: normalizedFollowUps,
+    suggestedQuestions: normalizedFollowUps,
     statusTone: data?.statusTone || "success",
     statusLabel: data?.statusLabel || "",
     disclosure: data?.disclosure || "",
-    engine: data?.engine || null,
+    engine: normalizeEngine(data?.engine || null),
   };
+}
+
+const STATIC_QUICK_PROMPTS = [
+  {
+    label: "Revenue pulse",
+    note: "What changed in revenue this week?",
+    prompt: "What changed in revenue this week?",
+    icon: FiTrendingUp,
+  },
+  {
+    label: "Stock risk",
+    note: "Which products are at stockout risk?",
+    prompt: "Which products are at stockout risk?",
+    icon: FiPackage,
+  },
+  {
+    label: "Workforce view",
+    note: "What is the biggest staffing issue right now?",
+    prompt: "What is the biggest staffing issue right now?",
+    icon: FiUsers,
+  },
+  {
+    label: "Next move",
+    note: "Which supplier needs attention now?",
+    prompt: "Which supplier needs attention now?",
+    icon: FiZap,
+  },
+];
+
+function buildQuickPromptsFromFollowUps(followUps = []) {
+  const icons = [FiTrendingUp, FiPackage, FiUsers, FiZap];
+
+  return followUps
+    .slice(0, 4)
+    .map((prompt, index) => ({
+      label: index === 0 ? "Priority brief" : index === 1 ? "Ops follow-up" : index === 2 ? "Demand check" : "Next question",
+      note: String(prompt || "").trim(),
+      prompt: String(prompt || "").trim(),
+      icon: icons[index] || FiZap,
+    }))
+    .filter((item) => item.prompt);
+}
+
+function buildAssistantNavigation(action = {}) {
+  const path = String(action?.path || "").trim();
+  const focus = String(action?.focus || "").trim();
+  const baseState = {
+    assistantActionLabel: action?.label || "",
+    assistantActionNote: action?.note || "",
+    assistantTs: Date.now(),
+  };
+
+  if (!path) {
+    return { path: "", state: null };
+  }
+
+  if (path === "/pos-dashboard") {
+    let nextPath = "/pos-dashboard";
+    let inventoryFocus = focus;
+
+    if (focus === "inventory-reorder-planner") {
+      nextPath = "/pos-dashboard/reorder";
+    } else if (focus === "inventory-create-product") {
+      nextPath = "/pos-dashboard/catalog-studio";
+    } else if (focus === "inventory-operations-rail") {
+      nextPath = "/pos-dashboard/operations";
+      inventoryFocus = "inventory-operations";
+    }
+
+    return {
+      path: nextPath,
+      state: {
+        ...baseState,
+        inventoryFocus: inventoryFocus || "inventory-directory",
+      },
+    };
+  }
+
+  if (path === "/orders") {
+    return {
+      path,
+      state: {
+        ...baseState,
+        ordersFocus: focus || "orders-ledger",
+      },
+    };
+  }
+
+  return {
+    path,
+    state: {
+      ...baseState,
+      assistantFocus: focus || "",
+    },
+  };
+}
+
+function toneToModifier(tone = "") {
+  const normalized = String(tone || "").toLowerCase();
+  if (normalized === "danger") return "danger";
+  if (normalized === "warning") return "warning";
+  return "success";
 }
 
 function OwnerAssistantDock({ sessionUser }) {
@@ -63,9 +207,12 @@ function OwnerAssistantDock({ sessionUser }) {
   const threadRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [bootstrapped, setBootstrapped] = useState(false);
+  const [bootstrapError, setBootstrapError] = useState("");
+  const [bootstrapNonce, setBootstrapNonce] = useState(0);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [bootstrapping, setBootstrapping] = useState(false);
+  const [replyLoading, setReplyLoading] = useState(false);
   const [error, setError] = useState("");
 
   const displayName = useMemo(
@@ -76,35 +223,18 @@ function OwnerAssistantDock({ sessionUser }) {
     const assistantMessage = [...messages].reverse().find((message) => message.role === "assistant" && message.engine);
     return assistantMessage?.engine || "";
   }, [messages]);
-  const quickPrompts = useMemo(
-    () => [
-      {
-        label: "Revenue pulse",
-        note: "What changed in revenue this week?",
-        prompt: "What changed in revenue this week?",
-        icon: FiTrendingUp,
-      },
-      {
-        label: "Stock risk",
-        note: "Which products are at stockout risk?",
-        prompt: "Which products are at stockout risk?",
-        icon: FiPackage,
-      },
-      {
-        label: "Workforce view",
-        note: "What is the biggest staffing issue right now?",
-        prompt: "What is the biggest staffing issue right now?",
-        icon: FiUsers,
-      },
-      {
-        label: "Next move",
-        note: "Which supplier needs attention now?",
-        prompt: "Which supplier needs attention now?",
-        icon: FiZap,
-      },
-    ],
-    []
-  );
+  const quickPrompts = useMemo(() => {
+    const latestPromptSource = [...messages].reverse().find(
+      (message) =>
+        message.role === "assistant" &&
+        ((Array.isArray(message.followUps) && message.followUps.length) ||
+          (Array.isArray(message.suggestedQuestions) && message.suggestedQuestions.length))
+    );
+    const livePrompts = buildQuickPromptsFromFollowUps(
+      latestPromptSource?.followUps || latestPromptSource?.suggestedQuestions || []
+    );
+    return livePrompts.length ? livePrompts : STATIC_QUICK_PROMPTS;
+  }, [messages]);
 
   useEffect(() => {
     const handleOpen = () => setOpen(true);
@@ -113,63 +243,96 @@ function OwnerAssistantDock({ sessionUser }) {
   }, []);
 
   useEffect(() => {
-    if (!open || bootstrapped || loading) return;
+    if (!open) return undefined;
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || bootstrapped || bootstrapping || bootstrapError) return;
 
     let cancelled = false;
 
     const loadBootstrap = async () => {
       try {
-        setLoading(true);
+        setBootstrapping(true);
         setError("");
-        const response = await API.get("/reports/owner-assistant");
-        const data = response?.data?.data || {};
+        setBootstrapError("");
+        let data = null;
+
+        try {
+          const response = await API.get("/reports/owner-assistant");
+          data = response?.data?.data || {};
+        } catch {
+          const replyResponse = await API.post("/reports/owner-assistant", {
+            question: "What needs my attention right now?",
+            history: [],
+          });
+          data = {
+            ...(replyResponse?.data?.data || {}),
+            headline: "Recovered live owner brief",
+            disclosure: "Assistant bootstrap recovered from the live reply path.",
+          };
+        }
+
         if (cancelled) return;
 
-        setMessages([
-          createMessage(
-            "assistant",
-            createAssistantPayload(
-              {
-                ...data,
-                headline: data?.headline || `Hello ${displayName}`,
-              },
-              "Ask anything about sales, stock, staff, supplier risk, or forecasting."
-            )
-          ),
-        ]);
+        const bootstrapMessage = createMessage(
+          "assistant",
+          createAssistantPayload(
+            {
+              ...data,
+              headline: data?.headline || `Hello ${displayName}`,
+            },
+            "Ask anything about sales, stock, staff, supplier risk, or forecasting."
+          )
+        );
+        setMessages((current) => (current.length ? current : [bootstrapMessage]));
+        setBootstrapped(true);
       } catch (requestError) {
         if (cancelled) return;
 
+        const runtimeMismatch = requestError?.code === BACKEND_RUNTIME_MISMATCH_CODE;
         const routeMissing = Number(requestError?.status || requestError?.response?.status || 0) === 404;
-        setError(
-          routeMissing
+        const failureMessage =
+          runtimeMismatch
+            ? requestError?.message || "The running backend does not support the owner assistant."
+            : routeMissing
             ? "Assistant route is not live on the running backend yet."
-            : requestError?.message || "Could not start the assistant."
+            : requestError?.message || "Could not start the assistant.";
+        setError(failureMessage);
+        setBootstrapError(failureMessage);
+        const fallbackMessage = createMessage(
+          "assistant",
+          createAssistantPayload(
+            {
+              headline: `Hello ${displayName}`,
+              answer: runtimeMismatch
+                ? failureMessage
+                : routeMissing
+                ? "The assistant route is not available on the running backend yet. Restart the backend and try again."
+                : "I can help with revenue, inventory, staff, supplier pressure, and forecast questions once the live data route responds again.",
+              followUps: [
+                "What does the demand forecast say for next week?",
+                "Which products are at stockout risk?",
+              ],
+              statusTone: "warning",
+              statusLabel: "Needs Attention",
+            },
+            ""
+          )
         );
-        setMessages([
-          createMessage(
-            "assistant",
-            createAssistantPayload(
-              {
-                headline: `Hello ${displayName}`,
-                answer: routeMissing
-                  ? "The assistant route is not available on the running backend yet. Restart the backend and try again."
-                  : "I can help with revenue, inventory, staff, supplier pressure, and forecast questions once the live data route responds again.",
-                followUps: [
-                  "What does the demand forecast say for next week?",
-                  "Which products are at stockout risk?",
-                ],
-                statusTone: "warning",
-                statusLabel: "Needs Attention",
-              },
-              ""
-            )
-          ),
-        ]);
+        setMessages((current) => (current.length ? current : [fallbackMessage]));
       } finally {
         if (!cancelled) {
-          setLoading(false);
-          setBootstrapped(true);
+          setBootstrapping(false);
         }
       }
     };
@@ -179,16 +342,16 @@ function OwnerAssistantDock({ sessionUser }) {
     return () => {
       cancelled = true;
     };
-  }, [bootstrapped, displayName, loading, open]);
+  }, [bootstrapped, bootstrapError, bootstrapNonce, bootstrapping, displayName, open]);
 
   useEffect(() => {
     if (!threadRef.current) return;
     threadRef.current.scrollTop = threadRef.current.scrollHeight;
-  }, [messages, loading]);
+  }, [messages, bootstrapping, replyLoading]);
 
   const sendQuestion = async (rawQuestion) => {
     const question = String(rawQuestion || input).trim();
-    if (!question || loading) return;
+    if (!question || replyLoading) return;
 
     const userMessage = createMessage("user", {
       headline: "You",
@@ -205,7 +368,7 @@ function OwnerAssistantDock({ sessionUser }) {
     setMessages((current) => [...current, userMessage]);
     setInput("");
     setError("");
-    setLoading(true);
+    setReplyLoading(true);
 
     try {
       const response = await API.post("/reports/owner-assistant", {
@@ -219,31 +382,104 @@ function OwnerAssistantDock({ sessionUser }) {
         createMessage("assistant", createAssistantPayload(data, "No answer was returned.")),
       ]);
     } catch (requestError) {
+      const runtimeMismatch = requestError?.code === BACKEND_RUNTIME_MISMATCH_CODE;
       const routeMissing = Number(requestError?.status || requestError?.response?.status || 0) === 404;
-      setError(
-        routeMissing
-          ? "Assistant route is not live on the running backend yet."
-          : requestError?.message || "Assistant reply failed."
-      );
-      setMessages((current) => [
-        ...current,
-        createMessage(
-          "assistant",
-          createAssistantPayload(
-            {
-              headline: "Assistant unavailable",
-              answer: routeMissing
-                ? "The assistant route is not live on the running backend yet. Restart the backend and ask again."
-                : "I could not answer that from the live workspace right now.",
-              statusTone: "warning",
-              statusLabel: "Needs Attention",
-            },
-            ""
-          )
-        ),
-      ]);
+      if (runtimeMismatch) {
+        const failureMessage =
+          requestError?.message || "The running backend does not support the owner assistant.";
+        setError(failureMessage);
+        setMessages((current) => [
+          ...current,
+          createMessage(
+            "assistant",
+            createAssistantPayload(
+              {
+                headline: "Assistant backend mismatch",
+                answer: failureMessage,
+                followUps: [
+                  "Restart the workspace runtime",
+                  "Open the latest AfroSpice backend",
+                ],
+                statusTone: "warning",
+                statusLabel: "Backend mismatch",
+                disclosure: "The frontend reached a backend that is not exposing the current AfroSpice assistant runtime.",
+              },
+              ""
+            )
+          ),
+        ]);
+        return;
+      }
+
+      try {
+        const fallbackResponse = await API.get("/reports/notifications");
+        const alerts = Array.isArray(fallbackResponse?.data?.data?.items)
+          ? fallbackResponse.data.data.items
+          : [];
+
+        const topAlerts = alerts.slice(0, 4);
+        setError("Assistant reply path failed. Showing grounded workspace alerts instead.");
+        setMessages((current) => [
+          ...current,
+          createMessage(
+            "assistant",
+            createAssistantPayload(
+              {
+                headline: "Grounded workspace fallback",
+                answer: topAlerts.length
+                  ? "The assistant reply path is unavailable right now, so here are the highest-priority live alerts from the workspace."
+                  : "The assistant reply path is unavailable right now and no live alerts were returned.",
+                highlights: topAlerts.map((alert) => ({
+                  label: alert.category || "Operations",
+                  value: alert.title || "Workspace alert",
+                  note: alert.detail || "No extra detail was returned.",
+                })),
+                actions: topAlerts
+                  .map((alert) => ({
+                    label: alert?.action?.label || "",
+                    path: alert?.action?.path || "",
+                    note: alert?.action?.note || "",
+                  }))
+                  .filter((item) => item.label && item.path),
+                followUps: [
+                  "What needs my attention right now?",
+                  "Which alerts are cash-related?",
+                  "Which supplier issue is the most urgent?",
+                ],
+                statusTone: "warning",
+                statusLabel: "Fallback mode",
+                disclosure: "Assistant reply failed, so the dock switched to live notification fallback.",
+              },
+              ""
+            )
+          ),
+        ]);
+      } catch {
+        setError(
+          routeMissing
+            ? "Assistant route is not live on the running backend yet."
+            : requestError?.message || "Assistant reply failed."
+        );
+        setMessages((current) => [
+          ...current,
+          createMessage(
+            "assistant",
+            createAssistantPayload(
+              {
+                headline: "Assistant unavailable",
+                answer: routeMissing
+                  ? "The assistant route is not live on the running backend yet. Restart the backend and ask again."
+                  : "I could not answer that from the live workspace right now.",
+                statusTone: "warning",
+                statusLabel: "Needs Attention",
+              },
+              ""
+            )
+          ),
+        ]);
+      }
     } finally {
-      setLoading(false);
+      setReplyLoading(false);
     }
   };
 
@@ -253,24 +489,39 @@ function OwnerAssistantDock({ sessionUser }) {
   };
 
   const handleAction = (action) => {
-    const path = String(action?.path || "").trim();
+    const { path, state } = buildAssistantNavigation(action);
     if (!path) return;
 
     navigate(path, {
-      state: {
-        assistantFocus: action?.focus || "",
-        assistantActionLabel: action?.label || "",
-        assistantActionNote: action?.note || "",
-        assistantTs: Date.now(),
-      },
+      state,
     });
     setOpen(false);
   };
 
+  const retryBootstrap = () => {
+    if (bootstrapping || replyLoading) return;
+    setMessages([]);
+    setInput("");
+    setError("");
+    setBootstrapError("");
+    setBootstrapped(false);
+    setBootstrapNonce((value) => value + 1);
+  };
+
+  const resetConversation = () => {
+    if (bootstrapping || replyLoading) return;
+    setMessages([]);
+    setInput("");
+    setError("");
+    setBootstrapError("");
+    setBootstrapped(false);
+    setBootstrapNonce((value) => value + 1);
+  };
+
   return (
-    <div className="chatbot owner-assistant-widget">
+    <div className="owner-assistant-widget">
       {open ? (
-        <section className="chatbot-window owner-assistant-card" aria-label="Owner AI assistant">
+        <section className="owner-assistant-card" aria-label="Owner AI assistant">
           <header className="owner-assistant-header">
             <div className="owner-assistant-header-copy">
               <span className="owner-assistant-eyebrow">Grounded workspace AI</span>
@@ -278,19 +529,39 @@ function OwnerAssistantDock({ sessionUser }) {
               <p>Live answers and next actions pulled from your sales, stock, suppliers, and staffing data.</p>
               {latestAssistantEngine ? (
                 <div className="owner-assistant-status-row">
-                  <span className="status-pill small">{latestAssistantEngine}</span>
-                  <span className="owner-assistant-status-note">Live workspace context</span>
+                  <span
+                    className={`owner-assistant-engine-badge owner-assistant-engine-badge--${
+                      latestAssistantEngine.liveModel ? "live" : "grounded"
+                    }`}
+                  >
+                    {latestAssistantEngine.liveModel ? "Hybrid AI" : latestAssistantEngine.label}
+                  </span>
+                  <span className="owner-assistant-status-note">
+                    {latestAssistantEngine.detail || "Live workspace context"}
+                  </span>
                 </div>
               ) : null}
             </div>
-            <button
-              type="button"
-              className="owner-assistant-close"
-              aria-label="Close assistant"
-              onClick={() => setOpen(false)}
-            >
-              <FiX />
-            </button>
+            <div className="owner-assistant-header-actions">
+              {(bootstrapError || messages.length > 1) ? (
+                <button
+                  type="button"
+                  className="owner-assistant-utility-button"
+                  onClick={bootstrapError ? retryBootstrap : resetConversation}
+                  disabled={bootstrapping || replyLoading}
+                >
+                  {bootstrapError ? "Retry" : "Reset"}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="owner-assistant-close-button"
+                aria-label="Close assistant"
+                onClick={() => setOpen(false)}
+              >
+                <FiX />
+              </button>
+            </div>
           </header>
 
           <div className="owner-assistant-shortcuts">
@@ -300,7 +571,7 @@ function OwnerAssistantDock({ sessionUser }) {
                 type="button"
                 className="owner-assistant-shortcut"
                 onClick={() => sendQuestion(prompt.prompt)}
-                disabled={loading}
+                disabled={replyLoading}
               >
                 <span className="owner-assistant-shortcut-icon">
                   <prompt.icon />
@@ -314,7 +585,7 @@ function OwnerAssistantDock({ sessionUser }) {
           </div>
 
           <div className="owner-assistant-thread" ref={threadRef}>
-            {!messages.length && !loading ? (
+            {!messages.length && !bootstrapping && !replyLoading ? (
               <div className="owner-assistant-empty">
                 <span className="owner-assistant-message-label">Business assistant</span>
                 <strong>Ask a live operating question.</strong>
@@ -335,15 +606,7 @@ function OwnerAssistantDock({ sessionUser }) {
                     </span>
                   </div>
                   {message.role === "assistant" && message.statusLabel ? (
-                    <span
-                      className={`status-pill ${
-                        message.statusTone === "danger"
-                          ? "danger"
-                          : message.statusTone === "warning"
-                          ? "warning"
-                          : "success"
-                      }`}
-                    >
+                    <span className={`owner-assistant-message-status owner-assistant-message-status--${toneToModifier(message.statusTone)}`}>
                       {message.statusLabel}
                     </span>
                   ) : null}
@@ -494,14 +757,14 @@ function OwnerAssistantDock({ sessionUser }) {
               </article>
             ))}
 
-            {loading ? (
+            {replyLoading || (bootstrapping && !messages.length) ? (
               <article className="owner-assistant-message owner-assistant-message-assistant">
                 <div className="owner-assistant-message-top">
                   <div className="owner-assistant-message-meta">
                     <span className="owner-assistant-message-dot" />
                     <span className="owner-assistant-message-label">Assistant</span>
                   </div>
-                  <span className="status-pill warning">Thinking</span>
+                  <span className="owner-assistant-message-status owner-assistant-message-status--warning">Thinking</span>
                 </div>
                 <p>Reading the live workspace data and preparing an answer.</p>
               </article>
@@ -509,11 +772,11 @@ function OwnerAssistantDock({ sessionUser }) {
           </div>
 
           <div className="owner-assistant-footer">
-            {error ? <div className="info-banner inventory-error-banner">{error}</div> : null}
+            {error ? <div className="owner-assistant-error">{error}</div> : null}
 
             <form className="owner-assistant-composer" onSubmit={handleSubmit}>
               <textarea
-                className="input owner-assistant-input"
+                className="owner-assistant-input"
                 rows="3"
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
@@ -529,9 +792,13 @@ function OwnerAssistantDock({ sessionUser }) {
                 <small className="owner-assistant-helper">
                   Grounded in live business data. Use exact IDs, time windows, product names, or supplier names for sharper answers.
                 </small>
-                <button type="submit" className="btn btn-primary owner-assistant-send" disabled={loading || !input.trim()}>
+                <button
+                  type="submit"
+                  className="owner-assistant-send owner-assistant-send-button"
+                  disabled={replyLoading || !input.trim()}
+                >
                   <FiSend />
-                  {loading ? "Thinking..." : "Send"}
+                  {replyLoading ? "Thinking..." : "Send"}
                 </button>
               </div>
             </form>
@@ -540,7 +807,7 @@ function OwnerAssistantDock({ sessionUser }) {
       ) : (
         <button
           type="button"
-          className="chatbot-button owner-assistant-trigger"
+          className="owner-assistant-trigger"
           aria-label="Open business assistant"
           onClick={() => setOpen(true)}
         >
