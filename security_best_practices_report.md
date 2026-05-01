@@ -62,7 +62,7 @@ Evidence:
 
 - `runtime.js` enables `bootstrapSampleData` by default outside production.
 - `store.mongo.js` calls `ensureBootstrapSeedData()` during initialization.
-- `seedData.js` contains hard-coded products, users, PINs, and sales such as `ADMIN001 / 1234`.
+- `seedData.js` contains hard-coded products, users, PINs, and sales such as the seeded owner account.
 
 Impact:
 

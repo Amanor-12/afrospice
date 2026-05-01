@@ -17,14 +17,29 @@ const steps = [
     args: ["--prefix", "frontend", "run", "build"],
   },
   {
+    name: "Frontend asset budgets",
+    command: npmCommand,
+    args: ["run", "verify:frontend:budgets"],
+  },
+  {
     name: "Backend runtime verification",
     command: npmCommand,
     args: ["--prefix", "backend", "run", "verify:runtime"],
   },
   {
+    name: "Backend data quality verification",
+    command: npmCommand,
+    args: ["--prefix", "backend", "run", "verify:data-quality"],
+  },
+  {
     name: "Backend transaction verification",
     command: npmCommand,
     args: ["--prefix", "backend", "run", "verify:transactions"],
+  },
+  {
+    name: "Backend owner route e2e verification",
+    command: npmCommand,
+    args: ["--prefix", "backend", "run", "verify:owner:e2e"],
   },
   {
     name: "Backend backup verification",
