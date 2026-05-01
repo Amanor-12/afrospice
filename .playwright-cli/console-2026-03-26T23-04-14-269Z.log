@@ -1,8 +1,0 @@
-[ 1173928ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/src/components/pages/POSDashboard.jsx?t=1774567428162:0
-[ 1173929ms] [ERROR] [vite] Failed to reload /src/components/pages/POSDashboard.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:5173/@vite/client:904
-[ 2471638ms] [ERROR] The final argument passed to %s changed size between renders. The order and size of this array must remain constant.
-
-Previous: %s
-Incoming: %s useEffect [4g92l6xa] [inventory-create-product, 4g92l6xa, , Mama Gold Foods] @ http://127.0.0.1:5173/node_modules/.vite/deps/react-dom_client.js?v=4598a917:4196
-[ 3240143ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/src/components/pages/global.css?t=1774569494367:0
-[ 3240147ms] [ERROR] [vite] Failed to reload /src/components/pages/global.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:5173/@vite/client:904

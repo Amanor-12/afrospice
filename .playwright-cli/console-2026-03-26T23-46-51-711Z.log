@@ -1,3 +1,0 @@
-[  682700ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/src/components/pages/global.css?t=1774569494367:0
-[  682704ms] [ERROR] [vite] Failed to reload /src/components/pages/global.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:5173/@vite/client:904
-[  921910ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/src/components/pages/global.css?t=1774569494367:0

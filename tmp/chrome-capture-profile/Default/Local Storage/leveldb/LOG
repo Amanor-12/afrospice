@@ -1,8 +1,0 @@
-2026/03/25-07:09:51.198 aebc Creating DB C:\Users\regan\Downloads\afrospice\tmp\chrome-capture-profile\Default\Local Storage\leveldb since it was missing.
-2026/03/25-07:09:51.236 aebc Reusing MANIFEST C:\Users\regan\Downloads\afrospice\tmp\chrome-capture-profile\Default\Local Storage\leveldb/MANIFEST-000001
-2026/03/26-00:52:02.909 2580 Level-0 table #5: started
-2026/03/26-00:52:02.948 2580 Level-0 table #5: 21856 bytes OK
-2026/03/26-00:52:02.954 2580 Delete type=0 #3
-2026/03/26-08:03:08.464 2580 Level-0 table #7: started
-2026/03/26-08:03:08.482 2580 Level-0 table #7: 19902 bytes OK
-2026/03/26-08:03:08.489 2580 Delete type=0 #4

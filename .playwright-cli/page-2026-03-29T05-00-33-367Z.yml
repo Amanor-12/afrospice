@@ -1,6 +1,0 @@
-- generic [ref=e8]:
-  - paragraph [ref=e9]: Route Missing
-  - heading "404 - Page Not Found" [level=2] [ref=e10]
-  - paragraph [ref=e11]: The page you requested does not exist in the current workspace map.
-  - link "Return To Dashboard" [ref=e12] [cursor=pointer]:
-    - /url: /
