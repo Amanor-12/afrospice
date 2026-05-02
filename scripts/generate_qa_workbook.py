@@ -295,8 +295,8 @@ def build_core_xml() -> str:
                    xmlns:dcmitype="http://purl.org/dc/dcmitype/"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <dc:title>AfroSpice Test Cases</dc:title>
-  <dc:creator>Codex</dc:creator>
-  <cp:lastModifiedBy>Codex</cp:lastModifiedBy>
+  <dc:creator>AfroSpice</dc:creator>
+  <cp:lastModifiedBy>AfroSpice</cp:lastModifiedBy>
   <dcterms:created xsi:type="dcterms:W3CDTF">{now}</dcterms:created>
   <dcterms:modified xsi:type="dcterms:W3CDTF">{now}</dcterms:modified>
 </cp:coreProperties>
