@@ -1,0 +1,153 @@
+{
+  "generated_from": "existing QA screenshots",
+  "routes": [
+    {
+      "slug": "login",
+      "title": "Login",
+      "gif": "qa/recruiter-showcase/login.gif",
+      "sources": [
+        "qa/manual-sweep/login-debug.png"
+      ]
+    },
+    {
+      "slug": "dashboard",
+      "title": "Dashboard",
+      "gif": "qa/recruiter-showcase/dashboard.gif",
+      "sources": [
+        "qa/manual-sweep/dashboard-light.png",
+        "qa/manual-sweep/dashboard-dark.png"
+      ]
+    },
+    {
+      "slug": "assistant",
+      "title": "Assistant",
+      "gif": "qa/recruiter-showcase/assistant.gif",
+      "sources": [
+        "qa/manual-sweep/assistant-light.png",
+        "qa/evidence/screenshots/assistant-open.png",
+        "qa/evidence/screenshots/assistant-response.png",
+        "qa/manual-sweep/assistant-dark.png"
+      ]
+    },
+    {
+      "slug": "inventory",
+      "title": "Inventory",
+      "gif": "qa/recruiter-showcase/inventory.gif",
+      "sources": [
+        "qa/manual-sweep/inventory-light.png",
+        "qa/manual-sweep/inventory-dark.png"
+      ]
+    },
+    {
+      "slug": "terminal",
+      "title": "Terminal",
+      "gif": "qa/recruiter-showcase/terminal.gif",
+      "sources": [
+        "qa/manual-sweep/terminal-light.png",
+        "qa/manual-sweep/terminal-dark.png"
+      ]
+    },
+    {
+      "slug": "orders",
+      "title": "Orders",
+      "gif": "qa/recruiter-showcase/orders.gif",
+      "sources": [
+        "qa/manual-sweep/orders-light.png",
+        "qa/manual-sweep/orders-dark.png"
+      ]
+    },
+    {
+      "slug": "refunds",
+      "title": "Refunds",
+      "gif": "qa/recruiter-showcase/refunds.gif",
+      "sources": [
+        "qa/manual-sweep/refunds-light.png",
+        "qa/evidence/screenshots/refund-desk-ready.png",
+        "qa/manual-sweep/refunds-dark.png"
+      ]
+    },
+    {
+      "slug": "reports",
+      "title": "Reports",
+      "gif": "qa/recruiter-showcase/reports.gif",
+      "sources": [
+        "qa/manual-sweep/reports-light.png",
+        "qa/manual-sweep/reports-dark.png"
+      ]
+    },
+    {
+      "slug": "customers",
+      "title": "Customers",
+      "gif": "qa/recruiter-showcase/customers.gif",
+      "sources": [
+        "qa/manual-sweep/customers-light.png",
+        "qa/manual-sweep/customers-dark.png"
+      ]
+    },
+    {
+      "slug": "customer-detail",
+      "title": "Customer Detail",
+      "gif": "qa/recruiter-showcase/customer-detail.gif",
+      "sources": [
+        "qa/manual-sweep/customer-detail-light.png",
+        "qa/evidence/screenshots/customer-profile-dark.png",
+        "qa/manual-sweep/customer-detail-dark.png"
+      ]
+    },
+    {
+      "slug": "suppliers",
+      "title": "Suppliers",
+      "gif": "qa/recruiter-showcase/suppliers.gif",
+      "sources": [
+        "qa/manual-sweep/suppliers-light.png",
+        "qa/manual-sweep/suppliers-dark.png"
+      ]
+    },
+    {
+      "slug": "supplier-detail",
+      "title": "Supplier Detail",
+      "gif": "qa/recruiter-showcase/supplier-detail.gif",
+      "sources": [
+        "qa/manual-sweep/supplier-detail-light.png",
+        "qa/manual-sweep/supplier-detail-dark.png"
+      ]
+    },
+    {
+      "slug": "users",
+      "title": "Users",
+      "gif": "qa/recruiter-showcase/users.gif",
+      "sources": [
+        "qa/manual-sweep/users-light.png",
+        "qa/manual-sweep/users-dark.png"
+      ]
+    },
+    {
+      "slug": "user-create",
+      "title": "Create Staff",
+      "gif": "qa/recruiter-showcase/user-create.gif",
+      "sources": [
+        "qa/evidence/screenshots/users-create-staff.png"
+      ]
+    },
+    {
+      "slug": "user-detail",
+      "title": "User Detail",
+      "gif": "qa/recruiter-showcase/user-detail.gif",
+      "sources": [
+        "qa/manual-sweep/user-detail-light.png",
+        "qa/evidence/screenshots/users-staff-security.png",
+        "qa/manual-sweep/user-detail-dark.png"
+      ]
+    },
+    {
+      "slug": "settings",
+      "title": "Settings",
+      "gif": "qa/recruiter-showcase/settings.gif",
+      "sources": [
+        "qa/manual-sweep/settings-light.png",
+        "qa/evidence/screenshots/settings-dark-mode.png",
+        "qa/manual-sweep/settings-dark.png"
+      ]
+    }
+  ]
+}

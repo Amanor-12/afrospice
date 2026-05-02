@@ -6,15 +6,17 @@ const rootDir = path.resolve(__dirname, "..");
 const frontendDir = path.join(rootDir, "frontend");
 const backendDir = path.join(rootDir, "backend");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const preferredBackendPort = Number(process.env.PLAYWRIGHT_BACKEND_PORT || 5000);
 const preferredFrontendPort = Number(process.env.PLAYWRIGHT_FRONTEND_PORT || 4173);
-const backendHealthUrl = "http://localhost:5000/api/system/health";
+const backendBaseUrl = `http://localhost:${preferredBackendPort}`;
+const backendHealthUrl = `${backendBaseUrl}/api/system/health`;
 const backendCapabilityUrls = [
-  "http://localhost:5000/api/auth/passkeys",
-  "http://localhost:5000/api/settings/email-logs",
-  "http://localhost:5000/api/reports/owner-assistant",
-  "http://localhost:5000/api/reports/notifications",
-  "http://localhost:5000/api/customers/preview/new",
-  "http://localhost:5000/api/customers/1/communications",
+  `${backendBaseUrl}/api/auth/passkeys`,
+  `${backendBaseUrl}/api/settings/email-logs`,
+  `${backendBaseUrl}/api/reports/owner-assistant`,
+  `${backendBaseUrl}/api/reports/notifications`,
+  `${backendBaseUrl}/api/customers/preview/new`,
+  `${backendBaseUrl}/api/customers/1/communications`,
 ];
 
 function buildFrontendHealthUrl(port) {
@@ -69,7 +71,7 @@ function requestStatus(url, timeoutMs = 1500) {
 
 async function isStackHealthy() {
   const backendStatus = await requestStatus(backendHealthUrl);
-  return backendStatus >= 200 && backendStatus < 500;
+  return backendStatus >= 200 && backendStatus < 300;
 }
 
 function isCapabilityStatusHealthy(statusCode) {
@@ -188,7 +190,7 @@ async function waitForFrontend(port, maxAttempts = 120) {
   return false;
 }
 
-function spawnProcess(command, args, cwd, label) {
+function spawnProcess(command, args, cwd, label, envOverrides = {}) {
   const invocation =
     process.platform === "win32"
       ? {
@@ -204,7 +206,10 @@ function spawnProcess(command, args, cwd, label) {
     cwd,
     stdio: "inherit",
     shell: false,
-    env: process.env,
+    env: {
+      ...process.env,
+      ...envOverrides,
+    },
   });
 
   child.on("error", (error) => {
@@ -214,12 +219,15 @@ function spawnProcess(command, args, cwd, label) {
   return child;
 }
 
-function spawnDirectProcess(command, args, cwd, label) {
+function spawnDirectProcess(command, args, cwd, label, envOverrides = {}) {
   const child = spawn(command, args, {
     cwd,
     stdio: "inherit",
     shell: false,
-    env: process.env,
+    env: {
+      ...process.env,
+      ...envOverrides,
+    },
   });
 
   child.on("error", (error) => {
@@ -242,7 +250,10 @@ async function main() {
       process.execPath,
       [path.join(backendDir, "server.js")],
       backendDir,
-      "backend"
+      "backend",
+      {
+        PORT: String(preferredBackendPort),
+      }
     );
     const backendHealthy = await waitForBackend(120, true);
     if (!backendHealthy) {
@@ -253,10 +264,14 @@ async function main() {
       process.exit(1);
     }
   } else if (!backendSupportsCapabilities) {
-    console.log("Backend is running but missing required AfroSpice routes. Replacing it for browser E2E...");
-    const terminated = terminateProcessOnPort(5000);
+    console.log(
+      `Backend is running on port ${preferredBackendPort} but missing required AfroSpice routes. Replacing it for browser E2E...`
+    );
+    const terminated = terminateProcessOnPort(preferredBackendPort);
     if (!terminated) {
-      console.error("Could not replace the stale backend process on port 5000.");
+      console.error(
+        `Could not replace the stale backend process on port ${preferredBackendPort}.`
+      );
       process.exit(1);
     }
 
@@ -264,7 +279,10 @@ async function main() {
       process.execPath,
       [path.join(backendDir, "server.js")],
       backendDir,
-      "backend"
+      "backend",
+      {
+        PORT: String(preferredBackendPort),
+      }
     );
     const backendHealthy = await waitForBackend(120, true);
     if (!backendHealthy) {
@@ -275,7 +293,9 @@ async function main() {
       process.exit(1);
     }
   } else {
-    console.log("Using already-running backend on localhost:5000 with the required AfroSpice routes.");
+    console.log(
+      `Using already-running backend on ${backendBaseUrl} with the required AfroSpice routes.`
+    );
   }
 
   frontendPort = await resolveFrontendPort();
@@ -304,7 +324,10 @@ async function main() {
       String(frontendPort),
     ],
     rootDir,
-    "frontend"
+    "frontend",
+    {
+      VITE_BACKEND_URL: backendBaseUrl,
+    }
   );
 
   const frontendReady = await waitForFrontend(frontendPort);
@@ -335,6 +358,8 @@ async function main() {
       shell: false,
       env: {
         ...process.env,
+        PLAYWRIGHT_BACKEND_PORT: String(preferredBackendPort),
+        VITE_BACKEND_URL: backendBaseUrl,
         PLAYWRIGHT_BASE_URL: `http://localhost:${frontendPort}`,
       },
     }

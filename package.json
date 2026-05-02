@@ -29,6 +29,7 @@
     "verify:browser:e2e": "node ./scripts/run-playwright-e2e.cjs",
     "verify:load:smoke": "node ./scripts/load-smoke.cjs",
     "verify:load:proof": "node ./scripts/load-proof.cjs",
+    "qa:recruiter:gifs": "python ./scripts/generate_recruiter_gifs.py",
     "deploy:render:target": "node ./scripts/render-deploy-target.cjs",
     "verify:release": "node ./scripts/verify-release.cjs",
     "verify:release:local": "node ./scripts/verify-release.cjs --allow-readiness-warnings"
